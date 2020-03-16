@@ -4,7 +4,7 @@ This project provides a Python SDK for interacting with the Cumulus AIR API (htt
 
 ## Installation
 
-pip3 install git+https://gitlab.com/cumulus-consulting/air/air-sdk.git
+pip3 install git+https://gitlab.com/cumulus-consulting/air/cumulus_air_sdk.git
 
 ## Usage
 

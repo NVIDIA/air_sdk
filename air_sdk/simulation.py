@@ -18,3 +18,12 @@ class Simulation:
         """ Returns a list of active simulations """
         res = self.api.get(self.url)
         return res.json()
+
+    def get_simulation(self):
+        """ TODO """
+
+    def create_simulation(self):
+        """ TODO """
+
+    def update_simulation(self):
+        """ TODO """

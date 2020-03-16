@@ -1,5 +1,6 @@
 coverage
 pylint
 pylint-quotes
+pytest
 requests
 requests_mock

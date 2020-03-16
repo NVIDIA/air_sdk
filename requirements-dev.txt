@@ -1,0 +1,5 @@
+coverage
+pylint
+pylint-quotes
+requests
+requests_mock

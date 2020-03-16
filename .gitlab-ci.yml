@@ -1,0 +1,43 @@
+image: python:3
+
+# Change pip's cache directory to be inside the project directory since we can
+# only cache local items.
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  paths:
+    - .cache/pip
+
+lint:
+  stage: test
+  before_script:
+    - pip install -r requirements-dev.txt
+  script:
+    - pylint air_sdk
+
+unit:
+  stage: test
+  before_script:
+    - pip install -r requirements-dev.txt
+  script:
+    - coverage run --omit=air_sdk/tests/*,*/__init__.py --source='./air_sdk' `which pytest` air_sdk
+  after_script:
+    - coverage report
+    - coverage html
+  artifacts:
+    paths:
+      - htmlcov/
+    expire_in: 1 hour
+
+pages:
+  stage: deploy
+  dependencies:
+    - unit
+  script:
+    - mv htmlcov/ public/
+  artifacts:
+    paths:
+      - public
+  only:
+    - master

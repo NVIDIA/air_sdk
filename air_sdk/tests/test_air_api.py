@@ -22,7 +22,10 @@ class TestAirApi(TestCase):
         self.assertEqual(self.api.token, '')
 
         # Assert API helpers are loaded
-        self.assertIsInstance(self.api.simulation, sdk.Simulation)
+        self.assertIsInstance(self.api.node, sdk.NodeApi)
+        self.assertIsInstance(self.api.permission, sdk.PermissionApi)
+        self.assertIsInstance(self.api.service, sdk.ServiceApi)
+        self.assertIsInstance(self.api.simulation, sdk.SimulationApi)
 
     def test_authorize_token(self):
         self.api.authorize(token='foo')

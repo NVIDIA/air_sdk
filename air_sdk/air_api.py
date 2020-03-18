@@ -6,7 +6,11 @@ import logging
 from json import JSONDecodeError
 import requests
 from .exceptions import AirAuthorizationError
-from .simulation import Simulation
+from .node import NodeApi
+from .permission import PermissionApi
+from .service import ServiceApi
+from .simulation import SimulationApi
+from .simulation_interface import SimulationInterfaceApi
 
 class AirApi:
     """
@@ -17,7 +21,11 @@ class AirApi:
         self.api.headers.update({'content-type': 'application/json'})
         self.api_url = api_url + api_version
         self.token = ''
-        self.simulation = Simulation(self)
+        self.node = NodeApi(self)
+        self.permission = PermissionApi(self)
+        self.service = ServiceApi(self)
+        self.simulation = SimulationApi(self)
+        self.simulation_interface = SimulationInterfaceApi(self)
 
     def authorize(self, **kwargs):
         """

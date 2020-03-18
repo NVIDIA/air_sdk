@@ -49,6 +49,8 @@ class TestServiceApi(TestCase):
             {'name': 'oob-mgmt-server', 'interfaces': [{'name': 'eth0', 'id': 2}]}
         ]
         self.api.node.get_nodes = MagicMock(return_value=nodes)
+        self.api.simulation_interface.get_simulation_interfaces = \
+            MagicMock(return_value=[{'id': '999'}])
         mock_requests.post(self.service.url, status_code=201, json={'id': 'xyz'})
         service, payload = self.service.create_service('abc', 'ssh oob-mgmt-server',
                                                        'oob-mgmt-server:eth0', 22, test='new')
@@ -72,14 +74,29 @@ class TestServiceApi(TestCase):
             self.service.create_service('abc', 'ssh oob-mgmt-server', 'oob-mgmt-server:eth0', 22)
             self.assertEqual(err.value, 'Interface oob-mgmt-server:eth0 not does not exist')
 
-    @requests_mock.Mocker()
-    def test_create_service_bad_code(self, mock_requests):
+    def test_create_service_no_simint(self):
         self.api.node = MagicMock()
         nodes = [
             {'name': 'foo', 'interfaces': [{'name': 'foo', 'id': 1}]},
             {'name': 'oob-mgmt-server', 'interfaces': [{'name': 'eth0', 'id': 2}]}
         ]
         self.api.node.get_nodes = MagicMock(return_value=nodes)
+        self.api.simulation_interface.get_simulation_interfaces = \
+            MagicMock(return_value=[])
+        with pytest.raises(sdk.exceptions.AirUnexpectedResponse) as err:
+            self.service.create_service('abc', 'ssh oob-mgmt-server', 'oob-mgmt-server:eth0', 22)
+            self.assertEqual(err.value, [])
+
+    @requests_mock.Mocker()
+    def test_create_service_bad_code(self, mock_requests):
+        self.api.node = MagicMock()
+        nodes = [
+            {'name': 'foo', 'interfaces': [{'name': 'foo', 'id': '1'}]},
+            {'name': 'oob-mgmt-server', 'interfaces': [{'name': 'eth0', 'id': '2'}]}
+        ]
+        self.api.node.get_nodes = MagicMock(return_value=nodes)
+        self.api.simulation_interface.get_simulation_interfaces = \
+            MagicMock(return_value=[{'id': 'xyz'}])
         mock_requests.post(self.service.url, status_code=400)
         with pytest.raises(sdk.exceptions.AirUnexpectedResponse) as err:
             self.service.create_service('abc', 'ssh oob-mgmt-server', 'oob-mgmt-server:eth0', 22)
@@ -89,10 +106,12 @@ class TestServiceApi(TestCase):
     def test_create_service_bad_json(self, mock_requests):
         self.api.node = MagicMock()
         nodes = [
-            {'name': 'foo', 'interfaces': [{'name': 'foo', 'id': 1}]},
-            {'name': 'oob-mgmt-server', 'interfaces': [{'name': 'eth0', 'id': 2}]}
+            {'name': 'foo', 'interfaces': [{'name': 'foo', 'id': '1'}]},
+            {'name': 'oob-mgmt-server', 'interfaces': [{'name': 'eth0', 'id': '2'}]}
         ]
         self.api.node.get_nodes = MagicMock(return_value=nodes)
+        self.api.simulation_interface.get_simulation_interfaces = \
+            MagicMock(return_value=[{'id': 'xyz'}])
         mock_requests.post(self.service.url, status_code=201, text='foo')
         with pytest.raises(sdk.exceptions.AirUnexpectedResponse) as err:
             self.service.create_service('abc', 'ssh oob-mgmt-server', 'oob-mgmt-server:eth0', 22)

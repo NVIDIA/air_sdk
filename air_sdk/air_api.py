@@ -10,6 +10,7 @@ from .node import NodeApi
 from .permission import PermissionApi
 from .service import ServiceApi
 from .simulation import SimulationApi
+from .simulation_interface import SimulationInterfaceApi
 
 class AirApi:
     """
@@ -24,6 +25,7 @@ class AirApi:
         self.permission = PermissionApi(self)
         self.service = ServiceApi(self)
         self.simulation = SimulationApi(self)
+        self.simulation_interface = SimulationInterfaceApi(self)
 
     def authorize(self, **kwargs):
         """

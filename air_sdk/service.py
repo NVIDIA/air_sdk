@@ -1,6 +1,7 @@
 """
 Service module
 """
+from .exceptions import AirUnexpectedResponse
 from .util import raise_if_invalid_response
 
 class Service:
@@ -74,10 +75,17 @@ class ServiceApi:
 
         if not interface_id:
             raise ValueError('Interface ' + interface + ' does not exist')
+
+        sim_ints = self.api.simulation_interface.get_simulation_interfaces(simulation_id,
+                                                                           interface_id)
+        try:
+            interface_id = sim_ints[0]['id']
+        except (IndexError, KeyError):
+            raise AirUnexpectedResponse(sim_ints)
+
         data['interface'] = interface_id
 
-        res = self.api.post(self.url, data)
+        res = self.api.post(self.url, json=data)
         raise_if_invalid_response(res, 201)
-        payload = res.json()
-        service = Service(self, **payload)
-        return service, payload
+        service = Service(self, **res.json())
+        return service, res.json()

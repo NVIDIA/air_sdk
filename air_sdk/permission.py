@@ -47,7 +47,7 @@ class PermissionApi:
                              '`topology` argument')
         data = kwargs
         data['email'] = email
-        res = self.api.post(self.url, data)
+        res = self.api.post(self.url, json=data)
         raise_if_invalid_response(res, 201)
         payload = res.json()
         permission = Permission(self, **payload)

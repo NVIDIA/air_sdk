@@ -1,13 +1,13 @@
 """
 Simulation module
 """
+from copy import deepcopy
 from .exceptions import AirUnexpectedResponse
 from .util import raise_if_invalid_response
 
 class Simulation:
     """ Representiation of an AIR Simulation object """
     def __init__(self, api, **kwargs):
-        print(kwargs)
         self.simulation_api = api
         self.url = kwargs.get('url', None)
         self.id = kwargs.get('id', None)
@@ -30,7 +30,9 @@ class Simulation:
         **kwargs [dict] - A dictionary providing values to update. The dictionary will be merged
                           into the simulation's current values
         """
-        data = self.__dict__.update(kwargs)
+        data = deepcopy(self.__dict__)
+        del data['simulation_api']
+        data.update(kwargs)
         self.simulation_api.update_simulation(self.id, data)
 
     def create_service(self, name, interface, dest_port, **kwargs):
@@ -97,7 +99,7 @@ class SimulationApi:
         AirUnexpectedResponse - Raised if the API does not return a 200
         """
         url = self.url + simulation_id + '/'
-        res = self.api.put(url, data)
+        res = self.api.put(url, json=data)
         if res.status_code != 200:
             raise AirUnexpectedResponse(res.status_code)
 
@@ -115,7 +117,7 @@ class SimulationApi:
         """
         url = self.url + snapshot_id + '/control/'
         data = {'action': 'duplicate'}
-        res = self.api.post(url, data=data)
+        res = self.api.post(url, json=data)
         raise_if_invalid_response(res)
         payload = res.json()
         if payload.get('simulation', None):

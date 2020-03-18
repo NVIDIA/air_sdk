@@ -32,10 +32,11 @@ class TestSimulation(TestCase):
     def test_update(self):
         self.api.update_simulation = MagicMock()
         original = deepcopy(self.simulation.__dict__)
+        del original['simulation_api']
         new = {'new': 'test'}
-        merged = original.update(new)
+        original.update(new)
         self.simulation.update(**new)
-        self.api.update_simulation.assert_called_with(self.data['id'], merged)
+        self.api.update_simulation.assert_called_with(self.data['id'], original)
 
     def test_create_service(self):
         self.api.api.service = MagicMock()
@@ -75,7 +76,7 @@ class TestSimulationApi(TestCase):
         self.simulation.api.put = MagicMock(return_value=mock_resp)
         payload = {'foo': 'bar'}
         self.simulation.update_simulation('abc', payload)
-        self.simulation.api.put.assert_called_with(self.simulation.url + 'abc/', payload)
+        self.simulation.api.put.assert_called_with(self.simulation.url + 'abc/', json=payload)
 
     def test_update_simulation_failed(self):
         mock_resp = MagicMock()

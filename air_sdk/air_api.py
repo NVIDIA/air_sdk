@@ -16,7 +16,7 @@ class AirApi:
     """
     API Client instance
     """
-    def __init__(self, api_url='http://localhost:8000/api/', api_version='v1'):
+    def __init__(self, api_url='https://air.cumulusnetworks.com/api/', api_version='v1'):
         self.api = requests.Session()
         self.api.headers.update({'content-type': 'application/json'})
         self.api_url = api_url + api_version

@@ -114,3 +114,12 @@ class TestSimulationApi(TestCase):
         with pytest.raises(sdk.exceptions.AirUnexpectedResponse) as err:
             self.simulation.duplicate('abc')
             self.assertEqual(err.value, {})
+
+    @requests_mock.Mocker()
+    def test_duplicate_kwargs(self, mock_requests):
+        data = {'simulation': {'id': 'foo'}}
+        mock_requests.post(self.simulation.url + 'abc/control/', json=data)
+        self.simulation.duplicate('abc', foo='bar')
+        self.assertEqual(mock_requests.call_count, 1)
+        self.assertDictEqual(mock_requests.last_request.json(),
+                             {'action': 'duplicate', 'foo': 'bar'})

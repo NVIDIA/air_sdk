@@ -103,10 +103,11 @@ class SimulationApi:
         if res.status_code != 200:
             raise AirUnexpectedResponse(res.status_code)
 
-    def duplicate(self, snapshot_id):
+    def duplicate(self, snapshot_id, **kwargs):
         """
         Arguments:
         snapshot_id (str) - UUID of the snapshot simulation to be duplicated
+        kwargs [dict] - Options to include in the /control API call
 
         Returns:
         Simulation - Python representation of the newly created simulation object
@@ -116,7 +117,8 @@ class SimulationApi:
         AirUnexpectedResponse - Raised if the API returns a non-200 or an invalid JSON response
         """
         url = self.url + snapshot_id + '/control/'
-        data = {'action': 'duplicate'}
+        data = kwargs
+        data['action'] = 'duplicate'
         res = self.api.post(url, json=data)
         raise_if_invalid_response(res)
         payload = res.json()

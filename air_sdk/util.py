@@ -19,8 +19,8 @@ def raise_if_invalid_response(res, status_code=200):
     """
     if res.status_code != status_code:
         logging.debug(res.text)
-        raise AirUnexpectedResponse(res.status_code)
+        raise AirUnexpectedResponse(message=res.text, status_code=res.status_code)
     try:
         res.json()
     except JSONDecodeError:
-        raise AirUnexpectedResponse(res)
+        raise AirUnexpectedResponse(message=res)

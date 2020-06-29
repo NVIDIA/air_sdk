@@ -101,7 +101,8 @@ class SimulationApi:
         url = self.url + simulation_id + '/'
         res = self.api.put(url, json=data)
         if res.status_code != 200:
-            raise AirUnexpectedResponse(res.status_code)
+            message = getattr(res, 'data', getattr(res, 'text', res.status_code))
+            raise AirUnexpectedResponse(message=message, status_code=res.status_code)
 
     def duplicate(self, snapshot_id, **kwargs):
         """

@@ -123,3 +123,25 @@ class TestSimulationApi(TestCase):
         self.assertEqual(mock_requests.call_count, 1)
         self.assertDictEqual(mock_requests.last_request.json(),
                              {'action': 'duplicate', 'foo': 'bar'})
+
+    def test_create_simulation(self):
+        api = MagicMock()
+        api.api_url = 'http://testserver'
+        api.post.return_value.status_code = 201
+        api.post.return_value.json.return_value = {'name': 'foo'}
+        simulation = sdk.SimulationApi(api)
+        sim, json = simulation.create_simulation(foo='bar')
+        api.post.assert_called_with('http://testserver/simulation/', json={'foo': 'bar'})
+        self.assertEqual(sim.name, 'foo')
+        self.assertEqual(json, {'name': 'foo'})
+
+    def test_create_simulation_bad_status(self):
+        api = MagicMock()
+        api.post.return_value.status_code = 400
+        api.post.return_value.data = 'test error'
+        simulation = sdk.SimulationApi(api)
+        with self.assertRaises(sdk.exceptions.AirUnexpectedResponse) as err:
+            simulation.create_simulation(name='foo')
+        self.assertEqual(err.exception.message,
+                         'Received an unexpected response from the Cumulus AIR API: test error')
+        self.assertEqual(err.exception.status_code, 400)

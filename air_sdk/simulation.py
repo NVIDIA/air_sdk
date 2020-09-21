@@ -85,8 +85,26 @@ class SimulationApi:
     def get_simulation(self):
         """ TODO """
 
-    def create_simulation(self):
-        """ TODO """
+    def create_simulation(self, **kwargs):
+        """
+        Create a new simulation.
+
+        Arguments:
+        kwargs (dict) - Arguments passed to the Simulation create API
+
+        Returns:
+        Simulation - Newly created simulation object
+        dict - JSON response from the API
+
+        Raises:
+        AirUnexpectedResponse - Raised if an unexpected response is received from the API
+        """
+        res = self.api.post(self.url, json=kwargs)
+        if res.status_code != 201:
+            message = getattr(res, 'data', getattr(res, 'text', res.status_code))
+            raise AirUnexpectedResponse(message=message, status_code=res.status_code)
+        simulation = Simulation(self, **res.json())
+        return simulation, res.json()
 
     def update_simulation(self, simulation_id, data):
         """

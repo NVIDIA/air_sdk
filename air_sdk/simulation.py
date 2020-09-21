@@ -66,6 +66,10 @@ class Simulation:
         """
         self.simulation_api.api.permission.create_permission(email, simulation=self.id, **kwargs)
 
+    def start(self):
+        """ Starts a simulation with a call to the /simulation/:id/control API """
+        self.simulation_api.api.control(self.id, 'load')
+
 class SimulationApi:
     """ Wrapper for the Simulation API """
     def __init__(self, api):
@@ -145,3 +149,20 @@ class SimulationApi:
             sim = Simulation(self, **payload['simulation'])
             return sim, payload
         raise AirUnexpectedResponse(payload)
+
+    def control(self, simulation_id, action, **kwargs):
+        """
+        Calls the POST /simulation/:id/control/ API to control a simulation
+
+        Arguments:
+        simulation_id (str) - UUID of the simulation to control
+        action (str) - Action to perform
+        kwargs [dict] - Optional key/value pairs to include in the POST payload
+
+        Returns:
+        HTTPResponse
+        """
+        url = self.url + simulation_id + '/control/'
+        data = deepcopy(kwargs)
+        data['action'] = action
+        return self.api.post(url, json=data)

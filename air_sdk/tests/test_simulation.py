@@ -1,7 +1,7 @@
 """
 Tests for simulation.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring
+#pylint: disable=missing-function-docstring,missing-class-docstring,no-self-use
 
 from copy import deepcopy
 from unittest import TestCase
@@ -53,6 +53,10 @@ class TestSimulation(TestCase):
         self.api.api.permission.create_permission.assert_called_with('foo@bar.com',
                                                                      simulation=self.data['id'],
                                                                      foo='bar')
+
+    def test_start(self):
+        self.simulation.start()
+        self.api.api.control.assert_called_with(self.simulation.id, 'load')
 
 class TestSimulationApi(TestCase):
     def setUp(self):
@@ -145,3 +149,11 @@ class TestSimulationApi(TestCase):
         self.assertEqual(err.exception.message,
                          'Received an unexpected response from the Cumulus AIR API: test error')
         self.assertEqual(err.exception.status_code, 400)
+
+    def test_control(self):
+        api = MagicMock()
+        api.api_url = 'http://testserver'
+        simulation = sdk.SimulationApi(api)
+        simulation.control('abc', 'load', foo='bar')
+        api.post.assert_called_with('http://testserver/simulation/abc/control/',
+                                    json={'action': 'load', 'foo': 'bar'})

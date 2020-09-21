@@ -11,6 +11,7 @@ from .permission import PermissionApi
 from .service import ServiceApi
 from .simulation import SimulationApi
 from .simulation_interface import SimulationInterfaceApi
+from .topology import TopologyApi
 
 class AirApi:
     """
@@ -26,6 +27,7 @@ class AirApi:
         self.service = ServiceApi(self)
         self.simulation = SimulationApi(self)
         self.simulation_interface = SimulationInterfaceApi(self)
+        self.topology = TopologyApi(self)
 
     def authorize(self, **kwargs):
         """

@@ -56,7 +56,7 @@ class TestSimulation(TestCase):
 
     def test_start(self):
         self.simulation.start()
-        self.api.api.control.assert_called_with(self.simulation.id, 'load')
+        self.api.control.assert_called_with(self.simulation.id, 'load')
 
 class TestSimulationApi(TestCase):
     def setUp(self):

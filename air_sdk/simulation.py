@@ -68,7 +68,7 @@ class Simulation:
 
     def start(self):
         """ Starts a simulation with a call to the /simulation/:id/control API """
-        self.simulation_api.api.control(self.id, 'load')
+        self.simulation_api.control(self.id, 'load')
 
 class SimulationApi:
     """ Wrapper for the Simulation API """

@@ -63,7 +63,7 @@ class TestSimulationApi(TestCase):
         self.api.post.return_value.status_code = 201
         self.api.post.return_value.json.return_value = {'name': 'foo'}
         res, json = self.topology.create_topology(dot='foobar')
-        self.api.post.assert_called_with(self.topology.url, data='foobar',
+        self.api.post.assert_called_with(self.topology.url, data=b'foobar',
                                          headers={'Content-type': 'text/vnd.graphviz'})
         self.assertEqual(res.name, 'foo')
         self.assertDictEqual(json, {'name': 'foo'})

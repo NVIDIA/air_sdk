@@ -81,7 +81,8 @@ class TopologyApi:
         if json:
             res = self.api.post(self.url, json=json)
         elif dot:
-            res = self.api.post(self.url, data=dot, headers={'Content-type': 'text/vnd.graphviz'})
+            res = self.api.post(self.url, data=dot.encode('utf-8'),
+                                headers={'Content-type': 'text/vnd.graphviz'})
         if res.status_code != 201:
             message = getattr(res, 'data', getattr(res, 'text', res.status_code))
             raise AirUnexpectedResponse(message=message, status_code=res.status_code)

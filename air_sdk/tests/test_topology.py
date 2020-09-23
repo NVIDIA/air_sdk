@@ -35,7 +35,7 @@ class TestTopology(TestCase):
         self.api.api.permission.create_permission.assert_called_with('foo@bar.com',
                                                                      topology=self.data['id'],
                                                                      foo='bar')
-class TestSimulationApi(TestCase):
+class TestTopologyApi(TestCase):
     def setUp(self):
         self.api = MagicMock()
         self.api.api_url = 'http://testserver'

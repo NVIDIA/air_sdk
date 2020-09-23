@@ -63,9 +63,25 @@ class SimulationNodeApi:
             raise AirUnexpectedResponse(message=message, status_code=res.status_code)
 
     def get_simulation_nodes(self, **kwargs):
+        """
+        Get a list of simulation_nodes
+
+        Arguments:
+        kwargs [dict] - Query parameters to pass with the GET request
+
+        Raises:
+        AirUnexpectedResponse - Raised if the API does not return a 200
+
+        Returns:
+        list - list of simulation nodes returned by the API
+        """
         url = self.url
         if kwargs:
             url += '?'
             for key, value in kwargs.items():
                 url += f'&{key}={value}'
-        return self.api.get(url)
+        res = self.api.get(url)
+        if res.status_code != 200:
+            message = getattr(res, 'data', getattr(res, 'text', res.status_code))
+            raise AirUnexpectedResponse(message=message, status_code=res.status_code)
+        return res.json()

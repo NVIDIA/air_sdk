@@ -56,7 +56,17 @@ class TestSimulationNodeApi(TestCase):
         self.assertEqual(err.exception.status_code, 400)
 
     def test_get_simulation_nodes(self):
-        self.api.get.return_value = 'test'
+        self.api.get.return_value.status_code = 200
+        self.api.get.return_value.json.return_value = 'test'
         res = self.simulation_node.get_simulation_nodes(simulation='12345')
         self.api.get.assert_called_with('http://testserver/simulation-node/?&simulation=12345')
         self.assertEqual(res, 'test')
+
+    def test_get_simulation_nodes_bad_status(self):
+        self.api.get.return_value.status_code = 400
+        self.api.get.return_value.data = 'test error'
+        with self.assertRaises(sdk.exceptions.AirUnexpectedResponse) as err:
+            self.simulation_node.get_simulation_nodes(simulation='12345')
+        message = 'Received an unexpected response from the Cumulus AIR API: test error'
+        self.assertEqual(err.exception.message, message)
+        self.assertEqual(err.exception.status_code, 400)

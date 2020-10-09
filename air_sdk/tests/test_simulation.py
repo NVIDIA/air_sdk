@@ -58,6 +58,14 @@ class TestSimulation(TestCase):
         self.simulation.start()
         self.api.control.assert_called_with(self.simulation.id, 'load')
 
+    def test_store(self):
+        self.simulation.store()
+        self.api.control.assert_called_with(self.simulation.id, 'store')
+
+    def test_delete(self):
+        self.simulation.delete()
+        self.api.control.assert_called_with(self.simulation.id, 'destroy')
+
 class TestSimulationApi(TestCase):
     def setUp(self):
         self.api = AirApi('http://test/api/', 'v1')

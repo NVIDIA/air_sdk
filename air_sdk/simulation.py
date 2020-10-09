@@ -70,6 +70,14 @@ class Simulation:
         """ Starts a simulation with a call to the /simulation/:id/control API """
         self.simulation_api.control(self.id, 'load')
 
+    def store(self):
+        """ Stores a simulation with a call to the /simulation/:id/control API """
+        self.simulation_api.control(self.id, 'store')
+
+    def delete(self):
+        """ Deletes a simulation with a call to the /simulation/:id/control API """
+        self.simulation_api.control(self.id, 'destroy')
+
 class SimulationApi:
     """ Wrapper for the Simulation API """
     def __init__(self, api):

@@ -4,7 +4,11 @@ This project provides a Python SDK for interacting with the Cumulus AIR API (htt
 
 ## Installation
 
+The SDK requires python 3.6 or later. To install:
+
+```
 pip3 install git+https://gitlab.com/cumulus-consulting/air/cumulus_air_sdk.git
+```
 
 ## Usage
 

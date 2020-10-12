@@ -42,6 +42,12 @@ class TestServiceApi(TestCase):
         self.assertListEqual(res, payload)
 
     @requests_mock.Mocker()
+    def test_get_service(self, mock_requests):
+        mock_requests.get(f'{self.service.url}abc/', json={'id': 'abc'})
+        res = self.service.get_service('abc')
+        self.assertEqual(res.id, 'abc')
+
+    @requests_mock.Mocker()
     def test_create_service(self, mock_requests):
         self.api.node = MagicMock()
         nodes = [

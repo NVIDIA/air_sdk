@@ -33,8 +33,19 @@ class ServiceApi:
         res = self.api.get(self.url)
         return res.json()
 
-    def get_service(self):
-        """ TODO """
+    def get_service(self, service_id):
+        """
+        Get an instance of a service
+
+        Arguments:
+        service_id (str) - Service ID
+
+        Returns
+        Service
+        """
+        res = self.api.get(f'{self.url}{service_id}/')
+        service = Service(self, **res.json())
+        return service
 
     def create_service(self, simulation_id, name, interface, dest_port, **kwargs):
         """

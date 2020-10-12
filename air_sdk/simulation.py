@@ -13,7 +13,10 @@ class Simulation:
         self.id = kwargs.get('id', None)
         self.topology = kwargs.get('topology', None)
         self.nodes = kwargs.get('nodes', [])
-        self.services = kwargs.get('services', [])
+        self.services = []
+        for url in kwargs.get('services', []):
+            svc = self.simulation_api.api.service.get_service(url.split('/')[6])
+            self.services.append(svc)
         self.name = kwargs.get('name', None)
         self.expires = kwargs.get('expires', False)
         self.expires_at = kwargs.get('expires_at', None)
@@ -49,8 +52,9 @@ class Simulation:
         Raises:
         ValueError - Raised if the interface is invalid or not found
         """
-        self.simulation_api.api.service.create_service(self.id, name, interface, dest_port,
-                                                       **kwargs)
+        service = self.simulation_api.api.service.create_service(self.id, name, interface,
+                                                                 dest_port, **kwargs)
+        self.services.append(service)
 
     def add_permission(self, email, **kwargs):
         """
@@ -94,8 +98,19 @@ class SimulationApi:
         res = self.api.get(self.url)
         return res.json()
 
-    def get_simulation(self):
-        """ TODO """
+    def get_simulation(self, simulation_id):
+        """
+        Get an instance of a simulation
+
+        Arguments:
+        simulation_id (str) - Simulation ID
+
+        Returns
+        Simulation
+        """
+        res = self.api.get(f'{self.url}{simulation_id}/')
+        sim = Simulation(self, **res.json())
+        return sim
 
     def create_simulation(self, **kwargs):
         """

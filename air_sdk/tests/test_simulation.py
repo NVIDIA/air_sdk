@@ -15,8 +15,9 @@ class TestSimulation(TestCase):
     def setUp(self):
         self.api = MagicMock()
         self.api.api = MagicMock()
+        self.api.api.service.get_service.side_effect = ['mock svc', 'mock svc2']
         self.data = {'url': 'http://test/api/v1/simulation/abc', 'id': 'abc', 'topology': 'def',
-                     'nodes': [{'node1': 'foo'}], 'services': [{'svc1': 'foo'}],
+                     'nodes': [{'node1': 'foo'}], 'services': ['http://test/api/v1/service/xyz/'],
                      'name': 'foo@bar.com', 'expires': True,
                      'expires_at': '2020-03-17T01:00:00.000000Z', 'sleep': True,
                      'sleep_at': '2020-03-15T02:00:00.000000Z', 'netq_username': 'john@doe.com',
@@ -27,12 +28,15 @@ class TestSimulation(TestCase):
         self.assertEqual(self.simulation.simulation_api, self.api)
         data = deepcopy(self.data)
         data['simulation_api'] = self.api
+        data['services'] = ['mock svc']
         self.assertDictEqual(self.simulation.__dict__, data)
+        self.api.api.service.get_service.assert_called_with('xyz')
 
     def test_update(self):
         self.api.update_simulation = MagicMock()
         original = deepcopy(self.simulation.__dict__)
         del original['simulation_api']
+        original['services'] = ['mock svc']
         new = {'new': 'test'}
         original.update(new)
         self.simulation.update(**new)
@@ -40,11 +44,12 @@ class TestSimulation(TestCase):
 
     def test_create_service(self):
         self.api.api.service = MagicMock()
-        self.api.api.service.create_service = MagicMock()
+        self.api.api.service.create_service = MagicMock(return_value='mock svc2')
         self.simulation.create_service('foo', 'oob-mgmt-server:eth0', 22, foo='bar')
         self.api.api.service.create_service.assert_called_with(self.data['id'], 'foo',
                                                                'oob-mgmt-server:eth0', 22,
                                                                foo='bar')
+        self.assertEqual(self.simulation.services, ['mock svc', 'mock svc2'])
 
     def test_add_permission(self):
         self.api.api.permission = MagicMock()
@@ -81,6 +86,12 @@ class TestSimulationApi(TestCase):
         mock_requests.get(self.simulation.url, json=sims)
         res = self.simulation.get_simulations()
         self.assertListEqual(res, sims)
+
+    @requests_mock.Mocker()
+    def test_get_simulation(self, mock_requests):
+        mock_requests.get(f'{self.simulation.url}abc/', json={'id': 'abc'})
+        res = self.simulation.get_simulation('abc')
+        self.assertEqual(res.id, 'abc')
 
     def test_update_simulation(self):
         mock_resp = MagicMock()

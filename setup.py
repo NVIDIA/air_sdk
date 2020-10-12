@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='cumulus-air-sdk', # Replace with your own username
-    version='1.2.1',
+    version='1.2.2',
     author='Mike Robertson',
     author_email='mrobertson@cumulusnetworks.com',
     description='Python SDK for interacting with Cumulus AIR',

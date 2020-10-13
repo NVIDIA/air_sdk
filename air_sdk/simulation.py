@@ -49,12 +49,16 @@ class Simulation:
         dest_port (int) - Port number
         **kwargs [dict] - Optional key/values to include with the POST call
 
+        Returns:
+        Service - Newly created Service object
+
         Raises:
         ValueError - Raised if the interface is invalid or not found
         """
-        service = self.simulation_api.api.service.create_service(self.id, name, interface,
-                                                                 dest_port, **kwargs)
+        service, _ = self.simulation_api.api.service.create_service(self.id, name, interface,
+                                                                    dest_port, **kwargs)
         self.services.append(service)
+        return service
 
     def add_permission(self, email, **kwargs):
         """

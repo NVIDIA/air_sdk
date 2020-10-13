@@ -44,7 +44,7 @@ class TestSimulation(TestCase):
 
     def test_create_service(self):
         self.api.api.service = MagicMock()
-        self.api.api.service.create_service = MagicMock(return_value='mock svc2')
+        self.api.api.service.create_service = MagicMock(return_value=('mock svc2', None))
         self.simulation.create_service('foo', 'oob-mgmt-server:eth0', 22, foo='bar')
         self.api.api.service.create_service.assert_called_with(self.data['id'], 'foo',
                                                                'oob-mgmt-server:eth0', 22,

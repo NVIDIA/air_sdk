@@ -5,6 +5,7 @@ Cumulus AIR API module
 import logging
 from json import JSONDecodeError
 import requests
+from .capacity import CapacityApi
 from .exceptions import AirAuthorizationError
 from .node import NodeApi
 from .permission import PermissionApi
@@ -30,6 +31,7 @@ class AirApi:
         self.simulation_interface = SimulationInterfaceApi(self)
         self.topology = TopologyApi(self)
         self.simulation_node = SimulationNodeApi(self)
+        self.capacity = CapacityApi(self)
 
     def authorize(self, **kwargs):
         """

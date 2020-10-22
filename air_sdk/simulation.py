@@ -193,3 +193,14 @@ class SimulationApi:
         data = deepcopy(kwargs)
         data['action'] = action
         return self.api.post(url, json=data)
+
+    def get_citc_simulation(self):
+        """
+        Returns an instance of the active CITC reference snapshot
+
+        Returns:
+        Simulation
+        """
+        url = self.url + '/citc/'
+        res = self.api.get(url)
+        return Simulation(self, **res.json())

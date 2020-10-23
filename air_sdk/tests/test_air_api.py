@@ -27,6 +27,10 @@ class TestAirApi(TestCase):
         self.assertIsInstance(self.api.service, sdk.ServiceApi)
         self.assertIsInstance(self.api.simulation, sdk.SimulationApi)
         self.assertIsInstance(self.api.simulation_interface, sdk.SimulationInterfaceApi)
+        self.assertIsInstance(self.api.topology, sdk.TopologyApi)
+        self.assertIsInstance(self.api.simulation_node, sdk.SimulationNodeApi)
+        self.assertIsInstance(self.api.capacity, sdk.CapacityApi)
+        self.assertIsInstance(self.api.worker, sdk.WorkerApi)
 
     def test_authorize_token(self):
         self.api.authorize(token='foo')

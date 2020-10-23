@@ -176,3 +176,13 @@ class TestSimulationApi(TestCase):
         simulation.control('abc', 'load', foo='bar')
         api.post.assert_called_with('http://testserver/simulation/abc/control/',
                                     json={'action': 'load', 'foo': 'bar'})
+
+    def test_get_citc_simulation(self):
+        api = MagicMock()
+        api.api_url = 'http://testserver'
+        api.get.return_value.json.return_value = {'id': 'abc'}
+        simulation = sdk.SimulationApi(api)
+        res = simulation.get_citc_simulation()
+        api.get.assert_called_with('http://testserver/simulation/citc/')
+        self.assertIsInstance(res, sdk.simulation.Simulation)
+        self.assertEqual(res.id, 'abc')

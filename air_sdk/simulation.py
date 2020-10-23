@@ -201,6 +201,6 @@ class SimulationApi:
         Returns:
         Simulation
         """
-        url = self.url + '/citc/'
+        url = self.url + 'citc/'
         res = self.api.get(url)
         return Simulation(self, **res.json())

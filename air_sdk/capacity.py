@@ -30,5 +30,5 @@ class CapacityApi:
         sim_id = simulation_id
         if simulation:
             sim_id = simulation.id
-        res = self.api.get(self.url + str(sim_id))
+        res = self.api.get(f'{self.url}{sim_id}/')
         return Capacity(self, **res.json())

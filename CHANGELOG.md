@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0] - 2020-10-22
 ### Added
 - Capacity API
+- Worker API
 - `SimulationApi.get_citc_simulation()`
 
 ## [1.2.3] - 2020-10-13

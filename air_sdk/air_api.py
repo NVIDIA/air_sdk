@@ -14,6 +14,7 @@ from .simulation import SimulationApi
 from .simulation_interface import SimulationInterfaceApi
 from .simulation_node import SimulationNodeApi
 from .topology import TopologyApi
+from .worker import WorkerApi
 
 class AirApi:
     """
@@ -32,6 +33,7 @@ class AirApi:
         self.topology = TopologyApi(self)
         self.simulation_node = SimulationNodeApi(self)
         self.capacity = CapacityApi(self)
+        self.worker = WorkerApi(self)
 
     def authorize(self, **kwargs):
         """

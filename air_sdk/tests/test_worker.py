@@ -22,8 +22,10 @@ class TestWorker(TestCase):
         self.assertDictEqual(self.worker.__dict__, data)
 
     def test_set_available(self):
-        self.worker.set_available(True)
-        self.api.update_worker.assert_called_with(self.worker.id, **self.worker.__dict__)
+        data = deepcopy(self.data)
+        data['available'] = False
+        self.worker.set_available(False)
+        self.api.update_worker.assert_called_with(self.worker.id, **data)
 
 class TestWorkerApi(TestCase):
     def setUp(self):
@@ -49,6 +51,17 @@ class TestWorkerApi(TestCase):
 
     def test_update_worker(self):
         self.api.put.return_value.json.return_value = {'id': 'foo'}
+        self.api.put.return_value.status_code = 200
         res = self.worker.update_worker('123', name='test')
-        self.api.put.assert_called_with(f'{self.worker.url}123/', {'id': '123', 'name': 'test'})
+        self.api.put.assert_called_with(f'{self.worker.url}123/',
+                                        json={'id': '123', 'name': 'test'})
         self.assertEqual(res.id, 'foo')
+
+    def test_update_worker_failed(self):
+        self.api.put.return_value.status_code = 400
+        self.api.put.return_value.text = 'test'
+        with self.assertRaises(sdk.exceptions.AirUnexpectedResponse) as err:
+            self.worker.update_worker('123', name='test')
+        self.assertEqual(err.exception.message,
+                         'Received an unexpected response from the Cumulus AIR API: test')
+        self.assertEqual(err.exception.status_code, 400)

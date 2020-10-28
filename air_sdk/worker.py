@@ -1,6 +1,9 @@
 """
 Worker module
 """
+from copy import deepcopy
+
+from .exceptions import AirUnexpectedResponse
 
 class Worker:
     """ Representation of an AIR Worker object """
@@ -25,7 +28,9 @@ class Worker:
         available (bool)
         """
         self.available = available
-        self.worker_api.update_worker(self.id, **self.__dict__)
+        data = deepcopy(self.__dict__)
+        del data['worker_api']
+        self.worker_api.update_worker(self.id, **data)
 
 class WorkerApi:
     """ Wrapper for the /worker API """
@@ -63,5 +68,7 @@ class WorkerApi:
         url = f'{self.url}{worker_id}/'
         payload = kwargs
         payload['id'] = str(worker_id)
-        res = self.api.put(url, payload)
+        res = self.api.put(url, json=payload)
+        if res.status_code != 200:
+            raise AirUnexpectedResponse(res.text, res.status_code)
         return Worker(self, **res.json())

@@ -16,7 +16,7 @@ class TestService(TestCase):
         self.api = MagicMock()
         self.data = {'url': 'http://test/api/v1/service/abc', 'id': 'abc',
                      'name': 'ssh oob-mgmt-server', 'simulation': 'foo', 'interface': 'def',
-                     'dest_port': 22, 'src_port': 12345, 'link': 'http://test:$'}
+                     'dest_port': 22, 'src_port': 12345, 'link': 'http://test:$', 'host': 'test'}
         self.service = sdk.service.Service(self.api, **self.data)
 
     def test_init(self):

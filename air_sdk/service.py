@@ -17,7 +17,6 @@ class Service:
         self.src_port = kwargs.get('src_port', None)
         self.link = kwargs.get('link', None)
         self.host = kwargs.get('host', None)
-
 class ServiceApi:
     """ Wrapper for the Service API """
     def __init__(self, api):

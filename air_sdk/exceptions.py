@@ -21,3 +21,9 @@ class AirUnexpectedResponse(AirError):
     def __init__(self, message='', status_code=None):
         self.message = 'Received an unexpected response from the Cumulus AIR API: ' + str(message)
         super().__init__(message=self.message, status_code=status_code)
+
+class AirForbiddenError(AirError):
+    """ Raised when an API call returns a 403 Forbidden error """
+    def __init__(self, message='Received 403 Forbidden. Please call AirApi.authorize().'):
+        self.message = message
+        super().__init__(message=self.message, status_code=403)

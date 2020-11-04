@@ -6,7 +6,7 @@ import logging
 from json import JSONDecodeError
 import requests
 from .capacity import CapacityApi
-from .exceptions import AirAuthorizationError
+from .exceptions import AirAuthorizationError, AirForbiddenError
 from .node import NodeApi
 from .permission import PermissionApi
 from .service import ServiceApi
@@ -87,22 +87,28 @@ class AirApi:
         except JSONDecodeError:
             raise AirAuthorizationError('API did not return a valid JSON response')
 
+    def _request(self, method, url, *args, **kwargs):
+        res = self.api.request(method, url, *args, **kwargs)
+        if getattr(res, 'status_code') == 403:
+            raise AirForbiddenError
+        return res
+
     def get(self, url, *args, **kwargs):
         """ Wrapper method for GET requests """
-        return self.api.get(url, *args, **kwargs)
+        return self._request('GET', url, *args, **kwargs)
 
     def post(self, url, *args, **kwargs):
         """ Wrapper method for POST requests """
-        return self.api.post(url, *args, **kwargs)
+        return self._request('POST', url, *args, **kwargs)
 
     def put(self, url, *args, **kwargs):
         """ Wrapper method for PUT requests """
-        return self.api.put(url, *args, **kwargs)
+        return self._request('PUT', url, *args, **kwargs)
 
     def patch(self, url, *args, **kwargs):
         """ Wrapper method for PATCH requests """
-        return self.api.patch(url, *args, **kwargs)
+        return self._request('PATCH', url, *args, **kwargs)
 
     def delete(self, url, *args, **kwargs):
         """ Wrapper method for DELETE requests """
-        return self.api.delete(url, *args, **kwargs)
+        return self._request('DELETE', url, *args, **kwargs)

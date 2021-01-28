@@ -1,87 +1,207 @@
 """
 SimulationNode module
 """
-from copy import deepcopy
-from .exceptions import AirUnexpectedResponse
 
-class SimulationNode:
-    """ Representiation of an AIR SimulationNode object """
-    def __init__(self, api, **kwargs):
-        self.simulation_node_api = api
-        self.url = kwargs.get('url', None)
-        self.id = kwargs.get('id', None)
-        self.name = kwargs.get('name', None)
-        self.simulation = kwargs.get('simulation', None)
-        self.original = kwargs.get('original', None)
-        self.interfaces = kwargs.get('interfaces', [])
-        self.console_port = kwargs.get('console_port', None)
-        self.state = kwargs.get('state', None)
-        self.worker = kwargs.get('worker', None)
-        self.serial_port = kwargs.get('serial_port', None)
-        self.console_username = kwargs.get('console_username', None)
-        self.console_password = kwargs.get('console_password', None)
-        self.console_url = kwargs.get('console_url', None)
+from . import util
+from .air_model import AirModel
 
-    def update(self, **kwargs):
+class SimulationNode(AirModel):
+    """
+    Manage a SimulationNode
+
+    ### json
+    Returns a JSON string representation of the simulation node
+
+    ### refresh
+    Syncs the simulation node with all values returned by the API
+
+    ### update
+    Update the simulation node with the provided data
+
+    Arguments:
+        kwargs (dict, optional): All optional keyword arguments are applied as key/value
+                pairs in the request's JSON payload
+    """
+    _deletable = False
+
+    def __repr__(self):
+        if self._deleted:
+            return super().__repr__()
+        return f'<SimulationNode {self.id}>'
+
+    @util.required_kwargs(['executor', 'data'])
+    def create_instructions(self, **kwargs):
         """
-        Updates the simulation_node with a given set of key/values using a PUT call
+        Create instructions for the `SimulationNode`'s agent to execute
 
         Arguments:
-        **kwargs [dict] - A dictionary providing values to update. The dictionary will be merged
-                          into the SimulationNode's current values
+            data (str | list): Instruction data
+            executor (str): Agent executor type
+            kwargs (dict, optional): All other optional keyword arguments are applied as key/value
+                pairs in the request's JSON payload
+
+        Returns:
+        dict: Response JSON
+
+        Raises:
+        [`AirUnexpectedResposne`](/docs/exceptions) - API did not return a 200 OK
+            or valid response JSON
+
+        Example:
+        ```
+        >>> simulation_node.create_instructions(data='echo foo', executor='shell')
+        {'id': '67f73552-ffdf-4e5f-9881-aeae227604a3'}
+        ```
         """
-        data = deepcopy(self.__dict__)
-        del data['simulation_node_api']
-        data.update(kwargs)
-        self.simulation_node_api.update_simulation_node(self.id, data)
+        url = f'{self._api.url}{self.id}/instructions/'
+        if isinstance(kwargs['data'], list):
+            kwargs['data'] = '\n'.join(kwargs['data'])
+        res = self._api.client.post(url, json=kwargs)
+        util.raise_if_invalid_response(res)
+        return res.json()
+
+    def list_instructions(self, **kwargs):
+        #pylint: disable=line-too-long
+        """
+        List all instructions for a `SimulationNode`
+
+        Arguments:
+            kwargs (dict, optional): All other optional keyword arguments are applied as query
+                parameters/filters
+
+        Returns:
+        list
+
+        Raises:
+        [`AirUnexpectedResposne`](/docs/exceptions) - API did not return a 200 OK
+            or valid response JSON
+
+        Example:
+        ```
+        >>> simulation_node.instructions.list()
+        [{'id': '56abc69b-489f-429a-aed9-600f26afc956'}, {'id': '7c9c3449-f071-4bbc-bb42-bef04e44d74e'}]
+        ```
+        """ #pylint: enable=line-too-long
+        url = f'{self._api.url}{self.id}/instructions/'
+        res = self._api.client.get(url, params=kwargs)
+        util.raise_if_invalid_response(res, data_type=list)
+        return res.json()
+
+    def delete_instructions(self):
+        """
+        Delete all instructions for a `SimulationNode`
+
+        Raises:
+        [`AirUnexpectedResposne`](/docs/exceptions) - Instruction delete failed
+
+        Example:
+        ```
+        >>> simulation_node.instructions.delete()
+        ```
+        """
+        url = f'{self._api.url}{self.id}/instructions/'
+        res = self._api.client.delete(url)
+        util.raise_if_invalid_response(res, status_code=204, data_type=None)
+        return res.json()
+
+    @util.required_kwargs(['action'])
+    def control(self, **kwargs):
+        """
+        Sends a control command to the `SimulationNode`.
+
+        Arguments:
+            action (str): Control command
+            kwargs (dict, optional): All other optional keyword arguments are applied as key/value
+                pairs in the request's JSON payload
+
+        Returns:
+        dict: Response JSON
+
+        Example:
+        ```
+        >>> simulation_node.control(action='reset')
+        {'result': 'success'}
+        ```
+        """
+        url = f'{self._api.url}{self.id}/control/'
+        res = self._api.client.post(url, json=kwargs)
+        util.raise_if_invalid_response(res)
+        return res.json()
+
+    def rebuild(self, **kwargs):
+        """
+        Rebuild the `SimulationNode` back to it's initial state. **All existing data will be lost!**
+        """
+        self.control(action='rebuild', **kwargs)
+
+    def reset(self, **kwargs):
+        """ Reset the `SimulationNode` """
+        self.control(action='reset', **kwargs)
 
 class SimulationNodeApi:
     """ Wrapper for the SimulationNode API """
-    def __init__(self, api):
-        """
-        Arguments:
-        api (AirApi) - Instance of the AirApi client class.
-                       We assume the client has been authorized.
-        """
-        self.api = api
-        self.url = self.api.api_url + '/simulation-node/'
+    def __init__(self, client):
+        self.client = client
+        self.url = self.client.api_url + '/simulation-node/'
 
-    def update_simulation_node(self, simulation_node_id, data):
-        """
-        Updates the simulation_node with a given set of key/values using a PUT call
+    @util.deprecated('SimulationNode.update()')
+    def update_simulation_node(self, simulation_node_id, data): #pylint: disable=missing-function-docstring
+        node = self.get(simulation_node_id)
+        node.update(**data)
 
-        Arguments:
-        data (dict) - A dictionary providing values to use as the PUT payload
+    @util.deprecated('SimulationNodeApi.list()')
+    def get_simulation_nodes(self, **kwargs): #pylint: disable=missing-function-docstring
+        return self.list(**kwargs)
 
-        Raises:
-        AirUnexpectedResponse - Raised if the API does not return a 200
+    def get(self, simulation_node_id, **kwargs):
         """
-        url = self.url + simulation_node_id + '/'
-        res = self.api.put(url, json=data)
-        if res.status_code != 200:
-            message = getattr(res, 'data', getattr(res, 'text', res.status_code))
-            raise AirUnexpectedResponse(message=message, status_code=res.status_code)
-
-    def get_simulation_nodes(self, **kwargs):
-        """
-        Get a list of simulation_nodes
+        Get an existing simulation node
 
         Arguments:
-        kwargs [dict] - Query parameters to pass with the GET request
-
-        Raises:
-        AirUnexpectedResponse - Raised if the API does not return a 200
+            simulation_node_id (str): SimulationNode ID
+            kwargs (dict, optional): All other optional keyword arguments are applied as query
+                parameters/filters
 
         Returns:
-        list - list of simulation nodes returned by the API
+        [`SimulationNode`](/docs/simulationnode)
+
+        Raises:
+        [`AirUnexpectedResposne`](/docs/exceptions) - API did not return a 200 OK
+            or valid response JSON
+
+        Example:
+        ```
+        >>> air.simulation_nodes.get('3dadd54d-583c-432e-9383-a2b0b1d7f551')
+        <SimulationNode my_sim 3dadd54d-583c-432e-9383-a2b0b1d7f551>
+        ```
         """
-        url = self.url
-        if kwargs:
-            url += '?'
-            for key, value in kwargs.items():
-                url += f'&{key}={value}'
-        res = self.api.get(url)
-        if res.status_code != 200:
-            message = getattr(res, 'data', getattr(res, 'text', res.status_code))
-            raise AirUnexpectedResponse(message=message, status_code=res.status_code)
-        return res.json()
+        url = f'{self.url}{simulation_node_id}/'
+        res = self.client.get(url, params=kwargs)
+        util.raise_if_invalid_response(res)
+        return SimulationNode(self, **res.json())
+
+    def list(self, **kwargs):
+        #pylint: disable=line-too-long
+        """
+        List existing simulation nodes
+
+        Arguments:
+            kwargs (dict, optional): All other optional keyword arguments are applied as query
+                parameters/filters
+
+        Returns:
+        list
+
+        Raises:
+        [`AirUnexpectedResposne`](/docs/exceptions) - API did not return a 200 OK
+            or valid response JSON
+
+        Example:
+        ```
+        >>> air.simulation_nodes.list()
+        [<SimulationNode sim1 c51b49b6-94a7-4c93-950c-e7fa4883591>, <SimulationNode sim2 3134711d-015e-49fb-a6ca-68248a8d4aff>]
+        ```
+        """ #pylint: enable=line-too-long
+        res = self.client.get(f'{self.url}', params=kwargs)
+        util.raise_if_invalid_response(res, data_type=list)
+        return [SimulationNode(self, **simulation_node) for simulation_node in res.json()]

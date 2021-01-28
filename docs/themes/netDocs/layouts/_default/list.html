@@ -1,0 +1,25 @@
+{{ define "menu"}}
+
+{{ partial "menu/menu-sectiontree" . }}
+
+{{ end }}
+
+{{ define "main" }}
+{{ partial "old" . }}
+<article class="markdown">
+    <h1>  {{- .Page.Title -}} </h1>
+  {{- .Content -}}
+  {{ partial "kb-list" . }}
+</article>
+{{ end }}
+
+{{ define "toc" }}
+
+{{ $showToC := default (default true .Site.Params.BookShowToC) .Params.bookshowtoc }}
+  {{ if or ($showToC) (.Page.TableOfContents) }}
+
+    {{ partial "toc" . }}
+
+{{ end }}
+
+{{ end }}

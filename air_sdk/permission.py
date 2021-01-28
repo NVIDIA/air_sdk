@@ -1,54 +1,130 @@
 """
 Permission module
 """
-from .util import raise_if_invalid_response
 
-class Permission:
-    """ Representiation of an AIR Permission object """
-    def __init__(self, api, **kwargs):
-        self.permission_api = api
-        self.id = kwargs.get('id', None)
-        self.url = kwargs.get('url', None)
-        self.email = kwargs.get('email', None)
-        self.account = kwargs.get('account', None)
-        self.topology = kwargs.get('topology', None)
-        self.simulation = kwargs.get('simulation', None)
-        self.write_ok = kwargs.get('write_ok', False)
+from . import util
+from .air_model import AirModel
+
+class Permission(AirModel):
+    """
+    Manage a Permission
+
+    ### delete
+    Delete the permission. Once successful, the object should no longer be used and will raise
+    [`AirDeletedObject`](/docs/exceptions) when referenced.
+
+    Raises:
+    [`AirUnexpectedResposne`](/docs/exceptions) - Delete failed
+
+    ### json
+    Returns a JSON string representation of the permission
+
+    ### refresh
+    Syncs the permission with all values returned by the API
+
+    ### update
+    Update the permission with the provided data
+
+    Arguments:
+        kwargs (dict, optional): All optional keyword arguments are applied as key/value
+                pairs in the request's JSON payload
+    """
+    _updatable = False
+
+    def __repr__(self):
+        if self._deleted:
+            return super().__repr__()
+        return f'<Permission {self.id}>'
 
 class PermissionApi:
-    """ Wrapper for the Permission API """
-    def __init__(self, api):
-        """
-        Arguments:
-        api (AirApi) - Instance of the AirApi client class.
-                       We assume the client has been authorized.
-        """
-        self.api = api
-        self.url = self.api.api_url + '/permission/'
+    """ High-level interface for the Permission API """
+    def __init__(self, client):
+        self.client = client
+        self.url = self.client.api_url + '/permission/'
 
-    def create_permission(self, email, **kwargs):
+    @util.deprecated('PermissionApi.create()')
+    def create_permission(self, email, **kwargs): #pylint: disable=missing-function-docstring
+        kwargs['email'] = email
+        return self.create(**kwargs)
+
+    @util.required_kwargs([('topology', 'simulation'), 'email'])
+    def create(self, **kwargs):
         """
-        Creates a permission
+        Create a new permission. The caller MUST provide either `simulation` or `topology`
 
         Arguments:
-        email (str) - Email address of the user being given permission
-        kwargs (dict) - Additional key/value pairs to be passed in the POST request.
-                        The caller MUST pass either `topology` or `simulation`
+            email (str): Email address for the user being granted permission
+            simulation (str | `Simulation`, optional): `Simulation` or ID
+            topology (str | `Topology`, optional): `Topology` or ID
+            kwargs (dict, optional): All other optional keyword arguments are applied as query
+                parameters/filters
 
         Returns:
-        Permission - Newly created permission object
-        dict - JSON response from the API
+        [`Permission`](/docs/permission)
 
         Raises:
-        AirUnexpectedResponse - Raised if the API returns any unexpected response
+        [`AirUnexpectedResposne`](/docs/exceptions) - API did not return a 200 OK
+            or valid response JSON
+
+        Example:
+        ```
+        >>> air.permissions.create(email='mrobertson@nvidia.com', topology=topology, write_ok=True)
+        <Permission 01298e0c-4ef1-43ec-9675-93160eb29d9f>
+        ```
         """
-        if not kwargs.get('topology') and not kwargs.get('simulation', None):
-            raise ValueError('Creating a permission requires either a `simulation` or ' + \
-                             '`topology` argument')
-        data = kwargs
-        data['email'] = email
-        res = self.api.post(self.url, json=data)
-        raise_if_invalid_response(res, 201)
-        payload = res.json()
-        permission = Permission(self, **payload)
-        return permission, payload
+        res = self.client.post(self.url, json=kwargs)
+        util.raise_if_invalid_response(res, status_code=201)
+        return Permission(self, **res.json())
+
+    def get(self, permission_id, **kwargs):
+        """
+        Get an existing permission
+
+        Arguments:
+            permission_id (str): Permission ID
+            kwargs (dict, optional): All other optional keyword arguments are applied as query
+                parameters/filters
+
+        Returns:
+        [`Permission`](/docs/permission)
+
+        Raises:
+        [`AirUnexpectedResposne`](/docs/exceptions) - API did not return a 200 OK
+            or valid response JSON
+
+        Example:
+        ```
+        >>> air.permissions.get('3dadd54d-583c-432e-9383-a2b0b1d7f551')
+        <Permission 3dadd54d-583c-432e-9383-a2b0b1d7f551>
+        ```
+        """
+        url = f'{self.url}{permission_id}/'
+        res = self.client.get(url, params=kwargs)
+        util.raise_if_invalid_response(res)
+        return Permission(self, **res.json())
+
+    def list(self, **kwargs):
+        #pylint: disable=line-too-long
+        """
+        List existing permissions
+
+        Arguments:
+            kwargs (dict, optional): All other optional keyword arguments are applied as query
+                parameters/filters
+
+        Returns:
+        list
+
+        Raises:
+        [`AirUnexpectedResposne`](/docs/exceptions) - API did not return a 200 OK
+            or valid response JSON
+
+        Example:
+        ```
+        >>> air.permissions.list()
+        [<Permission c51b49b6-94a7-4c93-950c-e7fa4883591>, <Permission 3134711d-015e-49fb-a6ca-68248a8d4aff>]
+        ```
+        """ #pylint: enable=line-too-long
+        res = self.client.get(f'{self.url}', params=kwargs)
+        util.raise_if_invalid_response(res, data_type=list)
+        return [Permission(self, **permission) for permission in res.json()]

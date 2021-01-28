@@ -1,5 +1,7 @@
 coverage
+pydoc-markdown==3.9.0
 pylint==2.4.4
+git+https://gitlab.com/nwmitchell/pylint-print
 pylint-quotes
 pytest
 requests

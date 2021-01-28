@@ -1,206 +1,282 @@
 """
 Simulation module
 """
-from copy import deepcopy
-from .exceptions import AirUnexpectedResponse
-from .util import raise_if_invalid_response
 
-class Simulation:
-    """ Representiation of an AIR Simulation object """
+from . import util
+from .air_model import AirModel
+
+class Simulation(AirModel):
+    """
+    Manage a Simulation
+
+    ### json
+    Returns a JSON string representation of the simulation
+
+    ### refresh
+    Syncs the simulation with all values returned by the API
+
+    ### update
+    Update the simulation with the provided data
+
+    Arguments:
+        kwargs (dict, optional): All optional keyword arguments are applied as key/value
+                pairs in the request's JSON payload
+    """
+    _deletable = False
+
     def __init__(self, api, **kwargs):
-        self.simulation_api = api
-        self.url = kwargs.get('url', None)
-        self.id = kwargs.get('id', None)
-        self.topology = kwargs.get('topology', None)
-        self.nodes = kwargs.get('nodes', [])
+        super().__init__(api, **kwargs)
         self.services = []
-        for url in kwargs.get('services', []):
-            svc = self.simulation_api.api.service.get_service(url.split('/')[6])
-            self.services.append(svc)
-        self.name = kwargs.get('name', None)
-        self.expires = kwargs.get('expires', False)
-        self.expires_at = kwargs.get('expires_at', None)
-        self.sleep = kwargs.get('sleep', False)
-        self.sleep_at = kwargs.get('sleep_at', None)
-        self.netq_username = kwargs.get('netq_username', None)
-        self.netq_password = kwargs.get('netq_password', None)
 
-    def update(self, **kwargs):
-        """
-        Updates the simulation with a given set of key/values using a PUT call
-
-        Arguments:
-        **kwargs [dict] - A dictionary providing values to update. The dictionary will be merged
-                          into the simulation's current values
-        """
-        data = deepcopy(self.__dict__)
-        del data['simulation_api']
-        data.update(kwargs)
-        self.simulation_api.update_simulation(self.id, data)
+    def __repr__(self):
+        if self._deleted or not self.title:
+            return super().__repr__()
+        return f'<Simulation \'{self.title}\' {self.id}>'
 
     def create_service(self, name, interface, dest_port, **kwargs):
         """
         Create a new service for this simulation
 
         Arguments:
-        name (str) - Name of the service
-        interface (str) - Interface that the service should be created for. Specify this in the
-                           format of 'node_name:interface_name' (ex: 'oob-mgmt-server:eth0')
-        dest_port (int) - Port number
-        **kwargs [dict] - Optional key/values to include with the POST call
+            name (str): Name of the service
+            interface (str | `SimulationInterface`): Interface that the service should be created
+                for. This can be provided in one of the following formats:
+                - [`SimulationInterface`](/docs/simulation-interface) object
+                - ID of a [`SimulationInterface`](/docs/simulation-interface)
+                - String in the format of 'node_name:interface_name'
+            dest_port (int): Service port number
+            kwargs (dict, optional): All other optional keyword arguments are applied as key/value
+                pairs in the request's JSON payload
 
         Returns:
-        Service - Newly created Service object
+        [`Service`](/docs/service)
 
-        Raises:
-        ValueError - Raised if the interface is invalid or not found
+        Example:
+        ```
+        >>> simulation.create_service('myservice', 'oob-mgmt-server:eth0', 22, service_type='ssh')
+        <Service myservice cc18d746-4cf0-4dd3-80c0-e7df68bbb782>
+        >>> simulation.create_service('myservice', simulation_interface, 22, service_type='ssh')
+        <Service myservice 9603d0d5-5526-4a0f-91b8-a600010d0091>
+        ```
         """
-        service, _ = self.simulation_api.api.service.create_service(self.id, name, interface,
-                                                                    dest_port, **kwargs)
+        service = self._api.client.services.create(simulation=self.id, name=name,
+                                                   interface=interface, dest_port=dest_port,
+                                                   **kwargs)
         self.services.append(service)
         return service
 
     def add_permission(self, email, **kwargs):
         """
-        Adds permission for a given user to this simulation
+        Adds permission for a given user to this simulation.
 
         Arguments:
-        email (str) - Email address of the user being given permission
-        kwargs (dict) - Additional key/value pairs to be passed in the POST request.
-                        The caller MUST pass either `topology` or `simulation`
+            email (str): Email address of the user being given permission
+            kwargs (dict, optional): All other optional keyword arguments are applied as key/value
+                pairs in the request's JSON payload
 
-        Raises:
-        AirUnexpectedResponse - Raised if the API returns any unexpected response
+        Returns:
+        [`Permission`](/docs/permission)
+
+        Example:
+        ```
+        >>> simulation.add_permission('mrobertson@nvidia.com', write_ok=True)
+        <Permission 217bea68-7048-4262-9bbc-b98ab16c603e>
+        ```
         """
-        self.simulation_api.api.permission.create_permission(email, simulation=self.id, **kwargs)
+        return self._api.client.permissions.create(email=email, simulation=self.id, **kwargs)
 
-    def start(self):
-        """ Starts a simulation with a call to the /simulation/:id/control API """
-        self.simulation_api.control(self.id, 'load')
-
-    def store(self):
-        """ Stores a simulation with a call to the /simulation/:id/control API """
-        self.simulation_api.control(self.id, 'store')
-
-    def delete(self):
-        """ Deletes a simulation with a call to the /simulation/:id/control API """
-        self.simulation_api.control(self.id, 'destroy')
-
-class SimulationApi:
-    """ Wrapper for the Simulation API """
-    def __init__(self, api):
+    @util.required_kwargs(['action'])
+    def control(self, **kwargs):
         """
+        Sends a control command to the simulation.
+
         Arguments:
-        api (AirApi) - Instance of the AirApi client class.
-                       We assume the client has been authorized.
-        """
-        self.api = api
-        self.url = self.api.api_url + '/simulation/'
+            action (str): Control command
+            kwargs (dict, optional): All other optional keyword arguments are applied as key/value
+                pairs in the request's JSON payload
 
-    def get_simulations(self):
-        """ Returns a list of active simulations """
-        res = self.api.get(self.url)
+        Returns:
+        dict: Response JSON
+
+        Example:
+        ```
+        >>> simulation.control(action='destroy')
+        {'result': 'success'}
+        ```
+        """
+        url = f'{self._api.url}{self.id}/control/'
+        res = self._api.client.post(url, json=kwargs)
+        util.raise_if_invalid_response(res)
         return res.json()
 
-    def get_simulation(self, simulation_id):
+    def start(self):
+        """ Start/load the simulation """
+        self.control(action='load')
+
+    def store(self):
+        """ Store and power off the simulation """
+        self.control(action='store')
+
+    def delete(self):
+        """ Delete the simulation """
+        self.control(action='destroy')
+        self._deleted = True
+
+class SimulationApi:
+    """ High-level interface for the Simulation API """
+    def __init__(self, client):
+        self.client = client
+        self.url = self.client.api_url + '/simulation/'
+
+    @util.deprecated('SimulationApi.list()')
+    def get_simulations(self): #pylint: disable=missing-function-docstring
+        return self.list()
+
+    @util.deprecated('SimulationApi.get()')
+    def get_simulation(self, simulation_id): #pylint: disable=missing-function-docstring
+        return self.get(simulation_id)
+
+    @util.deprecated('SimulationApi.create()')
+    def create_simulation(self, **kwargs): #pylint: disable=missing-function-docstring
+        return self.create(**kwargs)
+
+    @util.deprecated('Simulation.update()')
+    def update_simulation(self, simulation_id, data): #pylint: disable=missing-function-docstring
+        sim = self.get(simulation_id)
+        sim.update(**data)
+
+    def duplicate(self, simulation, **kwargs):
         """
-        Get an instance of a simulation
+        Duplicate/clone an existing simulation
 
         Arguments:
-        simulation_id (str) - Simulation ID
-
-        Returns
-        Simulation
-        """
-        res = self.api.get(f'{self.url}{simulation_id}/')
-        sim = Simulation(self, **res.json())
-        return sim
-
-    def create_simulation(self, **kwargs):
-        """
-        Create a new simulation.
-
-        Arguments:
-        kwargs (dict) - Arguments passed to the Simulation create API
+            simulation (str | `Simulation`): Simulation or ID of the snapshot to be duplicated
+            kwargs (dict, optional): All other optional keyword arguments are applied as key/value
+                pairs in the request's JSON payload
 
         Returns:
-        Simulation - Newly created simulation object
-        dict - JSON response from the API
+        ([`Simulation`](/docs/simulation), dict): Newly created simulation and response JSON
 
         Raises:
-        AirUnexpectedResponse - Raised if an unexpected response is received from the API
+        [`AirUnexpectedResposne`](/docs/exceptions) - API did not return a 200 OK
+            or valid response JSON
+
+        Example:
+        ```
+        >>> air.simulations.duplicate(simulation=simulation)
+        <Simulation my_sim 5ff3f0dc-7db8-4938-8257-765c8e48623a>
+        ```
         """
-        res = self.api.post(self.url, json=kwargs)
-        if res.status_code != 201:
-            message = getattr(res, 'data', getattr(res, 'text', res.status_code))
-            raise AirUnexpectedResponse(message=message, status_code=res.status_code)
-        simulation = Simulation(self, **res.json())
-        return simulation, res.json()
+        sim = self.get(simulation)
+        kwargs['action'] = 'duplicate'
+        res = sim.control(**kwargs)
+        util.raise_if_invalid_response(res)
+        response = res.json()
+        return Simulation(self, **response['simulation']), response
 
-    def update_simulation(self, simulation_id, data):
-        """
-        Updates the simulation with a given set of key/values using a PUT call
-
-        Arguments:
-        data (dict) - A dictionary providing values to use as the PUT payload
-
-        Raises:
-        AirUnexpectedResponse - Raised if the API does not return a 200
-        """
-        url = self.url + simulation_id + '/'
-        res = self.api.put(url, json=data)
-        if res.status_code != 200:
-            message = getattr(res, 'data', getattr(res, 'text', res.status_code))
-            raise AirUnexpectedResponse(message=message, status_code=res.status_code)
-
-    def duplicate(self, snapshot_id, **kwargs):
-        """
-        Arguments:
-        snapshot_id (str) - UUID of the snapshot simulation to be duplicated
-        kwargs [dict] - Options to include in the /control API call
-
-        Returns:
-        Simulation - Python representation of the newly created simulation object
-        dict - JSON response from the API
-
-        Raises:
-        AirUnexpectedResponse - Raised if the API returns a non-200 or an invalid JSON response
-        """
-        url = self.url + snapshot_id + '/control/'
-        data = kwargs
-        data['action'] = 'duplicate'
-        res = self.api.post(url, json=data)
-        raise_if_invalid_response(res)
-        payload = res.json()
-        if payload.get('simulation', None):
-            sim = Simulation(self, **payload['simulation'])
-            return sim, payload
-        raise AirUnexpectedResponse(payload)
-
-    def control(self, simulation_id, action, **kwargs):
-        """
-        Calls the POST /simulation/:id/control/ API to control a simulation
-
-        Arguments:
-        simulation_id (str) - UUID of the simulation to control
-        action (str) - Action to perform
-        kwargs [dict] - Optional key/value pairs to include in the POST payload
-
-        Returns:
-        HTTPResponse
-        """
-        url = self.url + simulation_id + '/control/'
-        data = deepcopy(kwargs)
-        data['action'] = action
-        return self.api.post(url, json=data)
+    @util.deprecated('Simulation.control()')
+    def control(self, simulation_id, action, **kwargs): #pylint: disable=missing-function-docstring
+        sim = self.get(simulation_id)
+        return sim.control(action=action, **kwargs)
 
     def get_citc_simulation(self):
         """
-        Returns an instance of the active CITC reference snapshot
+        Get the active CITC reference simulation
 
         Returns:
-        Simulation
+        [`Simulation`](/docs/simulation)
+
+        Raises:
+        [`AirUnexpectedResposne`](/docs/exceptions) - API did not return a 200 OK
+            or valid response JSON
+
+        Example:
+        ```
+        >>> air.simulations.get_citc_simulation()
+        <Simulation my_sim b9125419-7c6e-41db-bba9-7d647d63943e>
+        ```
         """
         url = self.url + 'citc/'
-        res = self.api.get(url)
+        res = self.client.get(url)
+        util.raise_if_invalid_response(res)
+        return Simulation(self, **res.json())
+
+    def get(self, simulation_id, **kwargs):
+        """
+        Get an existing simulation
+
+        Arguments:
+            simulation_id (str): Simulation ID
+            kwargs (dict, optional): All other optional keyword arguments are applied as query
+                parameters/filters
+
+        Returns:
+        [`Simulation`](/docs/simulation)
+
+        Raises:
+        [`AirUnexpectedResposne`](/docs/exceptions) - API did not return a 200 OK
+            or valid response JSON
+
+        Example:
+        ```
+        >>> air.simulations.get('3dadd54d-583c-432e-9383-a2b0b1d7f551')
+        <Simulation my_sim 3dadd54d-583c-432e-9383-a2b0b1d7f551>
+        ```
+        """
+        url = f'{self.url}{simulation_id}/'
+        res = self.client.get(url, params=kwargs)
+        util.raise_if_invalid_response(res)
+        return Simulation(self, **res.json())
+
+    def list(self, **kwargs):
+        #pylint: disable=line-too-long
+        """
+        List existing simulations
+
+        Arguments:
+            kwargs (dict, optional): All other optional keyword arguments are applied as query
+                parameters/filters
+
+        Returns:
+        list
+
+        Raises:
+        [`AirUnexpectedResposne`](/docs/exceptions) - API did not return a 200 OK
+            or valid response JSON
+
+        Example:
+        ```
+        >>> air.simulations.list()
+        [<Simulation sim1 c51b49b6-94a7-4c93-950c-e7fa4883591>, <Simulation sim2 3134711d-015e-49fb-a6ca-68248a8d4aff>]
+        ```
+        """ #pylint: enable=line-too-long
+        res = self.client.get(f'{self.url}', params=kwargs)
+        util.raise_if_invalid_response(res, data_type=list)
+        return [Simulation(self, **simulation) for simulation in res.json()]
+
+    @util.required_kwargs(['topology'])
+    def create(self, **kwargs):
+        """
+        Create a new simulation
+
+        Arguments:
+            topology (str | `Topology`): `Topology` or ID
+            kwargs (dict, optional): All other optional keyword arguments are applied as key/value
+                pairs in the request's JSON payload
+
+        Returns:
+        [`Simulation`](/docs/simulation)
+
+        Raises:
+        [`AirUnexpectedResposne`](/docs/exceptions) - API did not return a 200 OK
+            or valid response JSON
+
+        Example:
+        ```
+        >>> air.simulations.create(topology=topology, title='my_sim')
+        <Simulation my_sim 01298e0c-4ef1-43ec-9675-93160eb29d9f>
+        ```
+        """
+        res = self.client.post(self.url, json=kwargs)
+        util.raise_if_invalid_response(res, status_code=201)
         return Simulation(self, **res.json())

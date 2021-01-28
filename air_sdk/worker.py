@@ -1,25 +1,39 @@
 """
 Worker module
 """
-from copy import deepcopy
 
-from .exceptions import AirUnexpectedResponse
+from . import util
+from .air_model import AirModel
 
-class Worker:
-    """ Representation of an AIR Worker object """
-    def __init__(self, api, **kwargs):
-        self.worker_api = api
-        self.url = kwargs.get('url')
-        self.id = kwargs.get('id')
-        self.cpu = kwargs.get('cpu')
-        self.memory = kwargs.get('memory')
-        self.storage = kwargs.get('storage')
-        self.ip_address = kwargs.get('ip_address')
-        self.port_range = kwargs.get('port_range')
-        self.region = kwargs.get('region')
-        self.available = kwargs.get('available')
-        self.fqdn = kwargs.get('fqdn')
+class Worker(AirModel):
+    """
+    Manage a Worker
 
+    ### json
+    Returns a JSON string representation of the worker
+
+    ### refresh
+    Syncs the worker with all values returned by the API
+
+    ### update
+    Update the worker with the provided data
+
+    Arguments:
+        kwargs (dict, optional): All optional keyword arguments are applied as key/value
+                pairs in the request's JSON payload
+    """
+    _deletable = False
+
+    def __repr__(self):
+        if self._deleted or not self.fqdn:
+            return super().__repr__()
+        return f'<Worker {self.fqdn} {self.id}>'
+
+    def __init__(self, api, **kwargs): # TODO: Remove when set_available is removed
+        super().__init__(api, **kwargs)
+        self.available = False
+
+    @util.deprecated('<worker_instance>.available')
     def set_available(self, available):
         """
         Sets a worker's `available` value in AIR
@@ -28,47 +42,106 @@ class Worker:
         available (bool)
         """
         self.available = available
-        data = deepcopy(self.__dict__)
-        del data['worker_api']
-        self.worker_api.update_worker(self.id, **data)
 
 class WorkerApi:
-    """ Wrapper for the /worker API """
-    def __init__(self, api):
-        self.api = api
-        self.url = self.api.api_url + '/worker/'
+    """ High-level interface for the Worker API """
+    def __init__(self, client):
+        self.client = client
+        self.url = self.client.api_url + '/worker/'
 
-    def get_workers(self, **kwargs):
+    @util.deprecated('WorkerApi.list()')
+    def get_workers(self, **kwargs): #pylint: disable=missing-function-docstring
+        return self.list(**kwargs)
+
+    @util.deprecated('Worker.update()')
+    def update_worker(self, worker_id, **kwargs): #pylint: disable=missing-function-docstring
+        worker = self.get(worker_id)
+        return worker.update(**kwargs)
+
+    def get(self, worker_id, **kwargs):
         """
-        List workers
+        Get an existing worker
 
         Arguments:
-        kwargs [dict] - Optional query parameters to include with the GET request
+            worker_id (str): Worker ID
+            kwargs (dict, optional): All other optional keyword arguments are applied as query
+                parameters/filters
 
         Returns:
-        list - List of Worker objects
-        """
-        url = self.url + '?'
-        for key, val in kwargs.items():
-            url += f'&{key}={val}'
-        res = self.api.get(url)
-        workers = []
-        for worker in res.json():
-            workers.append(Worker(self, **worker))
-        return workers
+        [`Worker`](/docs/worker)
 
-    def update_worker(self, worker_id, **kwargs):
-        """
-        Update a worker record via a PUT call
+        Raises:
+        [`AirUnexpectedResposne`](/docs/exceptions) - API did not return a 200 OK
+            or valid response JSON
 
-        Arguments:
-        worker_id (str|uuid) - Worker UUID
-        kwargs [dict] - Key/value pairs to include in the request payload
+        Example:
+        ```
+        >>> air.workers.get('3dadd54d-583c-432e-9383-a2b0b1d7f551')
+        <Worker worker01 3dadd54d-583c-432e-9383-a2b0b1d7f551>
+        ```
         """
         url = f'{self.url}{worker_id}/'
-        payload = kwargs
-        payload['id'] = str(worker_id)
-        res = self.api.put(url, json=payload)
-        if res.status_code != 200:
-            raise AirUnexpectedResponse(res.text, res.status_code)
+        res = self.client.get(url, params=kwargs)
+        util.raise_if_invalid_response(res)
+        return Worker(self, **res.json())
+
+    def list(self, **kwargs):
+        #pylint: disable=line-too-long
+        """
+        List existing workers
+
+        Arguments:
+            kwargs (dict, optional): All other optional keyword arguments are applied as query
+                parameters/filters
+
+        Returns:
+        list
+
+        Raises:
+        [`AirUnexpectedResposne`](/docs/exceptions) - API did not return a 200 OK
+            or valid response JSON
+
+        Example:
+        ```
+        >>> air.workers.list()
+        [<Worker worker01 c51b49b6-94a7-4c93-950c-e7fa4883591>, <Worker worker02 3134711d-015e-49fb-a6ca-68248a8d4aff>]
+        ```
+        """ #pylint: enable=line-too-long
+        res = self.client.get(f'{self.url}', params=kwargs)
+        util.raise_if_invalid_response(res, data_type=list)
+        return [Worker(self, **worker) for worker in res.json()]
+
+    @util.required_kwargs(['cpu', 'memory', 'storage', 'ip_address', 'port_range', 'username',
+                           'password'])
+    def create(self, **kwargs):
+        #pylint: disable=line-too-long
+        """
+        Create a new worker
+
+        Arguments:
+            cpu (int): Number of vCPUs the worker can support
+            memory (int): Amount of memory (in MB) a worker can support
+            storage (int): Amount of storage (in GB) a worker can support
+            ip_address (str): Internal IP address
+            port_range (str): Range of ports available on the worker
+            username (str): Worker username for API access
+            password (str): Worker password for API access
+            kwargs (dict, optional): All other optional keyword arguments are applied as key/value
+                pairs in the request's JSON payload
+
+        Returns:
+        [`Worker`](/docs/worker)
+
+        Raises:
+        [`AirUnexpectedResposne`](/docs/exceptions) - API did not return a 200 OK
+            or valid response JSON
+
+        Example:
+        ```
+        >>> air.workers.create(cpu=100, memory=200000, storage=1000, ip_address='10.1.1.1', port_range='10000-30000', username='worker01', password='secret')
+        <Worker my_sim 01298e0c-4ef1-43ec-9675-93160eb29d9f>
+        ```
+        """ #pylint: enable=line-too-long
+        res = self.client.post(self.url, json=kwargs)
+        util.raise_if_invalid_response(res, status_code=201)
         return Worker(self, **res.json())

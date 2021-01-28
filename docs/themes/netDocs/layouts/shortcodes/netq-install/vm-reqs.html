@@ -1,0 +1,56 @@
+When using a VM, the following system resources must be allocated:
+
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 60%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Resource</th>
+<th>Minimum Requirement</th>
+</tr>
+</thead>
+<tbody>
+<tr class="even">
+<td>Processor</td>
+{{- if eq (.Get "deployment") "onprem" -}}
+<td>Eight (8) virtual CPUs</td>
+{{ end }}
+{{- if eq (.Get "deployment") "cloud" -}}
+<td>Four (4) virtual CPUs</td>
+{{ end }}
+</tr>
+<tr class="odd">
+<td>Memory</td>
+{{- if eq (.Get "deployment") "onprem" -}}
+<td>64 GB RAM</td>
+{{ end }}
+{{- if eq (.Get "deployment") "cloud" -}}
+<td>8 GB RAM</td>
+{{ end }}
+</tr>
+<tr class="even">
+<td>Local disk storage</td>
+{{- if eq (.Get "deployment") "onprem" -}}
+<td>256 GB (2 TB max) SSD with minimum disk IOPS of 1000 for a standard 4kb block size<br>(<strong>Note</strong>: This <em>must</em> be an SSD; use of other storage options can lead to system instability and are not supported.)</td>
+{{ end }}
+{{- if eq (.Get "deployment") "cloud" -}}
+<td>For NetQ 3.2.x: 64 GB (2 TB max)<br>For NetQ 3.1 and earlier: 32 GB (2 TB max)</td>
+{{ end }}
+</tr>
+<tr class="odd">
+<td>Network interface speed</td>
+<td>1 Gb NIC</td>
+</tr>
+<tr class="even">
+<td>Hypervisor</td>
+{{- if eq (.Get "hypervisor") "vmware" -}}
+<td>VMware ESXi™ 6.5 or later (OVA image) for servers running Cumulus Linux, CentOS, Ubuntu and RedHat operating systems</td>
+{{ end }}
+{{- if eq (.Get "hypervisor") "kvm" -}}
+<td>KVM/QCOW (QEMU Copy on Write) image for servers running CentOS, Ubuntu and RedHat operating systems </td>
+{{ end }}
+</tr>
+</tbody>
+</table>

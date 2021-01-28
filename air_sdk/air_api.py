@@ -1,15 +1,29 @@
 """
 Cumulus AIR API module
 """
+#pylint: disable=too-many-public-methods
 
 import logging
 from json import JSONDecodeError
+
 import requests
+
+from . import util
+from .account import AccountApi
+from .air_model import AirModel, LazyLoaded
 from .capacity import CapacityApi
-from .exceptions import AirAuthorizationError, AirForbiddenError
+from .demo import DemoApi
+from .exceptions import AirAuthorizationError, AirForbiddenError, AirUnexpectedResponse
+from .image import ImageApi
+from .interface import InterfaceApi
+from .job import JobApi
+from .link import LinkApi
+from .login import LoginApi
 from .node import NodeApi
+from .organization import OrganizationApi
 from .permission import PermissionApi
 from .service import ServiceApi
+from .ssh_key import SSHKeyApi
 from .simulation import SimulationApi
 from .simulation_interface import SimulationInterfaceApi
 from .simulation_node import SimulationNodeApi
@@ -18,66 +32,188 @@ from .worker import WorkerApi
 
 class AirApi:
     """
-    API Client instance
+    Main interface for an API client instance
     """
-    def __init__(self, api_url='https://air.cumulusnetworks.com/api/', api_version='v1'):
-        self.api = requests.Session()
-        self.api.headers.update({'content-type': 'application/json'})
-        self.api_url = api_url + api_version
-        self.token = ''
-        self.node = NodeApi(self)
-        self.permission = PermissionApi(self)
-        self.service = ServiceApi(self)
-        self.simulation = SimulationApi(self)
-        self.simulation_interface = SimulationInterfaceApi(self)
-        self.topology = TopologyApi(self)
-        self.simulation_node = SimulationNodeApi(self)
-        self.capacity = CapacityApi(self)
-        self.worker = WorkerApi(self)
+    def __init__(self, api_url='https://air.cumulusnetworks.com/api/', api_version='v1', **kwargs):
+        """
+        Create a new API client instance. The caller MUST provide either `username` and `password`
+        or a `bearer_token`
+
+        Arguments:
+            username (str, optional): Username
+            password (str, optional): Password
+            bearer_token (str, optional): Pre-generated bearer token
+            api_url (str, optional): Default = https://air.cumulusnetworks.com/api/
+            api_version (str): Default = v1
+        """
+        self.client = requests.Session()
+        self.client.headers.update({'content-type': 'application/json'})
+        self.api_url = _normalize_api_url(api_url) + _normalize_api_version(api_version)
+        self.token = None
+        self.username = None
+        self.authorize(**kwargs)
+
+    #pylint: disable=missing-function-docstring
+    @property
+    def accounts(self):
+        return AccountApi(self)
+
+    @property
+    def capacity(self):
+        return CapacityApi(self)
+
+    @property
+    def demos(self):
+        return DemoApi(self)
+
+    @property
+    def images(self):
+        return ImageApi(self)
+
+    @property
+    def interfaces(self):
+        return InterfaceApi(self)
+
+    @property
+    def jobs(self):
+        return JobApi(self)
+
+    @property
+    def links(self):
+        return LinkApi(self)
+
+    @property
+    def login(self):
+        return LoginApi(self)
+
+    @property
+    @util.deprecated('AirApi.nodes')
+    def node(self):
+        return self.nodes
+
+    @property
+    def nodes(self):
+        return NodeApi(self)
+
+    @property
+    def organizations(self):
+        return OrganizationApi(self)
+
+    @property
+    @util.deprecated('AirApi.permissions')
+    def permission(self):
+        return self.permissions
+
+    @property
+    def permissions(self):
+        return PermissionApi(self)
+
+    @property
+    @util.deprecated('AirApi.services')
+    def service(self):
+        return self.services
+
+    @property
+    def services(self):
+        return ServiceApi(self)
+
+    @property
+    @util.deprecated('AirApi.simulations')
+    def simulation(self):
+        return self.simulations
+
+    @property
+    def simulations(self):
+        return SimulationApi(self)
+
+    @property
+    @util.deprecated('AirApi.simulation_interfaces')
+    def simulation_interface(self):
+        return self.simulation_interfaces
+
+    @property
+    def simulation_interfaces(self):
+        return SimulationInterfaceApi(self)
+
+    @property
+    @util.deprecated('AirApi.simulation_nodes')
+    def simulation_node(self):
+        return self.simulation_nodes
+
+    @property
+    def simulation_nodes(self):
+        return SimulationNodeApi(self)
+
+    @property
+    def ssh_keys(self):
+        return SSHKeyApi(self)
+
+    @property
+    @util.deprecated('AirApi.topologies')
+    def topology(self):
+        return self.topologies
+
+    @property
+    def topologies(self):
+        return TopologyApi(self)
+
+    @property
+    @util.deprecated('AirApi.workers')
+    def worker(self):
+        return self.workers
+
+    @property
+    def workers(self):
+        return WorkerApi(self)
+    #pylint: enable=missing-function-docstring
 
     def authorize(self, **kwargs):
         """
-        Authorizes the API client using either a bearer token or a username/password.
-        Callers MUST pass either a valid `token` or a `username` and `password`.
+        Authorizes the API client using either a pre-generated bearer token or a username/password.
+        Callers MUST pass either a valid `bearer_token` or a `username` and `password`.
         After successfully authorizing, all subsequent API calls will include the
-        authorization token provided by the AIR API.
+        authorization token provided by the AIR API. **Note:** This is called once automatically
+        when an AirApi object is instantiated.
 
         Arguments:
-        token [str] - Bearer token
-        username [str] - Username
-        password [str] - Password
+            bearer_token (str, optional): Pre-generated bearer token
+            username (str, optional): Username
+            password (str, optional): Password
 
         Raises:
-        ValueError - Raised when the caller does not pass either a token or a username/password
+            ValueError - Caller did not pass either a token or a username/password
         """
-        if kwargs.get('token', None):
-            token = kwargs['token']
+        token = None
+        if kwargs.get('bearer_token'):
+            token = kwargs['bearer_token']
         elif kwargs.get('username', None) and kwargs.get('password', None):
             token = self.get_token(kwargs['username'], kwargs['password'])
         else:
-            raise ValueError('AirApi.authorize() requires either `token` or ' + \
-                           '`username` and `password` arguments')
+            raise ValueError('Must include either `bearer_token` or ' + \
+                             '`username` and `password` arguments')
         self.token = token
-        self.api.headers.update({'authorization': 'Bearer ' + token})
+        self.client.headers.update({'authorization': 'Bearer ' + token})
+        login = self.login.list()
+        self.username = getattr(login, 'username', None)
 
     def get_token(self, username, password):
         """
         Gets a new bearer token for a given username and password
 
         Arguments:
-        username (str) - Username
-        password (str) - Password
+            username (str): Username
+            password (str): Password
 
         Returns:
-        (str) Bearer token
+            str: Bearer token
 
         Raises:
-        AirAuthorizationError - Raised when the API does not return a token for any reason
-        JSONDecodeError - Raised when the API's response is not a valid JSON object
+            - [`AirAuthorizationError`](/docs/exceptions) - API did not return a token
+            - `JSONDecodeError` - API's response is not a valid JSON object
         """
         route = '/login/'
         data = {'username': username, 'password': password}
-        res = self.api.post(self.api_url + route, json=data)
+        res = self.client.post(self.api_url + route, json=data)
         try:
             if res.json().get('token', None):
                 return res.json()['token']
@@ -88,9 +224,20 @@ class AirApi:
             raise AirAuthorizationError('API did not return a valid JSON response')
 
     def _request(self, method, url, *args, **kwargs):
-        res = self.api.request(method, url, *args, **kwargs)
+        if kwargs.get('json'):
+            logging.debug(f'unserialized json: {kwargs["json"]}')
+            kwargs['json'] = _serialize_dict(kwargs['json'])
+        if kwargs.get('params'):
+            kwargs['params'] = _serialize_dict(kwargs['params'])
+        logging.debug(f'request args: {args}')
+        logging.debug(f'request kwargs: {kwargs}')
+        res = self.client.request(method, url, *args, **kwargs)
         if getattr(res, 'status_code') == 403:
             raise AirForbiddenError
+        try:
+            res.raise_for_status()
+        except requests.exceptions.HTTPError as err:
+            raise AirUnexpectedResponse(err.response.text, err.response.status_code)
         return res
 
     def get(self, url, *args, **kwargs):
@@ -112,3 +259,44 @@ class AirApi:
     def delete(self, url, *args, **kwargs):
         """ Wrapper method for DELETE requests """
         return self._request('DELETE', url, *args, **kwargs)
+
+def _normalize_api_version(version):
+    try:
+        version = int(version)
+        version = f'v{version}'
+    except Exception:
+        pass
+    return version
+
+def _normalize_api_url(url):
+    if url[-1] != '/':
+        url += '/'
+    if not url.endswith('api/'):
+        url += 'api/'
+    return url
+
+def _serialize_dict(raw_dict):
+    clone = {}
+    for key, value in raw_dict.items():
+        if isinstance(value, (AirModel, LazyLoaded)):
+            clone[key] = value.id
+        elif isinstance(value, dict):
+            clone[key] = _serialize_dict(value)
+        elif isinstance(value, list):
+            clone[key] = _serialize_list(value)
+        elif not key.startswith('_'):
+            clone[key] = value
+    return clone
+
+def _serialize_list(raw_list):
+    clone = []
+    for item in raw_list:
+        if isinstance(item, (AirModel, LazyLoaded)):
+            clone.append(item.id)
+        elif isinstance(item, dict):
+            clone.append(_serialize_dict(item))
+        elif isinstance(item, list):
+            clone.append(_serialize_list(item))
+        elif not str(item).startswith('_'):
+            clone.append(item)
+    return clone

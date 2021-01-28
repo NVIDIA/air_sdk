@@ -14,14 +14,14 @@ lint:
   before_script:
     - pip install -r requirements-dev.txt
   script:
-    - pylint air_sdk
+    - pylint **/*.py
 
 unit:
   stage: test
   before_script:
     - pip install -r requirements-dev.txt
   script:
-    - coverage run --omit=air_sdk/tests/*,*/__init__.py --source='./air_sdk' `which pytest` air_sdk
+    - coverage run --omit=.tests/*,*/__init__.py --source='./air_sdk' `which pytest` tests/*
   after_script:
     - coverage report
     - coverage html
@@ -32,10 +32,10 @@ unit:
 
 pages:
   stage: deploy
-  dependencies:
-    - unit
+  image: registry.gitlab.com/pages/hugo/hugo_extended:latest
   script:
-    - mv htmlcov/ public/
+    - cd docs; hugo --baseUrl $CI_PAGES_URL
+    - mv public ../
   artifacts:
     paths:
       - public

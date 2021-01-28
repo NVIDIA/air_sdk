@@ -19,7 +19,10 @@ class AirAuthorizationError(AirError):
 class AirUnexpectedResponse(AirError):
     """ Raised when the API returns an unexpected response. """
     def __init__(self, message='', status_code=None):
-        self.message = 'Received an unexpected response from the Cumulus AIR API: ' + str(message)
+        self.message = 'Received an unexpected response from the Cumulus AIR API'
+        if status_code:
+            self.message += f' ({status_code})'
+        self.message += f': {message}'
         super().__init__(message=self.message, status_code=status_code)
 
 class AirForbiddenError(AirError):
@@ -27,3 +30,11 @@ class AirForbiddenError(AirError):
     def __init__(self, message='Received 403 Forbidden. Please call AirApi.authorize().'):
         self.message = message
         super().__init__(message=self.message, status_code=403)
+
+class AirObjectDeleted(AirError):
+    """ Raised when accessing a previously instantiated object that has since been deleted """
+    def __init__(self, cls, message=''):
+        self.message = message
+        if not self.message:
+            self.message = f'{cls} object has been deleted and should no longer be referenced'
+        super().__init__(message=self.message)

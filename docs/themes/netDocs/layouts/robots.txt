@@ -1,0 +1,8 @@
+User-Agent: *
+Disallow: */pdf
+Sitemap: {{.Site.BaseURL}}/sitemap.xml
+
+User-Agent: *
+Disallow:
+Allow: /
+Sitemap: {{.Site.BaseURL}}/sitemap.xml

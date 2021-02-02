@@ -2,7 +2,6 @@
 SimulationNode module
 """
 
-import json
 from . import util
 from .air_model import AirModel
 
@@ -59,9 +58,7 @@ class SimulationNode(AirModel):
             kwargs['data'] = '\n'.join(kwargs['data'])
         res = self._api.client.post(url, json=kwargs)
         util.raise_if_invalid_response(res, status_code=201, data_type=str)
-        return_data = {}
-        return_data['id'] = res.json()
-        return json.dumps(return_data)
+        return {'id': res.json()}
 
     def list_instructions(self, **kwargs):
         #pylint: disable=line-too-long

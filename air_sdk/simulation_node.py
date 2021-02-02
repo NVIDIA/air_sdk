@@ -57,7 +57,7 @@ class SimulationNode(AirModel):
         if isinstance(kwargs['data'], list):
             kwargs['data'] = '\n'.join(kwargs['data'])
         res = self._api.client.post(url, json=kwargs)
-        util.raise_if_invalid_response(res)
+        util.raise_if_invalid_response(res, status_code=201)
         return res.json()
 
     def list_instructions(self, **kwargs):

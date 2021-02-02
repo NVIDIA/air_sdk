@@ -102,17 +102,24 @@ class TestSimulationApi(TestCase):
         mock_get.return_value.update.assert_called_with(foo='bar')
 
     @patch('cumulus_air_sdk.air_sdk.simulation.SimulationApi.get')
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
-    def test_duplicate(self, mock_raise, mock_get):
-        mock_get.return_value.control.return_value.json.return_value = {'simulation':
-                                                                        {'test': 'xyz'}}
+    def test_duplicate(self, mock_get):
+        mock_get.return_value.control.return_value = {'simulation': {'test': 'xyz'}}
         sim, res = self.api.duplicate('abc123', foo='bar')
         mock_get.assert_called_with('abc123')
         mock_get.return_value.control.assert_called_with(foo='bar', action='duplicate')
-        mock_raise.assert_called_with(mock_get.return_value.control.return_value)
         self.assertIsInstance(sim, simulation.Simulation)
         self.assertEqual(sim.test, 'xyz')
-        self.assertEqual(res, mock_get.return_value.control.return_value.json.return_value)
+        self.assertEqual(res, mock_get.return_value.control.return_value)
+
+    @patch('cumulus_air_sdk.air_sdk.simulation.SimulationApi.get')
+    def test_duplicate_object(self, mock_get):
+        mock_snap = MagicMock()
+        mock_snap.control.return_value = {'simulation': {'test': 'xyz'}}
+        sim, res = self.api.duplicate(mock_snap, foo='bar')
+        mock_get.assert_not_called()
+        mock_snap.control.assert_called_with(foo='bar', action='duplicate')
+        self.assertIsInstance(sim, simulation.Simulation)
+        self.assertEqual(res, mock_snap.control.return_value)
 
     @patch('cumulus_air_sdk.air_sdk.simulation.SimulationApi.get')
     def test_control(self, mock_get):

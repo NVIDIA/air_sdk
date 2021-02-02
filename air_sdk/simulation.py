@@ -167,11 +167,11 @@ class SimulationApi:
         <Simulation my_sim 5ff3f0dc-7db8-4938-8257-765c8e48623a>
         ```
         """
-        sim = self.get(simulation)
+        sim = simulation
+        if isinstance(sim, str):
+            sim = self.get(simulation)
         kwargs['action'] = 'duplicate'
-        res = sim.control(**kwargs)
-        util.raise_if_invalid_response(res)
-        response = res.json()
+        response = sim.control(**kwargs)
         return Simulation(self, **response['simulation']), response
 
     @util.deprecated('Simulation.control()')

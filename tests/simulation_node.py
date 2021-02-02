@@ -31,8 +31,9 @@ class TestSimulationNode(TestCase):
         res = self.model.create_instructions(executor='shell', data='echo')
         self.api.client.post.assert_called_with(f'{self.api.url}abc123/instructions/',
                                                 json={'executor': 'shell', 'data': 'echo'})
-        mock_raise.assert_called_with(self.api.client.post.return_value)
-        self.assertEqual(res, self.api.client.post.return_value.json.return_value)
+        mock_raise.assert_called_with(self.api.client.post.return_value, status_code=201,
+                                      data_type=str)
+        self.assertEqual(res, {'id': self.api.client.post.return_value.json.return_value})
 
     def test_create_instructions_required_kwargs(self):
         with self.assertRaises(AttributeError) as err:

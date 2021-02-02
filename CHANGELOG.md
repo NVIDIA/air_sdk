@@ -4,9 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2021-02-02
+### Fixed
+- Exception thrown when calling `create_instructions()` on a `SimulationNode` object (!3, thanks @taka.mura!)
+
 ## [2.0.1] - 2021-02-01
 ### Fixed
-- `AirApi.simulations.duplicate()` was incorrectly treating a JSON object as a HTTP response (!2, thanks @@taka.mura!)
+- `AirApi.simulations.duplicate()` was incorrectly treating a JSON object as a HTTP response (!2, thanks @taka.mura!)
 - `AirApi.simulations.duplicate()` did not work when passing in a `Simulation` object (#2)
 
 ## [2.0.0] - 2021-01-21

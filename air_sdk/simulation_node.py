@@ -57,8 +57,8 @@ class SimulationNode(AirModel):
         if isinstance(kwargs['data'], list):
             kwargs['data'] = '\n'.join(kwargs['data'])
         res = self._api.client.post(url, json=kwargs)
-        util.raise_if_invalid_response(res)
-        return res.json()
+        util.raise_if_invalid_response(res, status_code=201, data_type=str)
+        return {'id': res.json()}
 
     def list_instructions(self, **kwargs):
         #pylint: disable=line-too-long

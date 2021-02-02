@@ -169,9 +169,7 @@ class SimulationApi:
         """
         sim = self.get(simulation)
         kwargs['action'] = 'duplicate'
-        res = sim.control(**kwargs)
-        util.raise_if_invalid_response(res)
-        response = res.json()
+        response = sim.control(**kwargs)
         return Simulation(self, **response['simulation']), response
 
     @util.deprecated('Simulation.control()')

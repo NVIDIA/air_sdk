@@ -26,6 +26,8 @@ lint:
     - pip install -r requirements-dev.txt
   script:
     - pylint **/*.py
+  except:
+    - tags
 
 unit:
   stage: test
@@ -40,6 +42,8 @@ unit:
     paths:
       - htmlcov/
     expire_in: 1 hour
+  except:
+    - tags
 
 pages:
   stage: deploy
@@ -52,3 +56,5 @@ pages:
       - public
   only:
     - master
+  except:
+    - tags

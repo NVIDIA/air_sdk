@@ -7,7 +7,11 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='cumulus-air-sdk',
+<<<<<<< HEAD
     version='2.0.2',
+=======
+    version='2.0.3',
+>>>>>>> master
     author='Mike Robertson',
     author_email='mrobertson@nvidia.com',
     description='Python SDK for interacting with Cumulus AIR',

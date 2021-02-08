@@ -142,8 +142,6 @@ Create a new topology. The caller must provide either `dot` (recommended) or `js
 - `dot` _str | fd, optional_ - Topology in DOT format. This can be passed as a string or
   as a file descriptor for a local file
 - `json` _dict, optional_ - Topology in JSON format
-- `kwargs` _dict, optional_ - All other optional keyword arguments are applied as key/value
-  pairs in the request's JSON payload
   
 
 **Returns**:

@@ -9,6 +9,17 @@ cache:
   paths:
     - .cache/pip
 
+static:
+  stage: test
+  before_script:
+    - pip install semgrep
+  script: semgrep --error --config=p/r2c-ci .
+  only:
+    changes:
+      - "**/*.py"
+  except:
+    - tags
+
 lint:
   stage: test
   before_script:

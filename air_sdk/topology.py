@@ -31,6 +31,7 @@ class Topology(AirModel):
         kwargs (dict, optional): All optional keyword arguments are applied as key/value
                 pairs in the request's JSON payload
     """
+    _ignored_update_fields = ['links', 'nodes']
 
     def __repr__(self):
         if self._deleted or not self.name:
@@ -138,8 +139,6 @@ class TopologyApi:
             dot (str | fd, optional): Topology in DOT format. This can be passed as a string or
                 as a file descriptor for a local file
             json (dict, optional): Topology in JSON format
-            kwargs (dict, optional): All other optional keyword arguments are applied as key/value
-                pairs in the request's JSON payload
 
         Returns:
         [`Topology`](/docs/topology)

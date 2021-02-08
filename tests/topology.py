@@ -19,6 +19,7 @@ class TestTopology(TestCase):
     def test_init_(self):
         self.assertTrue(self.model._deletable)
         self.assertTrue(self.model._updatable)
+        self.assertListEqual(topology.Topology._ignored_update_fields, ['links', 'nodes'])
 
     def test_repr(self):
         self.assertEqual(str(self.model), f'<Topology {self.model.name} {self.model.id}>')

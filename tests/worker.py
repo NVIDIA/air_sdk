@@ -17,7 +17,6 @@ class TestWorker(TestCase):
     def test_init_(self):
         self.assertFalse(self.model._deletable)
         self.assertTrue(self.model._updatable)
-        self.assertFalse(self.model.available)
 
     def test_repr(self):
         self.assertEqual(str(self.model), f'<Worker {self.model.fqdn} {self.model.id}>')
@@ -26,9 +25,9 @@ class TestWorker(TestCase):
         self.model._deleted = True
         self.assertTrue('Deleted Object' in str(self.model))
 
-
     @patch('cumulus_air_sdk.air_sdk.air_model.AirModel._patch')
     def test_set_available(self, mock_patch):
+        self.model.available = False
         self.model.set_available(True)
         self.assertTrue(self.model.available)
         mock_patch.assert_called()

@@ -57,7 +57,7 @@ class AirModel:
             raise AirObjectDeleted(type(self))
         if isinstance(value, LazyLoaded):
             value = getattr(self._api.client, value.model).get(value.id)
-            setattr(self, name, value)
+            super().__setattr__(name, value)
         return value
 
     def __setattr__(self, name, value):

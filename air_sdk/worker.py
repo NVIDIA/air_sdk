@@ -29,10 +29,6 @@ class Worker(AirModel):
             return super().__repr__()
         return f'<Worker {self.fqdn} {self.id}>'
 
-    def __init__(self, api, **kwargs): # TODO: Remove when set_available is removed
-        super().__init__(api, **kwargs)
-        self.available = False
-
     @util.deprecated('<worker_instance>.available')
     def set_available(self, available):
         """
@@ -41,7 +37,7 @@ class Worker(AirModel):
         Arguments:
         available (bool)
         """
-        self.available = available
+        self.available = available #pylint: disable=attribute-defined-outside-init
 
 class WorkerApi:
     """ High-level interface for the Worker API """

@@ -102,7 +102,6 @@ class SimulationNode(AirModel):
         url = f'{self._api.url}{self.id}/instructions/'
         res = self._api.client.delete(url)
         util.raise_if_invalid_response(res, status_code=204, data_type=None)
-        return res.json()
 
     @util.required_kwargs(['action'])
     def control(self, **kwargs):

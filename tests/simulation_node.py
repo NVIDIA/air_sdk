@@ -59,11 +59,10 @@ class TestSimulationNode(TestCase):
 
     @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_delete_instructions(self, mock_raise):
-        res = self.model.delete_instructions()
+        self.model.delete_instructions()
         self.api.client.delete.assert_called_with(f'{self.api.url}{self.model.id}/instructions/')
         mock_raise.assert_called_with(self.api.client.delete.return_value, status_code=204,
                                       data_type=None)
-        self.assertEqual(res, self.api.client.delete.return_value.json.return_value)
 
     @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_control(self, mock_raise):

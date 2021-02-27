@@ -4,5 +4,6 @@ pylint==2.4.4
 git+https://gitlab.com/nwmitchell/pylint-print
 pylint-quotes
 pytest
+python-dateutil
 requests
 requests_mock

@@ -3,6 +3,8 @@ Tests for util.py
 """
 #pylint: disable=missing-function-docstring,missing-class-docstring,no-self-use,unused-argument
 
+import datetime
+
 from json import JSONDecodeError
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
@@ -87,3 +89,20 @@ class TestUtil(TestCase):
         decorated()
         self.assertTrue('has been deprecated and will be removed in a future release. ' + \
                         'Use new_func instead.' in mock_log.call_args[0][0])
+
+    @patch('logging.warning')
+    def test_validate_timestamps(self, mock_log):
+        now = datetime.datetime.now()
+        past = now - datetime.timedelta(hours=8)
+        util.validate_timestamps('Simulation created', expires_at=None, sleep_at=past)
+        log = mock_log.call_args[0][0]
+        self.assertTrue(f'Simulation created with `sleep_at` in the past: {past}' in log)
+
+    @patch('logging.warning')
+    def test_validate_timestamps_future(self, mock_log):
+        now = datetime.datetime.now()
+        past = now - datetime.timedelta(hours=8)
+        future = now + datetime.timedelta(hours=8)
+        util.validate_timestamps('Simulation created', expires_at=past, sleep_at=future)
+        log = mock_log.call_args[0][0]
+        self.assertTrue(f'Simulation created with `expires_at` in the past: {past}' in log)

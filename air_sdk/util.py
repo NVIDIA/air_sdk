@@ -2,8 +2,11 @@
 Helper utils
 """
 
+import datetime
 import logging
 from json import JSONDecodeError
+
+from dateutil import parser as dateparser
 
 from .exceptions import AirUnexpectedResponse
 
@@ -66,3 +69,16 @@ def deprecated(new=None):
             return method(*args, **kwargs)
         return wrapped
     return wrapper
+
+def validate_timestamps(log_prefix, **kwargs):
+    """
+    Logs a warning if any provided timestamps are in the past
+
+    Arguments:
+        log_prefix (str): Prefix to be prepended to the logged warning(s)
+        kwargs (dict): Timestamps to verify
+    """
+    now = datetime.datetime.now()
+    for key, value in kwargs.items():
+        if value and dateparser.parse(str(value)) <= now:
+            logging.warning(f'{log_prefix} with `{key}` in the past: {value} (now: {now})')

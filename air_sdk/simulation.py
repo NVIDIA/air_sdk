@@ -109,13 +109,23 @@ class Simulation(AirModel):
         util.raise_if_invalid_response(res)
         return res.json()
 
+    def load(self):
+        """ Alias for `start()` """
+        self.start()
+
     def start(self):
         """ Start/load the simulation """
         self.control(action='load')
+        self.refresh()
+
+    def stop(self):
+        """ Alias for `store()` """
+        self.store()
 
     def store(self):
         """ Store and power off the simulation """
         self.control(action='store')
+        self.refresh()
 
     def delete(self):
         """ Delete the simulation """
@@ -277,6 +287,8 @@ class SimulationApi:
         <Simulation my_sim 01298e0c-4ef1-43ec-9675-93160eb29d9f>
         ```
         """
+        util.validate_timestamps('Simulation created', expires_at=kwargs.get('expires_at'),
+                                 sleep_at=kwargs.get('sleep_at'))
         res = self.client.post(self.url, json=kwargs)
         util.raise_if_invalid_response(res, status_code=201)
         return Simulation(self, **res.json())

@@ -1,7 +1,7 @@
 """
 Tests for simulation.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring,duplicate-code
+#pylint: disable=missing-function-docstring,missing-class-docstring,duplicate-code,unused-argument
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
@@ -160,7 +160,8 @@ class TestSimulationApi(TestCase):
         self.assertEqual(res[1].id, 'xyz')
 
     @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
-    def test_create(self, mock_raise):
+    @patch('cumulus_air_sdk.air_sdk.util.validate_timestamps')
+    def test_create(self, mock_validate, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         res = self.api.create(topology='abc123')
         self.client.post.assert_called_with(f'{self.client.api_url}/simulation/',
@@ -168,6 +169,14 @@ class TestSimulationApi(TestCase):
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         self.assertIsInstance(res, simulation.Simulation)
         self.assertEqual(res.id, 'abc')
+        mock_validate.assert_called_with('Simulation created', expires_at=None, sleep_at=None)
+
+    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('cumulus_air_sdk.air_sdk.util.validate_timestamps')
+    def test_create_timestamps(self, mock_validate, mock_raise):
+        self.api.create(topology='abc123', expires_at='expired', sleep_at='sleepy')
+        mock_validate.assert_called_with('Simulation created', expires_at='expired',
+                                         sleep_at='sleepy')
 
     def test_create_required_kwargs(self):
         with self.assertRaises(AttributeError) as err:

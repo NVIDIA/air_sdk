@@ -11,7 +11,9 @@ title: Simulation
     * [create\_service](#air_sdk.simulation.Simulation.create_service)
     * [add\_permission](#air_sdk.simulation.Simulation.add_permission)
     * [control](#air_sdk.simulation.Simulation.control)
+    * [load](#air_sdk.simulation.Simulation.load)
     * [start](#air_sdk.simulation.Simulation.start)
+    * [stop](#air_sdk.simulation.Simulation.stop)
     * [store](#air_sdk.simulation.Simulation.store)
     * [delete](#air_sdk.simulation.Simulation.delete)
   * [SimulationApi](#air_sdk.simulation.SimulationApi)
@@ -122,10 +124,20 @@ Sends a control command to the simulation.
 {'result': 'success'}
 ```
 
+<a name="air_sdk.simulation.Simulation.load"></a>
+### load
+
+Alias for `start()`
+
 <a name="air_sdk.simulation.Simulation.start"></a>
 ### start
 
 Start/load the simulation
+
+<a name="air_sdk.simulation.Simulation.stop"></a>
+### stop
+
+Alias for `store()`
 
 <a name="air_sdk.simulation.Simulation.store"></a>
 ### store

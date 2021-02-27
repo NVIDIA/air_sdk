@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.1.0] - 2021-02-26
 ### Added
 - A warning will now be logged when simulations are created with `expires_at`/`sleep_at` dates in the past
+- `AirApi.Simulation.load()` (an alias for `AirApi.Simulation.start()`)
+- `AirApi.Simulation.stop()` (an alias for `AirApi.Simulation.store()`)
 ### Fixed
 - `JSONDecodeError` raised when deleting simulation node instructions
 

@@ -27,7 +27,6 @@ class TestSimulation(TestCase):
         self.model._deleted = True
         self.assertTrue('Deleted Object' in str(self.model))
 
-
     def test_create_service(self):
         res = self.model.create_service('test', 'intf', 22, foo='bar')
         self.api.client.services.create.assert_called_with(simulation=self.model.id, name='test',
@@ -54,10 +53,20 @@ class TestSimulation(TestCase):
             self.model.control()
         self.assertTrue('requires action' in str(err.exception))
 
+    @patch('cumulus_air_sdk.air_sdk.simulation.Simulation.start')
+    def test_load(self, mock_start):
+        self.model.load()
+        mock_start.assert_called()
+
     @patch('cumulus_air_sdk.air_sdk.simulation.Simulation.control')
     def test_start(self, mock_control):
         self.model.start()
         mock_control.assert_called_with(action='load')
+
+    @patch('cumulus_air_sdk.air_sdk.simulation.Simulation.store')
+    def test_stop(self, mock_store):
+        self.model.stop()
+        mock_store.assert_called()
 
     @patch('cumulus_air_sdk.air_sdk.simulation.Simulation.control')
     def test_store(self, mock_control):

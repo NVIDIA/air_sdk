@@ -109,13 +109,23 @@ class Simulation(AirModel):
         util.raise_if_invalid_response(res)
         return res.json()
 
+    def load(self):
+        """ Alias for `start()` """
+        self.start()
+
     def start(self):
         """ Start/load the simulation """
         self.control(action='load')
+        self.refresh()
+
+    def stop(self):
+        """ Alias for `store()` """
+        self.store()
 
     def store(self):
         """ Store and power off the simulation """
         self.control(action='store')
+        self.refresh()
 
     def delete(self):
         """ Delete the simulation """

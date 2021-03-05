@@ -35,7 +35,9 @@ class AirSession(requests.Session):
     """ Wrapper around requests.Session """
     def rebuild_auth(self, prepared_request, response):
         """ Allow credential sharing between nvidia.com and cumulusnetworks.com only """
-        if urlparse(prepared_request.url).hostname in ['air.nvidia.com', 'air.cumulusnetworks.com']:
+        allowed_hosts = ['air.nvidia.com', 'staging.air.nvidia.com', 'air.cumulusnetworks.com',
+                         'staging.air.cumulusnetworks.com']
+        if urlparse(prepared_request.url).hostname in allowed_hosts:
             return
         super().rebuild_auth(prepared_request, response)
 

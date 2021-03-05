@@ -184,28 +184,32 @@ class TestAirApi(TestCase):
         self.assertEqual(str(err.value), 'Must include either `bearer_token` or ' + \
                                          '`username` and `password` arguments')
 
-    def test_get_token(self):
-        self.req.post.return_value.json.return_value = {'token': 'abc123'}
+    @patch('cumulus_air_sdk.air_sdk.air_api.AirApi.post')
+    def test_get_token(self, mock_post):
+        mock_post.return_value.json.return_value = {'token': 'abc123'}
         res = self.api.get_token('foo', 'bar')
         self.assertEqual(res, 'abc123')
-        self.req.post.assert_called_with('http://test/api/v1/login/',
+        mock_post.assert_called_with('http://test/api/v1/login/',
                                          json={'username': 'foo', 'password': 'bar'})
 
-    def test_get_token_no_token(self):
-        self.req.post.return_value.json.return_value = {'redirect': 'http://test'}
+    @patch('cumulus_air_sdk.air_sdk.air_api.AirApi.post')
+    def test_get_token_no_token(self, mock_post):
+        mock_post.return_value.json.return_value = {'redirect': 'http://test'}
         with self.assertRaises(AirAuthorizationError) as err:
             self.api.get_token('foo', 'bar')
         self.assertEqual(err.exception.message, 'API did not provide a token for foo')
 
-    def test_get_token_bad_json(self):
-        self.req.post.return_value.json.side_effect = JSONDecodeError('', '{}', 1)
+    @patch('cumulus_air_sdk.air_sdk.air_api.AirApi.post')
+    def test_get_token_bad_json(self, mock_post):
+        mock_post.return_value.json.side_effect = JSONDecodeError('', '{}', 1)
         with self.assertRaises(AirAuthorizationError) as err:
             self.api.get_token('foo', 'bar')
         self.assertEqual(err.exception.message, 'API did not return a valid JSON response')
 
     def test_request(self):
         res = self.api._request('GET', 'http://test/', 'test', foo='bar')
-        self.api.client.request.assert_called_with('GET', 'http://test/', 'test', foo='bar')
+        self.api.client.request.assert_called_with('GET', 'http://test/', 'test',
+                                                   allow_redirects=False, foo='bar')
         self.assertEqual(res, self.api.client.request.return_value)
 
     def test_request_403(self):
@@ -228,15 +232,29 @@ class TestAirApi(TestCase):
     def test_request_serialized_json(self, mock_serialize):
         self.api._request('GET', 'http://test/', json='foo')
         mock_serialize.assert_called_with('foo')
-        self.api.client.request.assert_called_with('GET', 'http://test/',
+        self.api.client.request.assert_called_with('GET', 'http://test/', allow_redirects=False,
                                                    json=mock_serialize.return_value)
 
     @patch('cumulus_air_sdk.air_sdk.air_api._serialize_dict')
     def test_request_serialized_params(self, mock_serialize):
         self.api._request('GET', 'http://test/', params='foo')
         mock_serialize.assert_called_with('foo')
-        self.api.client.request.assert_called_with('GET', 'http://test/',
+        self.api.client.request.assert_called_with('GET', 'http://test/', allow_redirects=False,
                                                    params=mock_serialize.return_value)
+
+    def test_request_redirect(self):
+        self.api.client.request.return_value.status_code = 301
+        self.api.client.request.return_value.headers = {'Location': 'http://air.nvidia.com/'}
+        self.api._request('GET', 'http://test/', json={'foo': 'bar'})
+        self.api.client.request.assert_called_with('GET', 'http://air.nvidia.com/',
+                                                   json={'foo': 'bar'})
+        self.assertEqual(self.api.client.request.call_count, 3)
+
+    def test_request_redirect_ignored(self):
+        self.api.client.request.return_value.status_code = 301
+        self.api.client.request.return_value.headers = {'Location': 'http://air.evil.com/'}
+        self.api._request('GET', 'http://test/', json={'foo': 'bar'})
+        self.assertEqual(self.api.client.request.call_count, 2)
 
     def test_get(self):
         self.api._request = MagicMock()

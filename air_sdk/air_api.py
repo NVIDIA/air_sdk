@@ -31,13 +31,14 @@ from .simulation_node import SimulationNodeApi
 from .topology import TopologyApi
 from .worker import WorkerApi
 
+ALLOWED_HOSTS = ['air.nvidia.com', 'staging.air.nvidia.com', 'air.cumulusnetworks.com',
+                 'staging.air.cumulusnetworks.com']
+
 class AirSession(requests.Session):
     """ Wrapper around requests.Session """
     def rebuild_auth(self, prepared_request, response):
         """ Allow credential sharing between nvidia.com and cumulusnetworks.com only """
-        allowed_hosts = ['air.nvidia.com', 'staging.air.nvidia.com', 'air.cumulusnetworks.com',
-                         'staging.air.cumulusnetworks.com']
-        if urlparse(prepared_request.url).hostname in allowed_hosts:
+        if urlparse(prepared_request.url).hostname in ALLOWED_HOSTS:
             return
         super().rebuild_auth(prepared_request, response)
 
@@ -224,7 +225,7 @@ class AirApi:
         """
         route = '/login/'
         data = {'username': username, 'password': password}
-        res = self.client.post(self.api_url + route, json=data)
+        res = self.post(self.api_url + route, json=data)
         try:
             if res.json().get('token', None):
                 return res.json()['token']
@@ -242,7 +243,10 @@ class AirApi:
             kwargs['params'] = _serialize_dict(kwargs['params'])
         logging.debug(f'request args: {args}')
         logging.debug(f'request kwargs: {kwargs}')
-        res = self.client.request(method, url, *args, **kwargs)
+        res = self.client.request(method, url, allow_redirects=False, *args, **kwargs)
+        if (res.status_code == 301
+                and urlparse(res.headers.get('Location')).hostname in ALLOWED_HOSTS):
+            res = self.client.request(method, res.headers['Location'], *args, **kwargs)
         if getattr(res, 'status_code') == 403:
             raise AirForbiddenError
         try:

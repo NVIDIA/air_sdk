@@ -190,7 +190,7 @@ class TestAirApi(TestCase):
         res = self.api.get_token('foo', 'bar')
         self.assertEqual(res, 'abc123')
         mock_post.assert_called_with('http://test/api/v1/login/',
-                                         json={'username': 'foo', 'password': 'bar'})
+                                     json={'username': 'foo', 'password': 'bar'})
 
     @patch('cumulus_air_sdk.air_sdk.air_api.AirApi.post')
     def test_get_token_no_token(self, mock_post):

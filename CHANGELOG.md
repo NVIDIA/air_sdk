@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2021-03-05
+### Changed
+- Default API url is now https://air.nvidia.com/api/
+### Fixed
+- Lazy loading of simulation `services` list
+
 ## [2.1.0] - 2021-02-26
 ### Added
 - A warning will now be logged when simulations are created with `expires_at`/`sleep_at` dates in the past

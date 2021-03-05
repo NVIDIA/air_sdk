@@ -33,8 +33,37 @@ from ..air_sdk.simulation_node import SimulationNodeApi
 from ..air_sdk.topology import TopologyApi
 from ..air_sdk.worker import WorkerApi
 
+class TestAirSession(TestCase):
+    def setUp(self):
+        self.session = air_api.AirSession()
+
+    def test_init(self):
+        self.assertIsInstance(self.session, requests.Session)
+
+    @patch('cumulus_air_sdk.air_sdk.air_api.requests.Session.rebuild_auth')
+    @patch('cumulus_air_sdk.air_sdk.air_api.urlparse')
+    def test_rebuild_auth_allowed(self, mock_parse, mock_rebuild):
+        mock_url = MagicMock()
+        mock_url.hostname = 'air.nvidia.com'
+        mock_parse.return_value = mock_url
+        mock_req = MagicMock()
+        self.session.rebuild_auth(mock_req, None)
+        mock_parse.assert_called_with(mock_req.url)
+        mock_rebuild.assert_not_called()
+
+    @patch('cumulus_air_sdk.air_sdk.air_api.requests.Session.rebuild_auth')
+    @patch('cumulus_air_sdk.air_sdk.air_api.urlparse')
+    def test_rebuild_auth_not_allowed(self, mock_parse, mock_rebuild):
+        mock_url = MagicMock()
+        mock_url.hostname = 'air.evil.com'
+        mock_parse.return_value = mock_url
+        mock_req = MagicMock()
+        mock_res = MagicMock()
+        self.session.rebuild_auth(mock_req, mock_res)
+        mock_rebuild.assert_called_with(mock_req, mock_res)
+
 class TestAirApi(TestCase):
-    @patch('requests.Session')
+    @patch('cumulus_air_sdk.air_sdk.air_api.AirSession')
     @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
     def setUp(self, mock_raise, mock_session):
         self.session = mock_session

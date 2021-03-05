@@ -20,7 +20,8 @@ class AirModel:
                   'original': {'SimulationInterface': 'interfaces',
                                'SimulationNode': 'nodes'},
                   'organization': 'organizations', 'os': 'images', 'preferred_worker': 'workers',
-                  'simulation': 'simulations', 'topology': 'topologies', 'worker': 'workers'}
+                  'services': 'services', 'simulation': 'simulations', 'topology': 'topologies',
+                  'worker': 'workers'}
 
     def __init__(self, api, **kwargs):
         self._deleted = False
@@ -71,7 +72,7 @@ class AirModel:
             original = None
             api = None
             id = None
-        if api and id and original != value:
+        if not name.startswith('_') and api and id and original != value:
             self._patch(name, value)
         return super().__setattr__(name, value)
 

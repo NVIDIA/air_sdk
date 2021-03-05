@@ -7,6 +7,8 @@ title: AirApi
 # Table of Contents
 
 * [air\_sdk.air\_api](#air_sdk.air_api)
+  * [AirSession](#air_sdk.air_api.AirSession)
+    * [rebuild\_auth](#air_sdk.air_api.AirSession.rebuild_auth)
   * [AirApi](#air_sdk.air_api.AirApi)
     * [\_\_init\_\_](#air_sdk.air_api.AirApi.__init__)
     * [authorize](#air_sdk.air_api.AirApi.authorize)
@@ -18,6 +20,16 @@ title: AirApi
     * [delete](#air_sdk.air_api.AirApi.delete)
 
 Cumulus AIR API module
+
+<a name="air_sdk.air_api.AirSession"></a>
+## AirSession
+
+Wrapper around requests.Session
+
+<a name="air_sdk.air_api.AirSession.rebuild_auth"></a>
+### rebuild\_auth
+
+Allow credential sharing between nvidia.com and cumulusnetworks.com only
 
 <a name="air_sdk.air_api.AirApi"></a>
 ## AirApi
@@ -35,7 +47,7 @@ or a `bearer_token`
 - `username` _str, optional_ - Username
 - `password` _str, optional_ - Password
 - `bearer_token` _str, optional_ - Pre-generated bearer token
-- `api_url` _str, optional_ - Default = https://air.cumulusnetworks.com/api/
+- `api_url` _str, optional_ - Default = https://air.nvidia.com/api/
 - `api_version` _str_ - Default = v1
 
 <a name="air_sdk.air_api.AirApi.authorize"></a>

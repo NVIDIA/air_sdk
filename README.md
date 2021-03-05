@@ -1,6 +1,6 @@
 # cumulus_air_sdk
 
-This project provides a Python SDK for interacting with the Cumulus AIR API (https://air.cumulusnetworks.com/api/).
+This project provides a Python SDK for interacting with the Cumulus AIR API (https://air.nvidia.com/api/).
 
 [Click here for the full documentation](https://cumulus-consulting.gitlab.io/air/cumulus_air_sdk/docs/)
 
@@ -25,7 +25,7 @@ Using the API requires the use of either a bearer token or a username/password.
 
 ### Bearer token
 
-To use a bearer token, the calling user must have a cumulusnetworks.com account and have previously approved access for Cumulus AIR. Once a token is obtained:
+To use a bearer token, the calling user must have a nvidia.com account and have previously approved access for Cumulus AIR. Once a token is obtained:
 
 ```
 >>> air = AirApi(bearer_token='<token>')

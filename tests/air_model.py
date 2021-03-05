@@ -41,7 +41,7 @@ class TestAirModel(TestCase):
                       'original': {'SimulationInterface': 'interfaces',
                                    'SimulationNode': 'nodes'},
                       'organization': 'organizations', 'os': 'images',
-                      'preferred_worker': 'workers',
+                      'preferred_worker': 'workers', 'services': 'services',
                       'simulation': 'simulations', 'topology': 'topologies', 'worker': 'workers'}
         self.assertDictEqual(self.model.model_keys, model_keys)
 
@@ -117,6 +117,12 @@ class TestAirModel(TestCase):
         self.model.foo = 'bar'
         self.model._patch.assert_not_called()
         self.assertEqual(self.model.foo, 'bar')
+
+    def test_setattr_internal(self, mock_raise):
+        self.model._patch = MagicMock()
+        self.model._foo = 'bar'
+        self.model._patch.assert_not_called()
+        self.assertEqual(self.model._foo, 'bar')
 
     @patch('cumulus_air_sdk.air_sdk.air_model.AirModel.model_keys', {'simulation': 'simulations'})
     def test_get_model_key(self, mock_raise):

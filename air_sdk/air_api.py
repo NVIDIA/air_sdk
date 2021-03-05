@@ -7,6 +7,7 @@ import logging
 from json import JSONDecodeError
 
 import requests
+from requests.compat import urlparse
 
 from . import util
 from .account import AccountApi
@@ -30,11 +31,19 @@ from .simulation_node import SimulationNodeApi
 from .topology import TopologyApi
 from .worker import WorkerApi
 
+class AirSession(requests.Session):
+    """ Wrapper around requests.Session """
+    def rebuild_auth(self, prepared_request, response):
+        """ Allow credential sharing between nvidia.com and cumulusnetworks.com only """
+        if urlparse(prepared_request.url).hostname in ['air.nvidia.com', 'air.cumulusnetworks.com']:
+            return
+        super().rebuild_auth(prepared_request, response)
+
 class AirApi:
     """
     Main interface for an API client instance
     """
-    def __init__(self, api_url='https://air.cumulusnetworks.com/api/', api_version='v1', **kwargs):
+    def __init__(self, api_url='https://air.nvidia.com/api/', api_version='v1', **kwargs):
         """
         Create a new API client instance. The caller MUST provide either `username` and `password`
         or a `bearer_token`
@@ -43,10 +52,10 @@ class AirApi:
             username (str, optional): Username
             password (str, optional): Password
             bearer_token (str, optional): Pre-generated bearer token
-            api_url (str, optional): Default = https://air.cumulusnetworks.com/api/
+            api_url (str, optional): Default = https://air.nvidia.com/api/
             api_version (str): Default = v1
         """
-        self.client = requests.Session()
+        self.client = AirSession()
         self.client.headers.update({'content-type': 'application/json'})
         self.api_url = _normalize_api_url(api_url) + _normalize_api_version(api_version)
         self.token = None

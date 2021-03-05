@@ -18,7 +18,6 @@ class TestSimulation(TestCase):
     def test_init_(self):
         self.assertFalse(self.model._deletable)
         self.assertTrue(self.model._updatable)
-        self.assertEqual(self.model.services, [])
 
     def test_repr(self):
         self.assertEqual(str(self.model), f'<Simulation \'{self.model.title}\' {self.model.id}>')
@@ -27,12 +26,13 @@ class TestSimulation(TestCase):
         self.model._deleted = True
         self.assertTrue('Deleted Object' in str(self.model))
 
-    def test_create_service(self):
+    @patch('cumulus_air_sdk.air_sdk.simulation.Simulation.refresh')
+    def test_create_service(self, mock_refresh):
         res = self.model.create_service('test', 'intf', 22, foo='bar')
         self.api.client.services.create.assert_called_with(simulation=self.model.id, name='test',
                                                            interface='intf', dest_port=22,
                                                            foo='bar')
-        self.assertEqual(self.model.services, [res])
+        mock_refresh.asserrt_called()
         self.assertEqual(res, self.api.client.services.create.return_value)
 
     def test_add_permission(self):

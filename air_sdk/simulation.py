@@ -24,10 +24,6 @@ class Simulation(AirModel):
     """
     _deletable = False
 
-    def __init__(self, api, **kwargs):
-        super().__init__(api, **kwargs)
-        self.services = []
-
     def __repr__(self):
         if self._deleted or not self.title:
             return super().__repr__()
@@ -62,7 +58,7 @@ class Simulation(AirModel):
         service = self._api.client.services.create(simulation=self.id, name=name,
                                                    interface=interface, dest_port=dest_port,
                                                    **kwargs)
-        self.services.append(service)
+        self.refresh()
         return service
 
     def add_permission(self, email, **kwargs):

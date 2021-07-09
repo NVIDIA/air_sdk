@@ -125,7 +125,7 @@ class TestServiceApi(TestCase):
         self.client.simulation_interfaces.list.return_value = [mock_simint]
         res = self.api._resolve_interface('server:eth0', 'abc123')
         self.client.nodes.list.assert_called_with(simulation='abc123')
-        self.client.simulation_interfaces.list.assert_called_with(original=intf1)
+        self.client.simulation_interfaces.list.assert_called_with(original=intf1, simulation='abc123')
         self.assertEqual(res, mock_simint)
 
     def test_resolve_interface_bad_input(self):

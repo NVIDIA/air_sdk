@@ -160,4 +160,4 @@ class ServiceApi:
                         break
         if not resolved:
             raise ValueError('Interface ' + interface + ' does not exist')
-        return self.client.simulation_interfaces.list(original=resolved)[0]
+        return self.client.simulation_interfaces.list(original=resolved, simulation=simulation)[0]

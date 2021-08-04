@@ -7,7 +7,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='cumulus-air-sdk',
-    version='2.1.3',
+    version='2.1.4',
     author='Mike Robertson',
     author_email='mrobertson@nvidia.com',
     description='Python SDK for interacting with Cumulus AIR',
@@ -21,5 +21,5 @@ setuptools.setup(
         'Operating System :: OS Independent',
     ],
     python_requires='>=3.6',
-    install_requires=['python-dateutil']
+    install_requires=['python-dateutil', 'requests']
 )

@@ -40,12 +40,13 @@ Main interface for an API client instance
 ### \_\_init\_\_
 
 Create a new API client instance. The caller MUST provide either `username` and `password`
-or a `bearer_token`
+or a `bearer_token`. The `password` argument may either be an API token or a service account
+password.
 
 **Arguments**:
 
 - `username` _str, optional_ - Username
-- `password` _str, optional_ - Password
+- `password` _str, optional_ - Password or API token
 - `bearer_token` _str, optional_ - Pre-generated bearer token
 - `api_url` _str, optional_ - Default = https://air.nvidia.com/api/
 - `api_version` _str_ - Default = v1
@@ -53,9 +54,11 @@ or a `bearer_token`
 <a name="air_sdk.air_api.AirApi.authorize"></a>
 ### authorize
 
-Authorizes the API client using either a pre-generated bearer token or a username/password.
+Authorizes the API client using either a pre-generated API token, a service account
+username/password, or a pre-generated bearer token.
 Callers MUST pass either a valid `bearer_token` or a `username` and `password`.
-After successfully authorizing, all subsequent API calls will include the
+The `password` argument may either be an API token or a service account
+password. After successfully authorizing, all subsequent API calls will include the
 authorization token provided by the AIR API. **Note:** This is called once automatically
 when an AirApi object is instantiated.
 
@@ -63,7 +66,7 @@ when an AirApi object is instantiated.
 
 - `bearer_token` _str, optional_ - Pre-generated bearer token
 - `username` _str, optional_ - Username
-- `password` _str, optional_ - Password
+- `password` _str, optional_ - Password or API token
   
 
 **Raises**:

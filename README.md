@@ -1,6 +1,6 @@
 # cumulus_air_sdk
 
-This project provides a Python SDK for interacting with the Cumulus AIR API (https://air.nvidia.com/api/).
+This project provides a Python SDK for interacting with the NVIDIA Air API (https://air.nvidia.com/api/).
 
 [Click here for the full documentation](https://cumulus-consulting.gitlab.io/air/cumulus_air_sdk/docs/)
 
@@ -21,22 +21,32 @@ pip3 install git+https://gitlab.com/cumulus-consulting/air/cumulus_air_sdk.git
 
 ## Authentication Options
 
-Using the API requires the use of either a bearer token or a username/password.
+Using the API requires the use of either an API token, a username/password, or a bearer token.
 
-### Bearer token
+### API token
 
-To use a bearer token, the calling user must have a nvidia.com account and have previously approved access for Cumulus AIR. Once a token is obtained:
+To use an API token, one must first be generated. The easiest way to do this is via the [Air UI](https://air.nvidia.com/settings/api-tokens).
+
+Once a token is generated:
 
 ```
->>> air = AirApi(bearer_token='<token>')
+>>> air = AirApi(username='<username>', password='<api_token>')
 ```
 
 ### Username/Password
 
-To use a username/password, an administrator of Cumulus AIR must provision a service account. Once the administrator provides the username and password:
+To use a username/password, an administrator of NVIDIA Air must provision a service account. Once the administrator provides the username and password:
 
 ```
->>> air = AirApi(username='<user>', password='<password>')
+>>> air = AirApi(username='<username>', password='<password>')
+```
+
+### Bearer token
+
+Generally, it's recommended to use an [API Token](#api-token) over a bearer token. However, a bearer token might be used for testing or quick-and-dirty operations that might not need a long term API token. To use a bearer token, the calling user must have a nvidia.com account and have previously approved access for NVIDIA Air. Once a token is obtained:
+
+```
+>>> air = AirApi(bearer_token='<bearer_token>')
 ```
 
 ### Interacting with the API

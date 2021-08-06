@@ -49,11 +49,12 @@ class AirApi:
     def __init__(self, api_url='https://air.nvidia.com/api/', api_version='v1', **kwargs):
         """
         Create a new API client instance. The caller MUST provide either `username` and `password`
-        or a `bearer_token`
+        or a `bearer_token`. The `password` argument may either be an API token or a service account
+        password.
 
         Arguments:
             username (str, optional): Username
-            password (str, optional): Password
+            password (str, optional): Password or API token
             bearer_token (str, optional): Pre-generated bearer token
             api_url (str, optional): Default = https://air.nvidia.com/api/
             api_version (str): Default = v1
@@ -181,16 +182,18 @@ class AirApi:
 
     def authorize(self, **kwargs):
         """
-        Authorizes the API client using either a pre-generated bearer token or a username/password.
+        Authorizes the API client using either a pre-generated API token, a service account
+        username/password, or a pre-generated bearer token.
         Callers MUST pass either a valid `bearer_token` or a `username` and `password`.
-        After successfully authorizing, all subsequent API calls will include the
+        The `password` argument may either be an API token or a service account
+        password. After successfully authorizing, all subsequent API calls will include the
         authorization token provided by the AIR API. **Note:** This is called once automatically
         when an AirApi object is instantiated.
 
         Arguments:
             bearer_token (str, optional): Pre-generated bearer token
             username (str, optional): Username
-            password (str, optional): Password
+            password (str, optional): Password or API token
 
         Raises:
             ValueError - Caller did not pass either a token or a username/password

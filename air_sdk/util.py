@@ -82,3 +82,17 @@ def validate_timestamps(log_prefix, **kwargs):
     for key, value in kwargs.items():
         if value and dateparser.parse(str(value)) <= now:
             logging.warning(f'{log_prefix} with `{key}` in the past: {value} (now: {now})')
+
+def is_datetime_str(value):
+    """
+    Checks to see if the string is a valid datetime format
+
+    Arguments:
+        value (str): String to test if valid datetime format
+    """
+    if isinstance(value, str):
+        try:
+            return datetime.datetime.fromisoformat(value.replace('Z', '+00:00'))
+        except ValueError:
+            pass
+    return False

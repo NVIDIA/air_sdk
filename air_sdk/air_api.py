@@ -3,6 +3,7 @@ Cumulus AIR API module
 """
 #pylint: disable=too-many-public-methods
 
+from datetime import date, datetime
 import logging
 from json import JSONDecodeError
 
@@ -302,6 +303,8 @@ def _serialize_dict(raw_dict):
             clone[key] = _serialize_dict(value)
         elif isinstance(value, list):
             clone[key] = _serialize_list(value)
+        elif isinstance(value, (datetime, date)):
+            clone[key] = value.isoformat()
         elif not key.startswith('_'):
             clone[key] = value
     return clone

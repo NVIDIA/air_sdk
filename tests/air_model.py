@@ -3,6 +3,8 @@ Tests for air_model.py
 """
 #pylint: disable=missing-function-docstring,missing-class-docstring,unused-argument
 #pylint: disable=too-many-public-methods,duplicate-code
+import datetime as dt
+from datetime import date, datetime
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
@@ -48,6 +50,10 @@ class TestAirModel(TestCase):
     def test_load(self, mock_raise):
         model = air_model.AirModel(self.api, normal='http://testserver/api/v1/thing3/abc456')
         self.assertEqual(model.normal, 'http://testserver/api/v1/thing3/abc456')
+
+    def test_load_datetime(self, mock_raise):
+        model = air_model.AirModel(self.api, expires_at='2030-12-12T22:05:03')
+        self.assertIsInstance(model.expires_at, (datetime, date))
 
     @patch('cumulus_air_sdk.air_sdk.air_model.AirModel.model_keys', {'lazy_list': 'lazy_api'})
     @patch('cumulus_air_sdk.air_sdk.air_model.LazyLoadedList.__getitem__')
@@ -200,6 +206,12 @@ class TestAirModel(TestCase):
         self.model.test = air_model.LazyLoadedList([air_model.LazyLoaded('a', 1),
                                                     air_model.LazyLoaded('b', 2)], MagicMock())
         self.assertEqual(self.model.json(), '{"foo": "bar", "id": "abc123", "test": ["a", "b"]}')
+
+    def test_json_datetime(self, mock_raise):
+        time = dt.datetime(2030, 12, 12, 22, 5, 3)
+        self.model.test = time
+        self.assertEqual(self.model.json(),
+                         '{"foo": "bar", "id": "abc123", "test": "2030-12-12T22:05:03"}')
 
 class TestLazyLoaded(TestCase):
     def setUp(self):

@@ -2,6 +2,7 @@
 Tests for simulation.py
 """
 #pylint: disable=missing-function-docstring,missing-class-docstring,duplicate-code,unused-argument
+import datetime as dt
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
@@ -186,6 +187,14 @@ class TestSimulationApi(TestCase):
         self.api.create(topology='abc123', expires_at='expired', sleep_at='sleepy')
         mock_validate.assert_called_with('Simulation created', expires_at='expired',
                                          sleep_at='sleepy')
+
+    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('cumulus_air_sdk.air_sdk.util.validate_timestamps')
+    def test_create_datetime(self, mock_validate, mock_raise):
+        time = dt.datetime(2030, 12, 12, 22, 5, 3)
+        self.api.create(topology='abc123', expires_at=time, sleep_at=time)
+        mock_validate.assert_called_with('Simulation created', expires_at=time,
+                                         sleep_at=time)
 
     def test_create_required_kwargs(self):
         with self.assertRaises(AttributeError) as err:

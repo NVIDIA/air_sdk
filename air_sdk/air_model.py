@@ -1,6 +1,7 @@
 """
 Base classes for AIR object models
 """
+from datetime import date, datetime
 import json
 
 from . import util
@@ -33,6 +34,9 @@ class AirModel:
     def _load(self, **kwargs):
         for key, value in kwargs.items():
             _value = value
+            datetime_obj = util.is_datetime_str(value)
+            if datetime_obj:
+                _value = datetime_obj
             if key in self.model_keys and value:
                 if isinstance(value, list) and not isinstance(value, LazyLoadedList):
                     _value = LazyLoadedList([LazyLoaded(id=_get_item_id(item),
@@ -133,6 +137,8 @@ class AirModel:
         """ Returns a JSON string representation of the object """
         payload = {}
         for key, value in self.__dict__.items():
+            if isinstance(value, (datetime, date)):
+                value = value.isoformat()
             if key.startswith('_'):
                 continue
             if isinstance(value, (AirModel, LazyLoaded)):

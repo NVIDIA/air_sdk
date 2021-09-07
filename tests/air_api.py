@@ -7,6 +7,7 @@ Tests for air_api.py
 from json import JSONDecodeError
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
+import datetime as dt
 
 import pytest
 import requests
@@ -331,6 +332,12 @@ class TestHelpers(TestCase):
         res = air_api._serialize_dict(test_dict)
         mock_list.assert_called_with(['foo'])
         self.assertDictEqual(res, {'test': mock_list.return_value})
+
+    def test_serialize_dict_datetime(self):
+        time = dt.datetime(2030, 12, 12, 22, 5, 3)
+        test_dict = {'test': {'foo': time}}
+        res = air_api._serialize_dict(test_dict)
+        self.assertDictEqual(res, {'test': {'foo': '2030-12-12T22:05:03'}})
 
     def test_serialize_dict(self):
         test_dict = {'test': 'foo'}

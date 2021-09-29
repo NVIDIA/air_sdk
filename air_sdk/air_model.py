@@ -44,8 +44,10 @@ class AirModel:
                                              for item in value], self._api)
                 elif isinstance(value, (LazyLoaded, LazyLoadedList)):
                     _value = value
-                else:
+                elif value.startswith('http'):
                     _value = LazyLoaded(id=_value.split('/')[6], model=self._get_model_key(key))
+                else:
+                    _value = LazyLoaded(id=_value, model=self._get_model_key(key))
             super().__setattr__(key, _value)
 
     def __repr__(self):

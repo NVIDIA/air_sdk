@@ -29,6 +29,7 @@ from .ssh_key import SSHKeyApi
 from .simulation import SimulationApi
 from .simulation_interface import SimulationInterfaceApi
 from .simulation_node import SimulationNodeApi
+from .token import TokenApi
 from .topology import TopologyApi
 from .worker import WorkerApi
 
@@ -71,6 +72,10 @@ class AirApi:
     @property
     def accounts(self):
         return AccountApi(self)
+
+    @property
+    def api_tokens(self):
+        return TokenApi(self)
 
     @property
     def capacity(self):

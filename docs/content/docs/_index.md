@@ -88,3 +88,9 @@ pylint **/*.py
 ```
 ./unit_test.sh
 ```
+
+### Generating docs
+
+```
+pydoc-markdown
+```

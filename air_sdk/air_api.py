@@ -21,6 +21,7 @@ from .interface import InterfaceApi
 from .job import JobApi
 from .link import LinkApi
 from .login import LoginApi
+from .marketplace import MarketplaceApi
 from .node import NodeApi
 from .organization import OrganizationApi
 from .permission import PermissionApi
@@ -104,6 +105,10 @@ class AirApi:
     @property
     def login(self):
         return LoginApi(self)
+
+    @property
+    def marketplace(self):
+        return MarketplaceApi(self)
 
     @property
     @util.deprecated('AirApi.nodes')

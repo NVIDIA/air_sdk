@@ -23,6 +23,7 @@ from ..air_sdk.interface import InterfaceApi
 from ..air_sdk.job import JobApi
 from ..air_sdk.link import LinkApi
 from ..air_sdk.login import LoginApi
+from ..air_sdk.marketplace import MarketplaceApi
 from ..air_sdk.node import NodeApi
 from ..air_sdk.organization import OrganizationApi
 from ..air_sdk.permission import PermissionApi
@@ -111,6 +112,9 @@ class TestAirApi(TestCase):
 
     def test_login(self):
         self.assertIsInstance(self.api.login, LoginApi)
+
+    def test_marketplace(self):
+        self.assertIsInstance(self.api.marketplace, MarketplaceApi)
 
     def test_node(self):
         self.assertIsInstance(self.api.node, NodeApi)

@@ -1,7 +1,7 @@
 coverage
 pydoc-markdown==3.9.0
 pylint==2.4.4
-git+https://gitlab-master.nvidia.com/nbu-sws/air/pylint-print
+pylint-print==1.0.0
 pylint-quotes
 pytest
 python-dateutil

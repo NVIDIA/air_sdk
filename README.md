@@ -4,12 +4,33 @@ This project provides a Python SDK for interacting with the NVIDIA Air API (http
 
 [Click here for the full documentation](https://cumulus-consulting.gitlab.io/air/cumulus_air_sdk/docs/)
 
+## Prerequisite
+
+The SDK requires python 3.7 or later. The safest way to install the SDK is to set up a virtual environment in python3.7:
+
+```
+apt-get install python3.7
+```
+
+```
+python3.7 -m pip install virtualenv
+```
+
+```
+python3.7 -m virtualenv venv37
+```
+
+```
+. venv37/bin/activate
+```
+
 ## Installation
 
 The SDK requires python 3.6 or later. To install:
+To install the SDK, use pip. Either command will work below based on context:
 
 ```
-pip3 install git+https://gitlab.com/cumulus-consulting/air/cumulus_air_sdk.git
+python3.7 -m pip install git+https://gitlab.com/cumulus-consulting/air/cumulus_air_sdk.git
 ```
 
 ## Usage

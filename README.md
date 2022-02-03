@@ -26,12 +26,20 @@ python3.7 -m virtualenv venv37
 
 ## Installation
 
-The SDK requires python 3.6 or later. To install:
-To install the SDK, use pip. Either command will work below based on context:
+To install the SDK, use pip. Either command will work below based on context.
+
+If using the modernized python3 method:
 
 ```
 python3.7 -m pip install git+https://gitlab.com/cumulus-consulting/air/cumulus_air_sdk.git
 ```
+
+If using the pip3 method:
+
+```
+pip3 install git+https://gitlab.com/cumulus-consulting/air/cumulus_air_sdk.git
+```
+
 
 ## Usage
 

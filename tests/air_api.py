@@ -23,6 +23,7 @@ from ..air_sdk.interface import InterfaceApi
 from ..air_sdk.job import JobApi
 from ..air_sdk.link import LinkApi
 from ..air_sdk.login import LoginApi
+from ..air_sdk.marketplace import MarketplaceApi
 from ..air_sdk.node import NodeApi
 from ..air_sdk.organization import OrganizationApi
 from ..air_sdk.permission import PermissionApi
@@ -31,6 +32,7 @@ from ..air_sdk.ssh_key import SSHKeyApi
 from ..air_sdk.simulation import SimulationApi
 from ..air_sdk.simulation_interface import SimulationInterfaceApi
 from ..air_sdk.simulation_node import SimulationNodeApi
+from ..air_sdk.token import TokenApi
 from ..air_sdk.topology import TopologyApi
 from ..air_sdk.worker import WorkerApi
 
@@ -87,6 +89,9 @@ class TestAirApi(TestCase):
     def test_accounts(self):
         self.assertIsInstance(self.api.accounts, AccountApi)
 
+    def test_api_tokens(self):
+        self.assertIsInstance(self.api.api_tokens, TokenApi)
+
     def test_capacity(self):
         self.assertIsInstance(self.api.capacity, CapacityApi)
 
@@ -107,6 +112,9 @@ class TestAirApi(TestCase):
 
     def test_login(self):
         self.assertIsInstance(self.api.login, LoginApi)
+
+    def test_marketplace(self):
+        self.assertIsInstance(self.api.marketplace, MarketplaceApi)
 
     def test_node(self):
         self.assertIsInstance(self.api.node, NodeApi)

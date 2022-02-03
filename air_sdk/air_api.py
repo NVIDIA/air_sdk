@@ -21,6 +21,7 @@ from .interface import InterfaceApi
 from .job import JobApi
 from .link import LinkApi
 from .login import LoginApi
+from .marketplace import MarketplaceApi
 from .node import NodeApi
 from .organization import OrganizationApi
 from .permission import PermissionApi
@@ -29,6 +30,7 @@ from .ssh_key import SSHKeyApi
 from .simulation import SimulationApi
 from .simulation_interface import SimulationInterfaceApi
 from .simulation_node import SimulationNodeApi
+from .token import TokenApi
 from .topology import TopologyApi
 from .worker import WorkerApi
 
@@ -73,6 +75,10 @@ class AirApi:
         return AccountApi(self)
 
     @property
+    def api_tokens(self):
+        return TokenApi(self)
+
+    @property
     def capacity(self):
         return CapacityApi(self)
 
@@ -99,6 +105,10 @@ class AirApi:
     @property
     def login(self):
         return LoginApi(self)
+
+    @property
+    def marketplace(self):
+        return MarketplaceApi(self)
 
     @property
     @util.deprecated('AirApi.nodes')

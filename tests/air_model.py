@@ -69,8 +69,13 @@ class TestAirModel(TestCase):
         self.assertEqual(model.lazy_lazy, self.api.client.lazy.get.return_value)
 
     @patch('cumulus_air_sdk.air_sdk.air_model.AirModel.model_keys', {'lazy_item': 'lazy_api'})
-    def test_load_lazy(self, mock_raise):
+    def test_load_http(self, mock_raise):
         model = air_model.AirModel(self.api, lazy_item='http://testserver/api/v1/thing2/xyz123')
+        self.assertEqual(model.lazy_item.id, self.api.client.lazy_api.get.return_value.id)
+
+    @patch('cumulus_air_sdk.air_sdk.air_model.AirModel.model_keys', {'lazy_item': 'lazy_api'})
+    def test_load_lazy(self, mock_raise):
+        model = air_model.AirModel(self.api, lazy_item='xyz123')
         self.assertEqual(model.lazy_item.id, self.api.client.lazy_api.get.return_value.id)
 
     def test_repr(self, mock_raise):

@@ -48,7 +48,7 @@ unit:
 pages:
   stage: deploy
   image:
-    name: urm.nvidia.com/docker-remote/klakegg/hugo:0.82.1-ext-alpine
+    name: registry.gitlab.com/pages/hugo/hugo_extended:0.82.1
     entrypoint: ["/bin/sh", "-c"]
   script:
     - cd docs; hugo --baseUrl $CI_PAGES_URL

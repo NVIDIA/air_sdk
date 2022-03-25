@@ -68,10 +68,11 @@ class TestImageApi(TestCase):
 
     @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create(self, mock_raise):
+        org = 'acb123'
         self.client.post.return_value.json.return_value = {'id': 'abc'}
-        res = self.api.create(name='myimage')
+        res = self.api.create(name='myimage', organization=org)
         self.client.post.assert_called_with(f'{self.client.api_url}/image/',
-                                            json={'name': 'myimage'})
+                                            json={'name': 'myimage', 'organization': org})
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         self.assertIsInstance(res, image.Image)
         self.assertEqual(res.id, 'abc')
@@ -79,15 +80,20 @@ class TestImageApi(TestCase):
     @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
     @patch('cumulus_air_sdk.air_sdk.image.Image.upload')
     def test_create_upload(self, mock_upload, mock_raise):
+        org = 'abc123'
         self.client.post.return_value.json.return_value = {'id': 'abc'}
-        res = self.api.create(name='myimage', filename='myfile')
+        res = self.api.create(name='myimage', filename='myfile', organization=org)
         self.client.post.assert_called_with(f'{self.client.api_url}/image/',
-                                            json={'name': 'myimage', 'filename': 'myfile'})
+                                            json={'name': 'myimage', 'filename': 'myfile',
+                                                  'organization': org})
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         mock_upload.assert_called_with('myfile')
         self.assertIsInstance(res, image.Image)
 
     def test_create_required_kwargs(self):
         with self.assertRaises(AttributeError) as err:
-            self.api.create()
+            self.api.create(organization='abc123')
         self.assertTrue('requires name' in str(err.exception))
+        with self.assertRaises(AttributeError) as err:
+            self.api.create(name='abc123')
+        self.assertTrue('requires organization' in str(err.exception))

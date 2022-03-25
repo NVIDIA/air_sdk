@@ -108,13 +108,14 @@ class ImageApi:
         util.raise_if_invalid_response(res, data_type=list)
         return [Image(self, **image) for image in res.json()]
 
-    @util.required_kwargs(['name'])
+    @util.required_kwargs(['name', 'organization'])
     def create(self, **kwargs):
         """
         Create a new image
 
         Arguments:
             name (str): Image name
+            organization (str | `Organization`): `Organization` or ID
             filename (str, optional): Absolute path to the local file which should be uploaded
             kwargs (dict, optional): All other optional keyword arguments are applied as key/value
                 pairs in the request's JSON payload

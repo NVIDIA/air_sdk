@@ -47,15 +47,16 @@ class PermissionApi:
         kwargs['email'] = email
         return self.create(**kwargs)
 
-    @util.required_kwargs([('topology', 'simulation'), 'email'])
+    @util.required_kwargs([('topology', 'simulation', 'subject_id'), 'email'])
     def create(self, **kwargs):
         """
-        Create a new permission. The caller MUST provide either `simulation` or `topology`
+        Create a new permission. The caller MUST provide `simulation`, `topology`, or `subject_id`
 
         Arguments:
             email (str): Email address for the user being granted permission
             simulation (str | `Simulation`, optional): `Simulation` or ID
             topology (str | `Topology`, optional): `Topology` or ID
+            subject_id (str | `AirModel`, optional): `AirModel` instance or ID
             kwargs (dict, optional): All other optional keyword arguments are applied as query
                 parameters/filters
 
@@ -70,6 +71,9 @@ class PermissionApi:
         ```
         >>> air.permissions.create(email='mrobertson@nvidia.com', topology=topology, write_ok=True)
         <Permission 01298e0c-4ef1-43ec-9675-93160eb29d9f>
+        >>> air.permissions.create(email='mrobertson@nvidia.com',
+        ... subject_id='80cf922a-7b80-4795-8cc5-550833ab1cec', subject_model='simulation.image')
+        <Permission 8a09ea66-51f9-4ddd-8416-62c266cd959e>
         ```
         """
         res = self.client.post(self.url, json=kwargs)

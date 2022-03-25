@@ -78,5 +78,5 @@ class TestPermissionApi(TestCase):
         self.assertTrue('requires email' in str(err.exception))
         with self.assertRaises(AttributeError) as err:
             self.api.create(email='me@test.com')
-        self.assertTrue('requires one of the following: (\'topology\', \'simulation\')' \
-                        in str(err.exception))
+        msg = 'requires one of the following: (\'topology\', \'simulation\', \'subject_id\')'
+        self.assertTrue(msg in str(err.exception))

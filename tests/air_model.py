@@ -152,8 +152,10 @@ class TestAirModel(TestCase):
                                                         json={'foo': 'bar'})
         mock_raise.assert_called_with(self.model._api.client.patch.return_value)
 
-    def test_update(self, mock_raise):
+    @patch('cumulus_air_sdk.air_sdk.air_model.AirModel.refresh')
+    def test_update(self, mock_refresh, mock_raise):
         self.model.update(test='new')
+        mock_refresh.assert_called()
         self.model._api.client.put.assert_called_with(f'{self.model._api.url}{self.model.id}/',
                                                       json=self.model.__dict__)
         mock_raise.assert_called_with(self.model._api.client.put.return_value)

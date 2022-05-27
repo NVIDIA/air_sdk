@@ -3,6 +3,7 @@ Topology module
 """
 
 import io
+import os
 
 from . import util
 from .air_model import AirModel
@@ -132,12 +133,14 @@ class TopologyApi:
 
     @util.required_kwargs([('json', 'dot')])
     def create(self, **kwargs):
+        #pylint: disable=line-too-long
         """
         Create a new topology. The caller must provide either `dot` (recommended) or `json`.
 
         Arguments:
-            dot (str | fd, optional): Topology in DOT format. This can be passed as a string or
-                as a file descriptor for a local file
+            dot (str | fd, optional): Topology in DOT format. This can be passed as a string
+                containing the raw DOT data, a path to the DOT file on your local disk,
+                or as a file descriptor for a local file
             json (dict, optional): Topology in JSON format
 
         Returns:
@@ -151,6 +154,10 @@ class TopologyApi:
         ```
         >>> air.topologies.create(dot='/tmp/my_net.dot')
         <Topology my_net 01298e0c-4ef1-43ec-9675-93160eb29d9f>
+        >>> air.topologies.create(dot='graph "my sim" { "server1" [ function="server" os="generic/ubuntu1804"] }')
+        <Topology my_net 6256baa8-f54b-4190-85c8-1cc574590080>
+        >>> air.topologies.create(dot=open('/tmp/my_net.dot', 'r'))
+        <Topology my_net a3d09f12-56ff-4889-8e03-3b714d32c3e5>
         ```
         """
         if kwargs.get('json'):
@@ -158,6 +165,8 @@ class TopologyApi:
         else:
             if isinstance(kwargs['dot'], io.IOBase):
                 payload = kwargs['dot']
+            elif os.path.isfile(kwargs['dot']):
+                payload = open(kwargs['dot'], 'r').read()
             else:
                 payload = kwargs['dot'].encode('utf-8')
             res = self.client.post(self.url, data=payload,

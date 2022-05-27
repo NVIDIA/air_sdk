@@ -130,6 +130,7 @@ Create a new image
 **Arguments**:
 
 - `name` _str_ - Image name
+- `organization` _str | `Organization`_ - `Organization` or ID
 - `filename` _str, optional_ - Absolute path to the local file which should be uploaded
 - `kwargs` _dict, optional_ - All other optional keyword arguments are applied as key/value
   pairs in the request's JSON payload

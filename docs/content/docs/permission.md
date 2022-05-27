@@ -51,13 +51,14 @@ High-level interface for the Permission API
 <a name="air_sdk.permission.PermissionApi.create"></a>
 ### create
 
-Create a new permission. The caller MUST provide either `simulation` or `topology`
+Create a new permission. The caller MUST provide `simulation`, `topology`, or `subject_id`
 
 **Arguments**:
 
 - `email` _str_ - Email address for the user being granted permission
 - `simulation` _str | `Simulation`, optional_ - `Simulation` or ID
 - `topology` _str | `Topology`, optional_ - `Topology` or ID
+- `subject_id` _str | `AirModel`, optional_ - `AirModel` instance or ID
 - `kwargs` _dict, optional_ - All other optional keyword arguments are applied as query
   parameters/filters
   
@@ -78,6 +79,9 @@ Create a new permission. The caller MUST provide either `simulation` or `topolog
 ```
 >>> air.permissions.create(email='mrobertson@nvidia.com', topology=topology, write_ok=True)
 <Permission 01298e0c-4ef1-43ec-9675-93160eb29d9f>
+>>> air.permissions.create(email='mrobertson@nvidia.com',
+... subject_id='80cf922a-7b80-4795-8cc5-550833ab1cec', subject_model='simulation.image')
+<Permission 8a09ea66-51f9-4ddd-8416-62c266cd959e>
 ```
 
 <a name="air_sdk.permission.PermissionApi.get"></a>

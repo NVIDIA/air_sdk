@@ -139,8 +139,9 @@ Create a new topology. The caller must provide either `dot` (recommended) or `js
 
 **Arguments**:
 
-- `dot` _str | fd, optional_ - Topology in DOT format. This can be passed as a string or
-  as a file descriptor for a local file
+- `dot` _str | fd, optional_ - Topology in DOT format. This can be passed as a string
+  containing the raw DOT data, a path to the DOT file on your local disk,
+  or as a file descriptor for a local file
 - `json` _dict, optional_ - Topology in JSON format
   
 
@@ -160,5 +161,9 @@ Create a new topology. The caller must provide either `dot` (recommended) or `js
 ```
 >>> air.topologies.create(dot='/tmp/my_net.dot')
 <Topology my_net 01298e0c-4ef1-43ec-9675-93160eb29d9f>
+>>> air.topologies.create(dot='graph "my sim" { "server1" [ function="server" os="generic/ubuntu1804"] }')
+<Topology my_net 6256baa8-f54b-4190-85c8-1cc574590080>
+>>> air.topologies.create(dot=open('/tmp/my_net.dot', 'r'))
+<Topology my_net a3d09f12-56ff-4889-8e03-3b714d32c3e5>
 ```
 

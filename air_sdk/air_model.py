@@ -105,6 +105,7 @@ class AirModel:
         if not self._updatable:
             raise NotImplementedError(f'{self.__class__.__name__} does not support updates')
         url = f'{self._api.url}{self.id}/'
+        self.refresh()
         self.__dict__.update(kwargs)
         payload = self.__dict__
         ignored_fields = getattr(self, '_ignored_update_fields', None)

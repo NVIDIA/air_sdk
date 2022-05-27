@@ -1,7 +1,7 @@
 """
 Tests for topology.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring
+#pylint: disable=missing-function-docstring,missing-class-docstring,unused-argument
 import io
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
@@ -93,8 +93,9 @@ class TestTopologyApi(TestCase):
         self.assertIsInstance(res, topology.Topology)
         self.assertEqual(res.id, 'abc')
 
+    @patch('os.path.isfile', return_value=False)
     @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
-    def test_create_dot(self, mock_raise):
+    def test_create_dot(self, mock_raise, *args):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         res = self.api.create(dot='test')
         self.client.post.assert_called_with(f'{self.client.api_url}/topology/', data=b'test',
@@ -103,8 +104,9 @@ class TestTopologyApi(TestCase):
         self.assertIsInstance(res, topology.Topology)
         self.assertEqual(res.id, 'abc')
 
+    @patch('os.path.isfile', return_value=False)
     @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
-    def test_create_dot_file(self, mock_raise):
+    def test_create_dot_file(self, mock_raise, *args):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         mock_file = MagicMock(spec=io.IOBase)
         res = self.api.create(dot=mock_file)
@@ -113,6 +115,22 @@ class TestTopologyApi(TestCase):
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         self.assertIsInstance(res, topology.Topology)
         self.assertEqual(res.id, 'abc')
+
+    @patch('builtins.open')
+    @patch('os.path.isfile', return_value=True)
+    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    def test_create_dot_file_path(self, mock_raise, mock_isfile, mock_open):
+        self.client.post.return_value.json.return_value = {'id': 'abc'}
+        file_path = '/tmp/topo.dot'
+        res = self.api.create(dot=file_path)
+        self.client.post.assert_called_with(f'{self.client.api_url}/topology/',
+                                            data=mock_open.return_value.read.return_value,
+                                            headers={'Content-type': 'text/vnd.graphviz'})
+        mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
+        self.assertIsInstance(res, topology.Topology)
+        self.assertEqual(res.id, 'abc')
+        mock_isfile.assert_called_once_with(file_path)
+        mock_open.assert_called_once_with(file_path, 'r')
 
     def test_create_required_kwargs(self):
         with self.assertRaises(AttributeError) as err:

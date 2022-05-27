@@ -45,7 +45,8 @@ class TestLinkApi(TestCase):
 
     @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_list(self, mock_raise):
-        self.client.get.return_value.json.return_value = [{'id': 'abc'}, {'id': 'xyz'}]
+        self.client.get.return_value.json.return_value = [{'id': 'abc', 'interfaces': ['foo']},
+                                                          {'id': 'xyz'}]
         res = self.api.list(foo='bar')
         self.client.get.assert_called_with(f'{self.client.api_url}/link/', params={'foo': 'bar'})
         mock_raise.assert_called_with(self.client.get.return_value, data_type=list)

@@ -11,7 +11,8 @@ class AirModel:
     """ Base class for AIR object models """
     model_keys = {'account': 'accounts', 'base_simulation': 'simulations', 'bios': 'images',
                   'connection': 'links', 'demo': 'demos', 'interface': 'simulation_interfaces',
-                  'interfaces': {'Node': 'interfaces', 'SimulationNode': 'simulation_interfaces'},
+                  'interfaces': {'Node': 'interfaces', 'SimulationNode': 'simulation_interfaces',
+                                 'Link': 'interfaces'},
                   'job': 'jobs', 'last_worker': 'worker',
                   'members': 'accounts',
                   'node': {'Interface': 'nodes', 'NodeInstruction': 'simulation_nodes',

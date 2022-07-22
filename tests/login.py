@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 """
 Tests for login.py
 """
@@ -33,13 +36,13 @@ class TestLoginApi(TestCase):
         self.assertEqual(self.api.client, self.client)
         self.assertEqual(self.api.url, 'http://testserver/api/login/')
 
-    @patch('cumulus_air_sdk.air_sdk.login.LoginApi.list')
+    @patch('air_sdk.air_sdk.login.LoginApi.list')
     def test_get(self, mock_list):
         res = self.api.get(foo='bar')
         mock_list.assert_called_with(foo='bar')
         self.assertEqual(res, mock_list.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = {'id': 'abc'}
         res = self.api.list(foo='bar')

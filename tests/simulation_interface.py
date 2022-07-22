@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 """
 Tests for simulation_interface.py
 """
@@ -34,13 +37,13 @@ class TestSimulationInterfaceApi(TestCase):
         self.assertEqual(self.api.client, self.client)
         self.assertEqual(self.api.url, 'http://testserver/api/simulation-interface/')
 
-    @patch('cumulus_air_sdk.air_sdk.simulation_interface.SimulationInterfaceApi.list')
+    @patch('air_sdk.air_sdk.simulation_interface.SimulationInterfaceApi.list')
     def test_get_simulation_interfaces(self, mock_list):
         res = self.api.get_simulation_interfaces('abc123', 'xyz123')
         mock_list.assert_called_with(simulation='abc123', original='xyz123')
         self.assertEqual(res, mock_list.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
@@ -50,7 +53,7 @@ class TestSimulationInterfaceApi(TestCase):
         self.assertIsInstance(res, simulation_interface.SimulationInterface)
         self.assertEqual(res.test, 'success')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = [{'id': 'abc'}, {'id': 'xyz'}]
         res = self.api.list(foo='bar')
@@ -62,7 +65,7 @@ class TestSimulationInterfaceApi(TestCase):
         self.assertEqual(res[0].id, 'abc')
         self.assertEqual(res[1].id, 'xyz')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_list_interface(self, mock_raise):
         self.api.list(interface='test')
         self.client.get.assert_called_with(f'{self.client.api_url}/simulation-interface/',

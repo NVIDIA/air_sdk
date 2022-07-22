@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 """
 Tests for image.py
 """
@@ -26,7 +29,7 @@ class TestImage(TestCase):
         self.assertTrue('Deleted Object' in str(self.model))
 
     @patch('builtins.open')
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_upload(self, mock_raise, mock_open):
         self.model.upload('myfile')
         mock_put = self.mock_api.client.put
@@ -45,7 +48,7 @@ class TestImageApi(TestCase):
         self.assertEqual(self.api.client, self.client)
         self.assertEqual(self.api.url, 'http://testserver/api/image/')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
@@ -55,7 +58,7 @@ class TestImageApi(TestCase):
         self.assertIsInstance(res, image.Image)
         self.assertEqual(res.test, 'success')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = [{'id': 'abc'}, {'id': 'xyz'}]
         res = self.api.list(foo='bar')
@@ -66,7 +69,7 @@ class TestImageApi(TestCase):
         self.assertEqual(res[0].id, 'abc')
         self.assertEqual(res[1].id, 'xyz')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create(self, mock_raise):
         org = 'acb123'
         self.client.post.return_value.json.return_value = {'id': 'abc'}
@@ -77,8 +80,8 @@ class TestImageApi(TestCase):
         self.assertIsInstance(res, image.Image)
         self.assertEqual(res.id, 'abc')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
-    @patch('cumulus_air_sdk.air_sdk.image.Image.upload')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.image.Image.upload')
     def test_create_upload(self, mock_upload, mock_raise):
         org = 'abc123'
         self.client.post.return_value.json.return_value = {'id': 'abc'}

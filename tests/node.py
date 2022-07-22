@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 """
 Tests for node.py
 """
@@ -35,13 +38,13 @@ class TestNodeApi(TestCase):
         self.assertEqual(self.api.client, self.client)
         self.assertEqual(self.api.url, 'http://testserver/api/node/')
 
-    @patch('cumulus_air_sdk.air_sdk.node.NodeApi.list')
+    @patch('air_sdk.air_sdk.node.NodeApi.list')
     def test_get_nodes(self, mock_list):
         res = self.api.get_nodes(simulation_id='foo')
         mock_list.assert_called_with(simulation='foo')
         self.assertEqual(res, mock_list.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
@@ -51,14 +54,14 @@ class TestNodeApi(TestCase):
         self.assertIsInstance(res, node.Node)
         self.assertEqual(res.test, 'success')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_get_simulation_id(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         self.api.get('abc123', simulation_id='xyz123')
         self.client.get.assert_called_with(f'{self.client.api_url}/node/abc123/',
                                            params={'simulation': 'xyz123'})
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = [{'id': 'abc'}, {'id': 'xyz'}]
         res = self.api.list(foo='bar')
@@ -69,7 +72,7 @@ class TestNodeApi(TestCase):
         self.assertEqual(res[0].id, 'abc')
         self.assertEqual(res[1].id, 'xyz')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create(self, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         res = self.api.create(topology='abc123', name='test')

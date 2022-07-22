@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 """
 Tests for link.py
 """
@@ -33,7 +36,7 @@ class TestLinkApi(TestCase):
         self.assertEqual(self.api.client, self.client)
         self.assertEqual(self.api.url, 'http://testserver/api/link/')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
@@ -43,7 +46,7 @@ class TestLinkApi(TestCase):
         self.assertIsInstance(res, link.Link)
         self.assertEqual(res.test, 'success')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = [{'id': 'abc', 'interfaces': ['foo']},
                                                           {'id': 'xyz'}]
@@ -55,7 +58,7 @@ class TestLinkApi(TestCase):
         self.assertEqual(res[0].id, 'abc')
         self.assertEqual(res[1].id, 'xyz')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create(self, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         res = self.api.create(topology='abc123', interfaces=['def123'])

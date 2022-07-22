@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 """
 Tests for util.py
 """
@@ -24,7 +27,7 @@ class TestUtil(TestCase):
         with self.assertRaises(exceptions.AirUnexpectedResponse) as err:
             util.raise_if_invalid_response(mock_res)
         self.assertEqual(err.exception.message,
-                         'Received an unexpected response from the Cumulus AIR API (400): ' +
+                         'Received an unexpected response from the Air API (400): ' +
                          str(mock_res.text))
         self.assertEqual(err.exception.status_code, 400)
 
@@ -40,7 +43,7 @@ class TestUtil(TestCase):
         with self.assertRaises(exceptions.AirUnexpectedResponse) as err:
             util.raise_if_invalid_response(mock_res)
         self.assertEqual(err.exception.message,
-                         'Received an unexpected response from the Cumulus AIR API (200): ' +
+                         'Received an unexpected response from the Air API (200): ' +
                          str(mock_res.text))
         self.assertEqual(err.exception.status_code, 200)
 
@@ -51,7 +54,7 @@ class TestUtil(TestCase):
         with self.assertRaises(exceptions.AirUnexpectedResponse) as err:
             util.raise_if_invalid_response(mock_res, data_type=list)
         self.assertEqual(err.exception.message,
-                         'Received an unexpected response from the Cumulus AIR API (200): ' + \
+                         'Received an unexpected response from the Air API (200): ' + \
                          'Expected API response to be of type <class \'list\'>, ' + \
                          'got <class \'dict\'>')
         self.assertEqual(err.exception.status_code, 200)

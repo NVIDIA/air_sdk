@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 """
 Tests for topology.py
 """
@@ -45,23 +48,23 @@ class TestTopologyApi(TestCase):
         self.assertEqual(self.api.client, self.client)
         self.assertEqual(self.api.url, 'http://testserver/api/topology/')
 
-    @patch('cumulus_air_sdk.air_sdk.topology.TopologyApi.list')
+    @patch('air_sdk.air_sdk.topology.TopologyApi.list')
     def test_get_topologies(self, mock_list):
         self.assertEqual(self.api.get_topologies(), mock_list.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.topology.TopologyApi.create')
+    @patch('air_sdk.air_sdk.topology.TopologyApi.create')
     def test_create_topology(self, mock_create):
         res = self.api.create_topology(dot='test')
         mock_create.assert_called_with(dot='test', json=None)
         self.assertEqual(res, mock_create.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.topology.TopologyApi.get')
+    @patch('air_sdk.air_sdk.topology.TopologyApi.get')
     def test_update_topology(self, mock_get):
         self.api.update_topology('abc123', {'foo': 'bar'})
         mock_get.assert_called_with('abc123')
         mock_get.return_value.update.assert_called_with(foo='bar')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
@@ -71,7 +74,7 @@ class TestTopologyApi(TestCase):
         self.assertIsInstance(res, topology.Topology)
         self.assertEqual(res.test, 'success')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = [{'id': 'abc'}, {'id': 'xyz'}]
         res = self.api.list(foo='bar')
@@ -83,7 +86,7 @@ class TestTopologyApi(TestCase):
         self.assertEqual(res[0].id, 'abc')
         self.assertEqual(res[1].id, 'xyz')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create_json(self, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         res = self.api.create(json={'foo': 'bar'})
@@ -94,7 +97,7 @@ class TestTopologyApi(TestCase):
         self.assertEqual(res.id, 'abc')
 
     @patch('os.path.isfile', return_value=False)
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create_dot(self, mock_raise, *args):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         res = self.api.create(dot='test')
@@ -105,7 +108,7 @@ class TestTopologyApi(TestCase):
         self.assertEqual(res.id, 'abc')
 
     @patch('os.path.isfile', return_value=False)
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create_dot_file(self, mock_raise, *args):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         mock_file = MagicMock(spec=io.IOBase)
@@ -118,7 +121,7 @@ class TestTopologyApi(TestCase):
 
     @patch('builtins.open')
     @patch('os.path.isfile', return_value=True)
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create_dot_file_path(self, mock_raise, mock_isfile, mock_open):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         file_path = '/tmp/topo.dot'

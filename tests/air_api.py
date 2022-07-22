@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 """
 Tests for air_api.py
 """
@@ -43,8 +46,8 @@ class TestAirSession(TestCase):
     def test_init(self):
         self.assertIsInstance(self.session, requests.Session)
 
-    @patch('cumulus_air_sdk.air_sdk.air_api.requests.Session.rebuild_auth')
-    @patch('cumulus_air_sdk.air_sdk.air_api.urlparse')
+    @patch('air_sdk.air_sdk.air_api.requests.Session.rebuild_auth')
+    @patch('air_sdk.air_sdk.air_api.urlparse')
     def test_rebuild_auth_allowed(self, mock_parse, mock_rebuild):
         mock_url = MagicMock()
         mock_url.hostname = 'air.nvidia.com'
@@ -54,8 +57,8 @@ class TestAirSession(TestCase):
         mock_parse.assert_called_with(mock_req.url)
         mock_rebuild.assert_not_called()
 
-    @patch('cumulus_air_sdk.air_sdk.air_api.requests.Session.rebuild_auth')
-    @patch('cumulus_air_sdk.air_sdk.air_api.urlparse')
+    @patch('air_sdk.air_sdk.air_api.requests.Session.rebuild_auth')
+    @patch('air_sdk.air_sdk.air_api.urlparse')
     def test_rebuild_auth_not_allowed(self, mock_parse, mock_rebuild):
         mock_url = MagicMock()
         mock_url.hostname = 'air.evil.com'
@@ -66,8 +69,8 @@ class TestAirSession(TestCase):
         mock_rebuild.assert_called_with(mock_req, mock_res)
 
 class TestAirApi(TestCase):
-    @patch('cumulus_air_sdk.air_sdk.air_api.AirSession')
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.air_api.AirSession')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def setUp(self, mock_raise, mock_session):
         self.session = mock_session
         self.req = self.session.return_value
@@ -81,7 +84,7 @@ class TestAirApi(TestCase):
         self.assertEqual(self.api.token, 'foo')
         self.assertIsNone(self.api.username)
 
-    @patch('cumulus_air_sdk.air_sdk.air_api.AirApi.authorize')
+    @patch('air_sdk.air_sdk.air_api.AirApi.authorize')
     def test_init_authorize(self, mock_auth):
         self.api = air_api.AirApi('http://test/api/', 'v1', bearer_token='foo')
         mock_auth.assert_called_with(bearer_token='foo')
@@ -170,7 +173,7 @@ class TestAirApi(TestCase):
     def test_workers(self):
         self.assertIsInstance(self.api.workers, WorkerApi)
 
-    @patch('cumulus_air_sdk.air_sdk.login.LoginApi.list')
+    @patch('air_sdk.air_sdk.login.LoginApi.list')
     def test_authorize_token(self, mock_login):
         mock_login.return_value.username = 'john'
         self.api.authorize(bearer_token='foo')
@@ -178,7 +181,7 @@ class TestAirApi(TestCase):
         self.assertEqual(self.api.client.headers['authorization'], 'Bearer foo')
         self.assertEqual(self.api.username, 'john')
 
-    @patch('cumulus_air_sdk.air_sdk.login.LoginApi.list')
+    @patch('air_sdk.air_sdk.login.LoginApi.list')
     def test_authorize_password(self, mock_login):
         mock_login.return_value.username = 'john'
         self.api.get_token = MagicMock(return_value='abc123')
@@ -193,7 +196,7 @@ class TestAirApi(TestCase):
         self.assertEqual(str(err.value), 'Must include either `bearer_token` or ' + \
                                          '`username` and `password` arguments')
 
-    @patch('cumulus_air_sdk.air_sdk.air_api.AirApi.post')
+    @patch('air_sdk.air_sdk.air_api.AirApi.post')
     def test_get_token(self, mock_post):
         mock_post.return_value.json.return_value = {'token': 'abc123'}
         res = self.api.get_token('foo', 'bar')
@@ -201,14 +204,14 @@ class TestAirApi(TestCase):
         mock_post.assert_called_with('http://test/api/v1/login/',
                                      json={'username': 'foo', 'password': 'bar'})
 
-    @patch('cumulus_air_sdk.air_sdk.air_api.AirApi.post')
+    @patch('air_sdk.air_sdk.air_api.AirApi.post')
     def test_get_token_no_token(self, mock_post):
         mock_post.return_value.json.return_value = {'redirect': 'http://test'}
         with self.assertRaises(AirAuthorizationError) as err:
             self.api.get_token('foo', 'bar')
         self.assertEqual(err.exception.message, 'API did not provide a token for foo')
 
-    @patch('cumulus_air_sdk.air_sdk.air_api.AirApi.post')
+    @patch('air_sdk.air_sdk.air_api.AirApi.post')
     def test_get_token_bad_json(self, mock_post):
         mock_post.return_value.json.side_effect = JSONDecodeError('', '{}', 1)
         with self.assertRaises(AirAuthorizationError) as err:
@@ -233,18 +236,18 @@ class TestAirApi(TestCase):
         with self.assertRaises(AirUnexpectedResponse) as err:
             self.api._request('GET', 'http://test/', 'test', foo='bar')
         self.assertEqual(err.exception.message,
-                         'Received an unexpected response from the Cumulus AIR API ' + \
+                         'Received an unexpected response from the Air API ' + \
                          f'({mock_res.status_code}): {mock_res.text}')
         self.assertEqual(err.exception.status_code, mock_res.status_code)
 
-    @patch('cumulus_air_sdk.air_sdk.air_api._serialize_dict')
+    @patch('air_sdk.air_sdk.air_api._serialize_dict')
     def test_request_serialized_json(self, mock_serialize):
         self.api._request('GET', 'http://test/', json='foo')
         mock_serialize.assert_called_with('foo')
         self.api.client.request.assert_called_with('GET', 'http://test/', allow_redirects=False,
                                                    json=mock_serialize.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.air_api._serialize_dict')
+    @patch('air_sdk.air_sdk.air_api._serialize_dict')
     def test_request_serialized_params(self, mock_serialize):
         self.api._request('GET', 'http://test/', params='foo')
         mock_serialize.assert_called_with('foo')
@@ -334,7 +337,7 @@ class TestHelpers(TestCase):
         res = air_api._serialize_dict(test_dict)
         self.assertDictEqual(res, {'test': {'foo': 'bar'}})
 
-    @patch('cumulus_air_sdk.air_sdk.air_api._serialize_list')
+    @patch('air_sdk.air_sdk.air_api._serialize_list')
     def test_serialize_dict_list(self, mock_list):
         test_dict = {'test': ['foo']}
         res = air_api._serialize_dict(test_dict)
@@ -369,7 +372,7 @@ class TestHelpers(TestCase):
         res = air_api._serialize_list(test_list)
         self.assertListEqual(res, ['abc123'])
 
-    @patch('cumulus_air_sdk.air_sdk.air_api._serialize_dict')
+    @patch('air_sdk.air_sdk.air_api._serialize_dict')
     def test_serialize_list_dict(self, mock_dict):
         test_list = [{'foo': 'bar'}]
         mock_dict.called_with({'foo': 'bar'})

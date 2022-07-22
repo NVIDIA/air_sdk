@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 """
 Tests for capacity.py
 """
@@ -34,14 +37,14 @@ class TestCapacityApi(TestCase):
         self.assertEqual(self.api.client, self.client)
         self.assertEqual(self.api.url, 'http://testserver/api/capacity/')
 
-    @patch('cumulus_air_sdk.air_sdk.capacity.CapacityApi.get')
+    @patch('air_sdk.air_sdk.capacity.CapacityApi.get')
     def test_get_capacity_by_sim(self, mock_get):
         mock_sim = MagicMock()
         res = self.api.get_capacity(mock_sim)
         mock_get.assert_called_with(simulation_id=mock_sim.id)
         self.assertEqual(res, mock_get.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.capacity.CapacityApi.get')
+    @patch('air_sdk.air_sdk.capacity.CapacityApi.get')
     def test_get_capacity_by_id(self, mock_get):
         res = self.api.get_capacity(simulation_id='abc123')
         mock_get.assert_called_with(simulation_id='abc123')
@@ -52,7 +55,7 @@ class TestCapacityApi(TestCase):
             self.api.get_capacity()
         self.assertEqual(str(err.exception), 'Must pass a simulation or simulation_id argument')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
@@ -62,7 +65,7 @@ class TestCapacityApi(TestCase):
         self.assertIsInstance(res, capacity.Capacity)
         self.assertEqual(res.test, 'success')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_get_simulation(self, mock_raise):
         sim = Simulation(MagicMock())
         sim.id = 'abc123'

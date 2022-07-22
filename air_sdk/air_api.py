@@ -1,5 +1,8 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 """
-Cumulus AIR API module
+NVIDIA Air API module
 """
 #pylint: disable=too-many-public-methods
 

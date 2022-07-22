@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 """
 Tests for service.py
 """
@@ -36,24 +39,24 @@ class TestServiceApi(TestCase):
         self.assertEqual(self.api.client, self.client)
         self.assertEqual(self.api.url, 'http://testserver/api/service/')
 
-    @patch('cumulus_air_sdk.air_sdk.service.ServiceApi.list')
+    @patch('air_sdk.air_sdk.service.ServiceApi.list')
     def test_get_services(self, mock_list):
         self.assertEqual(self.api.get_services(), mock_list.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.service.ServiceApi.get')
+    @patch('air_sdk.air_sdk.service.ServiceApi.get')
     def test_get_service(self, mock_get):
         res = self.api.get_service('abc123')
         mock_get.assert_called_with('abc123')
         self.assertEqual(res, mock_get.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.service.ServiceApi.create')
+    @patch('air_sdk.air_sdk.service.ServiceApi.create')
     def test_create_service(self, mock_create):
         res = self.api.create_service('abc123', 'test', 'intf', 22, foo='bar')
         mock_create.assert_called_with(simulation='abc123', name='test', interface='intf',
                                        dest_port=22, foo='bar')
         self.assertEqual(res, mock_create.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
@@ -63,7 +66,7 @@ class TestServiceApi(TestCase):
         self.assertIsInstance(res, service.Service)
         self.assertEqual(res.test, 'success')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = [{'id': 'abc'}, {'id': 'xyz'}]
         res = self.api.list(foo='bar')
@@ -74,8 +77,8 @@ class TestServiceApi(TestCase):
         self.assertEqual(res[0].id, 'abc')
         self.assertEqual(res[1].id, 'xyz')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
-    @patch('cumulus_air_sdk.air_sdk.service.ServiceApi._resolve_interface')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.service.ServiceApi._resolve_interface')
     def test_create(self, mock_resolve, mock_raise):
         sim = AirModel(MagicMock(), id='xyz123')
         self.client.post.return_value.json.return_value = {'id': 'abc'}
@@ -88,8 +91,8 @@ class TestServiceApi(TestCase):
         self.assertIsInstance(res, service.Service)
         self.assertEqual(res.id, 'abc')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
-    @patch('cumulus_air_sdk.air_sdk.service.ServiceApi._resolve_interface')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.service.ServiceApi._resolve_interface')
     def test_create_id(self, mock_resolve, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         self.api.create(name='abc123', simulation='xyz123', interface='test123')

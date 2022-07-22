@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 """
 Tests for air_model.py
 """
@@ -12,7 +15,7 @@ from ..air_sdk import air_model
 from ..air_sdk.exceptions import AirObjectDeleted
 from ..air_sdk.node import Node
 
-@patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+@patch('air_sdk.air_sdk.util.raise_if_invalid_response')
 class TestAirModel(TestCase):
     def setUp(self):
         self.api = MagicMock()
@@ -56,37 +59,37 @@ class TestAirModel(TestCase):
         model = air_model.AirModel(self.api, expires_at='2030-12-12T22:05:03')
         self.assertIsInstance(model.expires_at, (datetime, date))
 
-    @patch('cumulus_air_sdk.air_sdk.air_model.AirModel.model_keys', {'lazy_list': 'lazy_api'})
-    @patch('cumulus_air_sdk.air_sdk.air_model.LazyLoadedList.__getitem__')
+    @patch('air_sdk.air_sdk.air_model.AirModel.model_keys', {'lazy_list': 'lazy_api'})
+    @patch('air_sdk.air_sdk.air_model.LazyLoadedList.__getitem__')
     def test_load_list(self, mock_list_get, mock_raise):
         model = air_model.AirModel(self.api, lazy_list=['http://testserver/api/v1/thing/abc123'])
         self.assertIsInstance(model.lazy_list, air_model.LazyLoadedList)
         self.assertEqual(model.lazy_list[0].id, mock_list_get.return_value.id)
 
-    @patch('cumulus_air_sdk.air_sdk.air_model.AirModel.model_keys', {'lazy_lazy': 'lazy_api'})
+    @patch('air_sdk.air_sdk.air_model.AirModel.model_keys', {'lazy_lazy': 'lazy_api'})
     def test_load_lazy_exists(self, mock_raise):
         lazy = air_model.LazyLoaded('def123', 'lazy')
         model = air_model.AirModel(self.api, lazy_lazy=lazy)
         self.assertEqual(model.lazy_lazy, self.api.client.lazy.get.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.air_model.AirModel.model_keys', {'lazy_item': 'lazy_api'})
+    @patch('air_sdk.air_sdk.air_model.AirModel.model_keys', {'lazy_item': 'lazy_api'})
     def test_load_http(self, mock_raise):
         model = air_model.AirModel(self.api, lazy_item='http://testserver/api/v1/thing2/xyz123')
         self.assertEqual(model.lazy_item.id, self.api.client.lazy_api.get.return_value.id)
 
-    @patch('cumulus_air_sdk.air_sdk.air_model.AirModel.model_keys', {'lazy_item': 'lazy_api'})
+    @patch('air_sdk.air_sdk.air_model.AirModel.model_keys', {'lazy_item': 'lazy_api'})
     def test_load_lazy(self, mock_raise):
         model = air_model.AirModel(self.api, lazy_item='xyz123')
         self.assertEqual(model.lazy_item.id, self.api.client.lazy_api.get.return_value.id)
 
     def test_repr(self, mock_raise):
         self.assertRegex(str(self.model),
-                         r'<cumulus_air_sdk.air_sdk.air_model.AirModel object at 0x[0-9a-f]+>')
+                         r'<air_sdk.air_sdk.air_model.AirModel object at 0x[0-9a-f]+>')
 
     def test_repr_deleted(self, mock_raise):
         self.model._deleted = True
         self.assertRegex(str(self.model),
-                         r'<Deleted Object \(<cumulus_air_sdk.air_sdk.air_model.AirModel ' +
+                         r'<Deleted Object \(<air_sdk.air_sdk.air_model.AirModel ' +
                          r'object at 0x[0-9a-f]+>\)>')
 
     def test_getattribute_get_deleted(self, mock_raise):
@@ -98,7 +101,7 @@ class TestAirModel(TestCase):
         with self.assertRaises(AirObjectDeleted) as err:
             _ = self.model.foo
         self.assertEqual(err.exception.message,
-                         '<class \'cumulus_air_sdk.air_sdk.air_model.AirModel\'> object has ' + \
+                         '<class \'air_sdk.air_sdk.air_model.AirModel\'> object has ' + \
                          'been deleted and should no longer be referenced')
 
     def test_getattribute_lazy(self, mock_raise):
@@ -110,7 +113,7 @@ class TestAirModel(TestCase):
         self.model._deleted = True
         self.assertTrue(self.model._deleted)
 
-    @patch('cumulus_air_sdk.air_sdk.air_model.AirModel._patch')
+    @patch('air_sdk.air_sdk.air_model.AirModel._patch')
     def test_setattr_not_updatable(self, mock_patch, mock_raise):
         self.model._updatable = False
         mock_patch.reset_mock()
@@ -136,11 +139,11 @@ class TestAirModel(TestCase):
         self.model._patch.assert_not_called()
         self.assertEqual(self.model._foo, 'bar')
 
-    @patch('cumulus_air_sdk.air_sdk.air_model.AirModel.model_keys', {'simulation': 'simulations'})
+    @patch('air_sdk.air_sdk.air_model.AirModel.model_keys', {'simulation': 'simulations'})
     def test_get_model_key(self, mock_raise):
         self.assertEqual(self.model._get_model_key('simulation'), 'simulations')
 
-    @patch('cumulus_air_sdk.air_sdk.air_model.AirModel.model_keys',
+    @patch('air_sdk.air_sdk.air_model.AirModel.model_keys',
            {'simulation': {'Node': 'a', 'Node2': 'b'}})
     def test_get_model_key_dict(self, mock_raise):
         node = Node(MagicMock())
@@ -153,7 +156,7 @@ class TestAirModel(TestCase):
                                                         json={'foo': 'bar'})
         mock_raise.assert_called_with(self.model._api.client.patch.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.air_model.AirModel.refresh')
+    @patch('air_sdk.air_sdk.air_model.AirModel.refresh')
     def test_update(self, mock_refresh, mock_raise):
         self.model.update(test='new')
         mock_refresh.assert_called()
@@ -193,7 +196,7 @@ class TestAirModel(TestCase):
             self.model.delete()
         self.assertEqual(str(err.exception), 'AirModel does not support deletes')
 
-    @patch('cumulus_air_sdk.air_sdk.AirModel._load')
+    @patch('air_sdk.air_sdk.AirModel._load')
     def test_refresh(self, mock_load, mock_raise):
         self.model.refresh()
         self.model._api.get.assert_called_with(self.model.id)

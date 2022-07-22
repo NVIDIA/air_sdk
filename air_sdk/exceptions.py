@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 """
 Custom exceptions for the AIR SDK
 """
@@ -11,15 +14,14 @@ class AirError(Exception):
 
 class AirAuthorizationError(AirError):
     """ Raised when authorization with the API fails. """
-    def __init__(self, message='An error occurred when authorizing the Cumulus AIR API',
-                 status_code=None):
+    def __init__(self, message='An error occurred when authorizing the Air API', status_code=None):
         self.message = message
         super().__init__(message=self.message, status_code=status_code)
 
 class AirUnexpectedResponse(AirError):
     """ Raised when the API returns an unexpected response. """
     def __init__(self, message='', status_code=None):
-        self.message = 'Received an unexpected response from the Cumulus AIR API'
+        self.message = 'Received an unexpected response from the Air API'
         if status_code:
             self.message += f' ({status_code})'
         self.message += f': {message}'

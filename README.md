@@ -1,8 +1,8 @@
-# cumulus_air_sdk
+# air_sdk
 
 This project provides a Python SDK for interacting with the NVIDIA Air API (https://air.nvidia.com/api/).
 
-[Click here for the full documentation](https://cumulus-consulting.gitlab.io/air/cumulus_air_sdk/docs/)
+[Click here for the full documentation](https://docs.nvidia.com/networking-ethernet-software/guides/nvidia-air/Air-Python-SDK/)
 
 ## Prerequisite
 
@@ -110,10 +110,4 @@ pylint **/*.py
 
 ```
 ./unit_test.sh
-```
-
-### Generating docs
-
-```
-pydoc-markdown
 ```

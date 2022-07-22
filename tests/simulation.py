@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 """
 Tests for simulation.py
 """
@@ -27,7 +30,7 @@ class TestSimulation(TestCase):
         self.model._deleted = True
         self.assertTrue('Deleted Object' in str(self.model))
 
-    @patch('cumulus_air_sdk.air_sdk.simulation.Simulation.refresh')
+    @patch('air_sdk.air_sdk.simulation.Simulation.refresh')
     def test_create_service(self, mock_refresh):
         res = self.model.create_service('test', 'intf', 22, foo='bar')
         self.api.client.services.create.assert_called_with(simulation=self.model.id, name='test',
@@ -42,7 +45,7 @@ class TestSimulation(TestCase):
                                                               simulation=self.model.id, foo='bar')
         self.assertEqual(res, self.api.client.permissions.create.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_control(self, mock_raise):
         res = self.model.control(action='test')
         self.api.client.post(f'{self.api.url}{self.model.id}/control/', json={'action': 'test'})
@@ -54,27 +57,27 @@ class TestSimulation(TestCase):
             self.model.control()
         self.assertTrue('requires action' in str(err.exception))
 
-    @patch('cumulus_air_sdk.air_sdk.simulation.Simulation.start')
+    @patch('air_sdk.air_sdk.simulation.Simulation.start')
     def test_load(self, mock_start):
         self.model.load()
         mock_start.assert_called()
 
-    @patch('cumulus_air_sdk.air_sdk.simulation.Simulation.control')
+    @patch('air_sdk.air_sdk.simulation.Simulation.control')
     def test_start(self, mock_control):
         self.model.start()
         mock_control.assert_called_with(action='load')
 
-    @patch('cumulus_air_sdk.air_sdk.simulation.Simulation.store')
+    @patch('air_sdk.air_sdk.simulation.Simulation.store')
     def test_stop(self, mock_store):
         self.model.stop()
         mock_store.assert_called()
 
-    @patch('cumulus_air_sdk.air_sdk.simulation.Simulation.control')
+    @patch('air_sdk.air_sdk.simulation.Simulation.control')
     def test_store(self, mock_control):
         self.model.store()
         mock_control.assert_called_with(action='store')
 
-    @patch('cumulus_air_sdk.air_sdk.simulation.Simulation.control')
+    @patch('air_sdk.air_sdk.simulation.Simulation.control')
     def test_delete(self, mock_control):
         self.model.delete()
         mock_control.assert_called_with(action='destroy')
@@ -89,29 +92,29 @@ class TestSimulationApi(TestCase):
         self.assertEqual(self.api.client, self.client)
         self.assertEqual(self.api.url, 'http://testserver/api/simulation/')
 
-    @patch('cumulus_air_sdk.air_sdk.simulation.SimulationApi.list')
+    @patch('air_sdk.air_sdk.simulation.SimulationApi.list')
     def test_get_simulations(self, mock_list):
         self.assertEqual(self.api.get_simulations(), mock_list.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.simulation.SimulationApi.get')
+    @patch('air_sdk.air_sdk.simulation.SimulationApi.get')
     def test_get_simulation(self, mock_get):
         res = self.api.get_simulation('abc123')
         mock_get.assert_called_with('abc123')
         self.assertEqual(res, mock_get.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.simulation.SimulationApi.create')
+    @patch('air_sdk.air_sdk.simulation.SimulationApi.create')
     def test_create_simulation(self, mock_create):
         res = self.api.create_simulation(foo='bar')
         mock_create.assert_called_with(foo='bar')
         self.assertEqual(res, mock_create.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.simulation.SimulationApi.get')
+    @patch('air_sdk.air_sdk.simulation.SimulationApi.get')
     def test_update_simulation(self, mock_get):
         self.api.update_simulation('abc123', {'foo': 'bar'})
         mock_get.assert_called_with('abc123')
         mock_get.return_value.update.assert_called_with(foo='bar')
 
-    @patch('cumulus_air_sdk.air_sdk.simulation.SimulationApi.get')
+    @patch('air_sdk.air_sdk.simulation.SimulationApi.get')
     def test_duplicate(self, mock_get):
         mock_get.return_value.control.return_value = {'simulation': {'test': 'xyz'}}
         sim, res = self.api.duplicate('abc123', foo='bar')
@@ -121,7 +124,7 @@ class TestSimulationApi(TestCase):
         self.assertEqual(sim.test, 'xyz')
         self.assertEqual(res, mock_get.return_value.control.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.simulation.SimulationApi.get')
+    @patch('air_sdk.air_sdk.simulation.SimulationApi.get')
     def test_duplicate_object(self, mock_get):
         mock_snap = MagicMock()
         mock_snap.control.return_value = {'simulation': {'test': 'xyz'}}
@@ -131,14 +134,14 @@ class TestSimulationApi(TestCase):
         self.assertIsInstance(sim, simulation.Simulation)
         self.assertEqual(res, mock_snap.control.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.simulation.SimulationApi.get')
+    @patch('air_sdk.air_sdk.simulation.SimulationApi.get')
     def test_control(self, mock_get):
         res = self.api.control('abc123', 'test', foo='bar')
         mock_get.assert_called_with('abc123')
         mock_get.return_value.control.assert_called_with(action='test', foo='bar')
         self.assertEqual(res, mock_get.return_value.control.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_get_citc_simulation(self, mock_raise):
         self.client.get.return_value.json.return_value = {'foo': 'bar'}
         res = self.api.get_citc_simulation()
@@ -147,7 +150,7 @@ class TestSimulationApi(TestCase):
         self.assertIsInstance(res, simulation.Simulation)
         self.assertEqual(res.foo, 'bar')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
@@ -157,7 +160,7 @@ class TestSimulationApi(TestCase):
         self.assertIsInstance(res, simulation.Simulation)
         self.assertEqual(res.test, 'success')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = [{'id': 'abc'}, {'id': 'xyz'}]
         res = self.api.list(foo='bar')
@@ -169,8 +172,8 @@ class TestSimulationApi(TestCase):
         self.assertEqual(res[0].id, 'abc')
         self.assertEqual(res[1].id, 'xyz')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
-    @patch('cumulus_air_sdk.air_sdk.util.validate_timestamps')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.validate_timestamps')
     def test_create(self, mock_validate, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         res = self.api.create(topology='abc123')
@@ -181,15 +184,15 @@ class TestSimulationApi(TestCase):
         self.assertEqual(res.id, 'abc')
         mock_validate.assert_called_with('Simulation created', expires_at=None, sleep_at=None)
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
-    @patch('cumulus_air_sdk.air_sdk.util.validate_timestamps')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.validate_timestamps')
     def test_create_timestamps(self, mock_validate, mock_raise):
         self.api.create(topology='abc123', expires_at='expired', sleep_at='sleepy')
         mock_validate.assert_called_with('Simulation created', expires_at='expired',
                                          sleep_at='sleepy')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
-    @patch('cumulus_air_sdk.air_sdk.util.validate_timestamps')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.validate_timestamps')
     def test_create_datetime(self, mock_validate, mock_raise):
         time = dt.datetime(2030, 12, 12, 22, 5, 3)
         self.api.create(topology='abc123', expires_at=time, sleep_at=time)

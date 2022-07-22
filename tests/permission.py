@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 """
 Tests for permission.py
 """
@@ -34,13 +37,13 @@ class TestPermissionApi(TestCase):
         self.assertEqual(self.api.client, self.client)
         self.assertEqual(self.api.url, 'http://testserver/api/permission/')
 
-    @patch('cumulus_air_sdk.air_sdk.permission.PermissionApi.create')
+    @patch('air_sdk.air_sdk.permission.PermissionApi.create')
     def test_create_permission(self, mock_create):
         res = self.api.create_permission('me@test.com', foo='bar')
         mock_create.assert_called_with(email='me@test.com', foo='bar')
         self.assertEqual(res, mock_create.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
@@ -50,7 +53,7 @@ class TestPermissionApi(TestCase):
         self.assertIsInstance(res, permission.Permission)
         self.assertEqual(res.test, 'success')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = [{'id': 'abc'}, {'id': 'xyz'}]
         res = self.api.list(foo='bar')
@@ -62,7 +65,7 @@ class TestPermissionApi(TestCase):
         self.assertEqual(res[0].id, 'abc')
         self.assertEqual(res[1].id, 'xyz')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create(self, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         res = self.api.create(simulation='abc123', email='me@test.com')

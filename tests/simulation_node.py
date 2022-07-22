@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 """
 Tests for simulation_node.py
 """
@@ -26,7 +29,7 @@ class TestSimulationNode(TestCase):
         self.assertTrue('Deleted Object' in str(self.model))
 
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create_instructions(self, mock_raise):
         res = self.model.create_instructions(executor='shell', data='echo')
         self.api.client.post.assert_called_with(f'{self.api.url}abc123/instructions/',
@@ -43,13 +46,13 @@ class TestSimulationNode(TestCase):
             self.model.create_instructions(data='foo')
         self.assertTrue('requires executor' in str(err.exception))
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create_instructions_list(self, mock_raise):
         self.model.create_instructions(executor='shell', data=['line1', 'line2'])
         self.api.client.post.assert_called_with(f'{self.api.url}abc123/instructions/',
                                                 json={'executor': 'shell', 'data': 'line1\nline2'})
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_list_instructions(self, mock_raise):
         res = self.model.list_instructions(foo='bar')
         self.api.client.get.assert_called_with(f'{self.api.url}{self.model.id}/instructions/',
@@ -57,14 +60,14 @@ class TestSimulationNode(TestCase):
         mock_raise.assert_called_with(self.api.client.get.return_value, data_type=list)
         self.assertEqual(res, self.api.client.get.return_value.json.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_delete_instructions(self, mock_raise):
         self.model.delete_instructions()
         self.api.client.delete.assert_called_with(f'{self.api.url}{self.model.id}/instructions/')
         mock_raise.assert_called_with(self.api.client.delete.return_value, status_code=204,
                                       data_type=None)
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_control(self, mock_raise):
         res = self.model.control(action='test')
         self.api.client.post.assert_called_with(f'{self.api.url}{self.model.id}/control/',
@@ -77,12 +80,12 @@ class TestSimulationNode(TestCase):
             self.model.control()
         self.assertTrue('requires action' in str(err.exception))
 
-    @patch('cumulus_air_sdk.air_sdk.simulation_node.SimulationNode.control')
+    @patch('air_sdk.air_sdk.simulation_node.SimulationNode.control')
     def test_rebuild(self, mock_control):
         self.model.rebuild(foo='bar')
         mock_control.assert_called_with(action='rebuild', foo='bar')
 
-    @patch('cumulus_air_sdk.air_sdk.simulation_node.SimulationNode.control')
+    @patch('air_sdk.air_sdk.simulation_node.SimulationNode.control')
     def test_reset(self, mock_control):
         self.model.reset(foo='bar')
         mock_control.assert_called_with(action='reset', foo='bar')
@@ -97,19 +100,19 @@ class TestSimulationNodeApi(TestCase):
         self.assertEqual(self.api.client, self.client)
         self.assertEqual(self.api.url, 'http://testserver/api/simulation-node/')
 
-    @patch('cumulus_air_sdk.air_sdk.simulation_node.SimulationNodeApi.get')
+    @patch('air_sdk.air_sdk.simulation_node.SimulationNodeApi.get')
     def test_update_simulation_node(self, mock_get):
         self.api.update_simulation_node('abc123', {'foo': 'bar'})
         mock_get.assert_called_with('abc123')
         mock_get.return_value.update.assert_called_with(foo='bar')
 
-    @patch('cumulus_air_sdk.air_sdk.simulation_node.SimulationNodeApi.list')
+    @patch('air_sdk.air_sdk.simulation_node.SimulationNodeApi.list')
     def test_get_simulation_nodes(self, mock_list):
         res = self.api.get_simulation_nodes(foo='bar')
         mock_list.assert_called_with(foo='bar')
         self.assertEqual(res, mock_list.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
@@ -119,7 +122,7 @@ class TestSimulationNodeApi(TestCase):
         self.assertIsInstance(res, simulation_node.SimulationNode)
         self.assertEqual(res.test, 'success')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = [{'id': 'abc'}, {'id': 'xyz'}]
         res = self.api.list(foo='bar')

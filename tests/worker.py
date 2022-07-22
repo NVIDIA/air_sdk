@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 """
 Tests for worker.py
 """
@@ -25,7 +28,7 @@ class TestWorker(TestCase):
         self.model._deleted = True
         self.assertTrue('Deleted Object' in str(self.model))
 
-    @patch('cumulus_air_sdk.air_sdk.air_model.AirModel._patch')
+    @patch('air_sdk.air_sdk.air_model.AirModel._patch')
     def test_set_available(self, mock_patch):
         self.model.available = False
         self.model.set_available(True)
@@ -42,20 +45,20 @@ class TestWorkerApi(TestCase):
         self.assertEqual(self.api.client, self.client)
         self.assertEqual(self.api.url, 'http://testserver/api/worker/')
 
-    @patch('cumulus_air_sdk.air_sdk.worker.WorkerApi.list')
+    @patch('air_sdk.air_sdk.worker.WorkerApi.list')
     def test_get_workers(self, mock_list):
         res = self.api.get_workers(foo='bar')
         mock_list.assert_called_with(foo='bar')
         self.assertEqual(res, mock_list.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.worker.WorkerApi.get')
+    @patch('air_sdk.air_sdk.worker.WorkerApi.get')
     def test_update_worker(self, mock_get):
         res = self.api.update_worker('abc123', foo='bar')
         mock_get.assert_called_with('abc123')
         mock_get.return_value.update.assert_called_with(foo='bar')
         self.assertEqual(res, mock_get.return_value.update.return_value)
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
@@ -65,7 +68,7 @@ class TestWorkerApi(TestCase):
         self.assertIsInstance(res, worker.Worker)
         self.assertEqual(res.test, 'success')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = [{'id': 'abc'}, {'id': 'xyz'}]
         res = self.api.list(foo='bar')
@@ -76,7 +79,7 @@ class TestWorkerApi(TestCase):
         self.assertEqual(res[0].id, 'abc')
         self.assertEqual(res[1].id, 'xyz')
 
-    @patch('cumulus_air_sdk.air_sdk.util.raise_if_invalid_response')
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create(self, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         res = self.api.create(cpu=1, memory=2, storage=3, ip_address='10.1.1.1', port_range='1-2',

@@ -17,13 +17,13 @@ setuptools.setup(
     license='MIT',
     long_description=LONG_DESCRIPTION,
     long_description_content_type='text/markdown',
-    url='https://gitlab.com/cumulus-consulting/air/cumulus_air_sdk',
+    url='https://github.com/NVIDIA/air_sdk',
     packages=setuptools.find_packages(),
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     install_requires=['python-dateutil', 'requests']
 )

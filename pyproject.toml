@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "air-sdk"
+version = "2.2.0"
+authors = [
+  { name="Mike Robertson", email="mrobertson@nvidia.com" },
+]
+description = "Python SDK for interacting with NVIDIA Air"
+readme = "README.md"
+license = { file="LICENSE" }
+requires-python = ">=3.7"
+classifiers = [
+    'Programming Language :: Python :: 3',
+    'License :: OSI Approved :: MIT License',
+    'Operating System :: OS Independent',
+]
+
+[project.urls]
+"Homepage" = "https://github.com/NVIDIA/air_sdk/issues"
+"Bug Tracker" = "https://github.com/NVIDIA/air_sdk/issues"

@@ -3,3 +3,5 @@ __pycache__/
 htmlcov/
 .DS_Store
 .pytest_cache
+dist/
+air_sdk.egg-info/

@@ -45,22 +45,6 @@ unit:
   except:
     - tags
 
-pages:
-  stage: deploy
-  image:
-    name: registry.gitlab.com/pages/hugo/hugo_extended:0.82.1
-    entrypoint: ["/bin/sh", "-c"]
-  script:
-    - cd docs; hugo --baseUrl $CI_PAGES_URL
-    - mv public ../
-  artifacts:
-    paths:
-      - public
-  only:
-    - main
-  except:
-    - tags
-
 deploy:
   stage: deploy
   script:
@@ -68,8 +52,8 @@ deploy:
     - echo $AIR_ADMIN_KEY | base64 -d > /root/.ssh/id_rsa
     - chmod 600 /root/.ssh/id_rsa
     - ssh-keyscan $AIR_MANAGER >> /root/.ssh/known_hosts
-    - PKG_FILE=cumulus-air-sdk-${CI_COMMIT_TAG}.tar.gz
+    - PKG_FILE=air-sdk-${CI_COMMIT_TAG}.tar.gz
     - tar czf ${PKG_FILE} *
-    - scp ${PKG_FILE} air-admin@${AIR_MANAGER}:/var/lib/pypi/packages/cumulus-air-sdk/${PKG_FILE}
+    - scp ${PKG_FILE} air-admin@${AIR_MANAGER}:/var/lib/pypi/packages/air-sdk/${PKG_FILE}
   only:
     - tags

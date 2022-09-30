@@ -32,10 +32,91 @@ class Organization(AirModel):
         kwargs (dict, optional): All optional keyword arguments are applied as key/value
                 pairs in the request's JSON payload
     """
+    ORG_MEMBER_ROLE = 'Organization Member'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._members_api_url = f'{self._api.url}{self.id}/members/'
+
     def __repr__(self):
         if self._deleted or not self.name:
             return super().__repr__()
         return f'<Organization {self.name} {self.id}>'
+
+    def add_member(self, username: str, roles: list = None):
+        """
+        Add a new member to the organization
+
+        Arguments:
+            username (str): The email address of the user to add
+            roles (list, optional): A list of roles to assign the user. Valid values are
+                'Organization Admin' or 'Organization Member'. If no roles list is provided,
+                'Organization Member' is used as the default role.
+
+        Example:
+        ```
+        >>> organization.add_member('user1@nvidia.com')
+        >>> organization.add_member('user2@nvidia.com', roles=['Organization Admin'])
+        ```
+        """
+        _roles = roles
+        if not _roles:
+            _roles = [self.ORG_MEMBER_ROLE]
+        self._api.client.post(self._members_api_url, json={'username':  username, 'roles': _roles})
+        self.refresh()
+
+    def add_members(self, members: list):
+        #pylint: disable=line-too-long
+        """
+        Add new members to the organization
+
+        Arguments:
+            members (list): List of organization membership dicts in the format of
+                {'username': <email_address>, 'roles': [<role>]}.
+                'roles' is optional and defaults to ['Organization Member']
+                <role> can be a value of 'Organization Admin' or 'Organization Member'.
+
+        Example:
+        ```
+        >>> organization.add_members([{'username': 'user1@nvidia.com', 'roles': ['Organization Admin']}, {'username': 'user2@nvidia.com'}])
+        ```
+        """ #pylint: enable=line-too-long
+        for member in members:
+            if not member.get('roles', []):
+                member['roles'] = [self.ORG_MEMBER_ROLE]
+        self._api.client.post(self._members_api_url, json=members)
+        self.refresh()
+
+    def remove_member(self, username: str, **kwargs):
+        """
+        Remove a member from the organization
+
+        Arguments:
+            username (str): The email address of the user to remove
+
+        Example:
+        ```
+        >>> organization.remove_member('user1@nvidia.com')
+        """
+        self._api.client.delete(self._members_api_url, json={'username': username})
+        if kwargs.get('_refresh_when_done', True):
+            self.refresh()
+
+    def remove_members(self, members: list):
+        """
+        Remove multiple members from the organization
+
+        Arguments:
+            members (list): Email addresses of the users to remove
+
+        Example:
+        ```
+        >>> organization.remove_members(['user1@nvidia.com', 'user2@nvidia.com'])
+        """
+        for member in members:
+            self.remove_member(member, _refresh_when_done=False)
+        self.refresh()
+
 class OrganizationApi:
     """ High-level interface for the Organization API """
     def __init__(self, client):
@@ -95,7 +176,7 @@ class OrganizationApi:
         util.raise_if_invalid_response(res, data_type=list)
         return [Organization(self, **organization) for organization in res.json()]
 
-    @util.required_kwargs(['name', 'members'])
+    @util.required_kwargs(['name'])
     def create(self, **kwargs):
         #pylint: disable=line-too-long
         """
@@ -103,7 +184,12 @@ class OrganizationApi:
 
         Arguments:
             name (str): Organization name
-            members (list): List of member [`Account`](/docs/account) objects or IDs
+            members (list, optional): List of organization membership dicts in the format of
+                {'username': <email_address>, 'roles': [<role>]}.
+                'roles' is optional and defaults to ['Organization Member']
+                <role> can be a value of 'Organization Admin' or 'Organization Member'.
+                If no member list is provided, the calling user's account will be set as the
+                organization admin by default.
             kwargs (dict, optional): All other optional keyword arguments are applied as key/value
                 pairs in the request's JSON payload
 
@@ -116,7 +202,7 @@ class OrganizationApi:
 
         Example:
         ```
-        >>> air.organizations.create(name='NVIDIA', members=[account, 'fa42f2ce-8494-4d4d-87fd-d9ebc18831bd'])
+        >>> air.organizations.create(name='NVIDIA', members=[{'username': 'user1@nvidia.com', 'roles': ['Organization Admin']}, {'username': 'user2@nvidia.com'}])
         <Organization NVIDIA 01298e0c-4ef1-43ec-9675-93160eb29d9f>
         ```
         """ #pylint: enable=line-too-long

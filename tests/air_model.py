@@ -5,7 +5,7 @@
 Tests for air_model.py
 """
 #pylint: disable=missing-function-docstring,missing-class-docstring,unused-argument
-#pylint: disable=too-many-public-methods,duplicate-code
+#pylint: disable=too-many-public-methods,duplicate-code,protected-access
 import datetime as dt
 from datetime import date, datetime
 from unittest import TestCase
@@ -39,7 +39,6 @@ class TestAirModel(TestCase):
                                      'SimulationNode': 'simulation_interfaces',
                                      'Link': 'interfaces'},
                       'job': 'jobs', 'last_worker': 'worker',
-                      'members': 'accounts',
                       'node': {'Interface': 'nodes', 'NodeInstruction': 'simulation_nodes',
                                'SimulationInterface': 'simulation_nodes',
                                'TopologyInstruction': 'nodes'},

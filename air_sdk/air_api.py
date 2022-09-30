@@ -255,7 +255,10 @@ class AirApi:
     def _request(self, method, url, *args, **kwargs):
         if kwargs.get('json'):
             logging.debug(f'unserialized json: {kwargs["json"]}')
-            kwargs['json'] = _serialize_dict(kwargs['json'])
+            if isinstance(kwargs['json'], list):
+                kwargs['json'] = [_serialize_dict(obj) for obj in kwargs['json']]
+            else:
+                kwargs['json'] = _serialize_dict(kwargs['json'])
         if kwargs.get('params'):
             kwargs['params'] = _serialize_dict(kwargs['params'])
         logging.debug(f'request args: {args}')

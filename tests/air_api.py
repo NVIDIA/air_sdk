@@ -241,6 +241,19 @@ class TestAirApi(TestCase):
         self.assertEqual(err.exception.status_code, mock_res.status_code)
 
     @patch('air_sdk.air_sdk.air_api._serialize_dict')
+    def test_request_serialized_json_list(self, mock_serialize):
+        serialized = ['serialized_foo', 'serialized_bar']
+        mock_serialize.side_effect = serialized
+        data = ['foo', 'bar']
+        self.api._request('GET', 'http://test/', json=data)
+        mock_for_assert = MagicMock()
+        mock_for_assert(data[0])
+        mock_for_assert(data[1])
+        self.assertEqual(mock_serialize.mock_calls, mock_for_assert.mock_calls)
+        self.api.client.request.assert_called_with('GET', 'http://test/', allow_redirects=False,
+                                                   json=[serialized[0], serialized[1]])
+
+    @patch('air_sdk.air_sdk.air_api._serialize_dict')
     def test_request_serialized_json(self, mock_serialize):
         self.api._request('GET', 'http://test/', json='foo')
         mock_serialize.assert_called_with('foo')

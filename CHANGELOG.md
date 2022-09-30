@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Organization member management
+### Fixed
+- Updated `Organization.create()` documentation to reflect Air API changes
 
 ## [2.2.0] - 2022-05-27
 ### Added

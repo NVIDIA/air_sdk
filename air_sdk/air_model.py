@@ -17,7 +17,6 @@ class AirModel:
                   'interfaces': {'Node': 'interfaces', 'SimulationNode': 'simulation_interfaces',
                                  'Link': 'interfaces'},
                   'job': 'jobs', 'last_worker': 'worker',
-                  'members': 'accounts',
                   'node': {'Interface': 'nodes', 'NodeInstruction': 'simulation_nodes',
                            'SimulationInterface': 'simulation_nodes',
                            'TopologyInstruction': 'nodes'},

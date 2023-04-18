@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -32,6 +32,32 @@ class Image(AirModel):
         kwargs (dict, optional): All optional keyword arguments are applied as key/value
                 pairs in the request's JSON payload
     """
+    def copy(self, organization):
+        """
+        Make a copy of the image in another organization
+
+        Arguments:
+            organization (str | `Organization`): `Organization` or ID
+
+        Returns:
+        [`Image`](/docs/image)
+
+        Raises:
+        [`AirUnexpectedResposne`](/docs/exceptions) - Copy failed
+
+        Example:
+        ```
+        >>> image = air.images.get('33d8a377-ef0a-4a0d-ac2a-076e32678e18')
+        >>> target_org = air.organizations.get('b0e47509-4099-4e24-b96f-d1278d431f46')
+        >>> image.copy(target_org)
+        <Image cumulus-vx-5.4.0 3dadd54d-583c-432e-9383-a2b0b1d7f551>
+        ```
+        """
+        url = f'{self._api.url}{self.id}/copy/'
+        res = self._api.client.post(url, json={'organization': organization})
+        util.raise_if_invalid_response(res, status_code=201)
+        return Image(self._api, **res.json())
+
     def upload(self, filename):
         """
         Upload an image file

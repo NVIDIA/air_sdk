@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -30,6 +30,7 @@ from ..air_sdk.marketplace import MarketplaceApi
 from ..air_sdk.node import NodeApi
 from ..air_sdk.organization import OrganizationApi
 from ..air_sdk.permission import PermissionApi
+from ..air_sdk.resource_budget import ResourceBudgetApi
 from ..air_sdk.service import ServiceApi
 from ..air_sdk.ssh_key import SSHKeyApi
 from ..air_sdk.simulation import SimulationApi
@@ -133,6 +134,9 @@ class TestAirApi(TestCase):
 
     def test_permissions(self):
         self.assertIsInstance(self.api.permissions, PermissionApi)
+
+    def test_resource_budgets(self):
+        self.assertIsInstance(self.api.resource_budgets, ResourceBudgetApi)
 
     def test_service(self):
         self.assertIsInstance(self.api.service, ServiceApi)

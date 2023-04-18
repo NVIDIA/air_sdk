@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -28,6 +28,7 @@ from .marketplace import MarketplaceApi
 from .node import NodeApi
 from .organization import OrganizationApi
 from .permission import PermissionApi
+from .resource_budget import ResourceBudgetApi
 from .service import ServiceApi
 from .ssh_key import SSHKeyApi
 from .simulation import SimulationApi
@@ -134,6 +135,10 @@ class AirApi:
     @property
     def permissions(self):
         return PermissionApi(self)
+
+    @property
+    def resource_budgets(self):
+        return ResourceBudgetApi(self)
 
     @property
     @util.deprecated('AirApi.services')

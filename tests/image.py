@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -8,7 +8,7 @@ Tests for image.py
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
-from ..air_sdk import image
+from ..air_sdk import image, organization
 
 class TestImage(TestCase):
     def setUp(self):
@@ -16,6 +16,7 @@ class TestImage(TestCase):
         self.model = image.Image(self.mock_api)
         self.model.id = 'abc123'
         self.model.name = 'ubuntu'
+        self.org1 = organization.Organization(self.mock_api, id='xyz456', name='NVIDIA')
 
     def test_init_(self):
         self.assertTrue(self.model._deletable)
@@ -27,6 +28,17 @@ class TestImage(TestCase):
     def test_repr_deleted(self):
         self.model._deleted = True
         self.assertTrue('Deleted Object' in str(self.model))
+
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    def test_copy(self, mock_raise):
+        new_id = 'def456'
+        mock_post = self.mock_api.client.post
+        mock_post.return_value.json.return_value = {'id': new_id, 'name': 'new-image'}
+        res = self.model.copy(self.org1)
+        mock_post.assert_called_once_with(f'{self.mock_api.url}{self.model.id}/copy/',
+                                          json={'organization': self.org1})
+        mock_raise.assert_called_once_with(self.mock_api.client.post.return_value, status_code=201)
+        self.assertEqual(res.id, new_id)
 
     @patch('builtins.open')
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')

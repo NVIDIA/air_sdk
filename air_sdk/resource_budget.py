@@ -1,25 +1,25 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
-Job module
+ResourceBudget module
 """
 
 from . import util
 from .air_model import AirModel
 
-class Job(AirModel):
+class ResourceBudget(AirModel):
     """
-    Manage a Job
+    Manage a ResourceBudget
 
     ### json
-    Returns a JSON string representation of the job
+    Returns a JSON string representation of the budget
 
     ### refresh
-    Syncs the job with all values returned by the API
+    Syncs the budget with all values returned by the API
 
     ### update
-    Update the job with the provided data
+    Update the budget with the provided data
 
     Arguments:
         kwargs (dict, optional): All optional keyword arguments are applied as key/value
@@ -28,27 +28,27 @@ class Job(AirModel):
     _deletable = False
 
     def __repr__(self):
-        if self._deleted or not self.category:
+        if self._deleted:
             return super().__repr__()
-        return f'<Job {self.category} {self.id}>'
+        return f'<ResourceBudget {self.id}>'
 
-class JobApi:
-    """ High-level interface for the Job API """
+class ResourceBudgetApi:
+    """ High-level interface for the ResourceBudget API """
     def __init__(self, client):
         self.client = client
-        self.url = self.client.api_url + '/job/'
+        self.url = self.client.api_url + '/resource-budget/'
 
-    def get(self, job_id, **kwargs):
+    def get(self, budget_id, **kwargs):
         """
-        Get an existing job
+        Get an existing budget
 
         Arguments:
-            job_id (str): Job ID
+            budget_id (str): ResourceBudget ID
             kwargs (dict, optional): All other optional keyword arguments are applied as query
                 parameters/filters
 
         Returns:
-        [`Job`](/docs/job)
+        [`ResourceBudget`](/docs/resourcebudget)
 
         Raises:
         [`AirUnexpectedResposne`](/docs/exceptions) - API did not return a 200 OK
@@ -56,19 +56,19 @@ class JobApi:
 
         Example:
         ```
-        >>> air.jobs.get('3dadd54d-583c-432e-9383-a2b0b1d7f551')
-        <Job START 3dadd54d-583c-432e-9383-a2b0b1d7f551>
+        >>> air.resource_budgets.get('c604c262-396a-48a0-a8f6-31708c0cff82')
+        <ResourceBudget c604c262-396a-48a0-a8f6-31708c0cff82>
         ```
         """
-        url = f'{self.url}{job_id}/'
+        url = f'{self.url}{budget_id}/'
         res = self.client.get(url, params=kwargs)
         util.raise_if_invalid_response(res)
-        return Job(self, **res.json())
+        return ResourceBudget(self, **res.json())
 
     def list(self, **kwargs):
         #pylint: disable=line-too-long
         """
-        List existing jobs
+        List existing budgets
 
         Arguments:
             kwargs (dict, optional): All other optional keyword arguments are applied as query
@@ -83,10 +83,10 @@ class JobApi:
 
         Example:
         ```
-        >>> air.jobs.list()
-        [<Job START c51b49b6-94a7-4c93-950c-e7fa4883591>, <Job STOP 3134711d-015e-49fb-a6ca-68248a8d4aff>]
+        >>> air.resource_budgets.list()
+        [<ResourceBudget c604c262-396a-48a0-a8f6-31708c0cff82>, <ResourceBudget 906675f7-8b8d-4f52-b59d-52847af2f0ef>]
         ```
         """ #pylint: enable=line-too-long
         res = self.client.get(f'{self.url}', params=kwargs)
         util.raise_if_invalid_response(res, data_type=list)
-        return [Job(self, **job) for job in res.json()]
+        return [ResourceBudget(self, **budget) for budget in res.json()]

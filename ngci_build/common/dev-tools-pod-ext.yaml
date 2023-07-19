@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+    - name: jnlp
+      image: urm.nvidia.com/sw-switch-devops-docker/ml-jnlp:1.0.0
+    - name: build-python
+      image: urm.nvidia.com/sw-switch-devops-docker/python-air:3.8.15
+      volumeMounts:
+        - mountPath: /nbu-sws
+          name: nbu-sws
+          mountPropagation: HostToContainer
+          readOnly: false
+      resources:
+        requests:
+          memory: "12Gi"
+          cpu: "10"
+        limits:
+          memory: "16Gi"
+          cpu: "12"
+      command: [ 'cat' ]
+      tty: true
+    - name: mysql
+      image: mysql:5.7
+      env:
+        - name: MYSQL_DATABASE
+          value: mysql
+        - name: MYSQL_ROOT_PASSWORD
+          value: Disengage^UnburnedGrading0LashObedience
+      ports:
+        - containerPort: 3306
+          name: mysql
+      resources:
+        requests:
+          memory: "12Gi"
+          cpu: "10"
+        limits:
+          memory: "16Gi"
+          cpu: "12"
+    - name: build-static
+      image: urm.nvidia.com/sw-nbu-sws-air-docker/returntocorp/semgrep-agent:v1
+      volumeMounts:
+        - mountPath: /nbu-sws
+          name: nbu-sws
+          mountPropagation: HostToContainer
+          readOnly: false
+      resources:
+        requests:
+          memory: "12Gi"
+          cpu: "10"
+        limits:
+          memory: "16Gi"
+          cpu: "12"
+      command: [ 'cat' ]
+      tty: true
+
+
+  volumes:
+    - name: nbu-sws
+      persistentVolumeClaim:
+        claimName: nbu-sws-pvc
+        readOnly: false

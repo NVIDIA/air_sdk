@@ -1,0 +1,198 @@
+{
+  "author": "NBU-system-sw-dev-ops-support@nvidia.com",
+  "notify": "$gitlabUserEmail, air-dev@exchange.nvidia.com",
+  "timeout": "1",
+  "durability_mode": "MAX_SURVIVABILITY",
+  "agentConfig": [
+    {
+      "type": "pod",
+      "templateFile": "ngci_build/common/dev-tools-pod.yaml",
+      "label": "POD_AIR"
+    },
+    {
+      "type": "pod",
+      "templateFile": "ngci_build/common/air-dind-pod.yaml",
+      "label": "DIND"
+    }
+  ],
+  "properties": [
+    "build_propertiesFile=ngci_build/common/build.properties",
+    "GITLAB_MR_APPROVAL_TYPE=REQUIRED_APPROVAL",
+    "SPELL_CHECK_IGNORE_LIST=ngci_build/common/config/spellcheck/spellcheck_ignore_list.txt"
+  ],
+  "phases": [
+    {
+      "phase_1": [
+        {
+          "name": "GitLab Validation",
+          "module": "com.nvidia.ngci.modules.gitlab.Validation",
+          "category": "Clone",
+          "container": "build-python:POD_AIR@unit",
+          "parameters": {
+            "SKIP_MR_APPROVE_CHECK_ON_NOTE_TRIGGER": true,
+            "SKIP_MR_REBASE": "${SKIP_MR_REBASE}"
+          },
+          "skip": false,
+          "on_failure": "stop",
+          "out_of_mail": true
+        }
+      ]
+    },
+    {
+      "phase_2": [
+        {
+          "parallel_clone": [
+            {
+              "name": "Clone aspell generic exceptions",
+              "module": "com.mellanox.jenkins.generic_modules.Checkout",
+              "category": "Clone",
+              "container": "dind:DIND",
+              "parameters": {
+                "GIT_REPOSITORY": "https://gitlab-master.nvidia.com/nbu-sws/Tools/aspell/generic.git",
+                "CLONE_PATH_TMP": "aspell_generic",
+                "BRANCH_NAME": "main",
+                "CREDENTIALSID": "${CREDENTIALSID}",
+                "SUBMODULES": "false"
+              },
+              "skip": false,
+              "on_failure": "stop"
+            },
+            {
+              "name": "Clone aspell air exceptions",
+              "module": "com.mellanox.jenkins.generic_modules.Checkout",
+              "category": "Clone",
+              "container": "dind:DIND",
+              "parameters": {
+                "GIT_REPOSITORY": "https://gitlab-master.nvidia.com/nbu-sws/Tools/aspell/air.git",
+                "CLONE_PATH_TMP": "aspell_air",
+                "BRANCH_NAME": "main",
+                "CREDENTIALSID": "${CREDENTIALSID}",
+                "SUBMODULES": "false"
+              },
+              "skip": false,
+              "on_failure": "stop"
+            },
+            {
+              "name": "Clone component",
+              "module": "com.mellanox.jenkins.generic_modules.Checkout",
+              "category": "Clone",
+              "container": "dind:DIND,build-static:POD_AIR@static,build-python:POD_AIR@lint,build-python:POD_AIR@unit",
+              "parameters": {
+                "CLONE_PATH": "air_sdk",
+                "CREDENTIALSID": "${CREDENTIALSID}"
+              },
+              "skip": false,
+              "on_failure": "stop"
+            }
+          ]
+        },
+        {
+          "name": "Prepare Checkmark",
+          "module": "com.mellanox.jenkins.generic_modules.RunCmd",
+          "container": "dind:DIND",
+          "parameters": {
+            "cmd": "docker login https://urm.nvidia.com/artifactory --username=${SWS_ARTIFACTORY_USER} --password=${SWS_ARTIFACTORY_PASS}"
+          },
+          "skip": false,
+          "on_failure": "stop",
+          "out_of_mail": false
+        },
+        {
+          "parallel_pre_checks": [
+            {
+              "name": "Checkmarx Scan Test",
+              "module": "com.nvidia.ngci.modules.checkmarx.CheckmarxScan",
+              "container": "dind:DIND",
+              "parameters": {
+                "CX_FLOW_ZIP_EXCLUDE": "",
+                "SCAN_DIR": "air_sdk",
+                "SECURITY_GATE": "true",
+                "CX_PROJECT_NAME": "air_air_sdk"
+              },
+              "skip": false,
+              "on_failure": "stop"
+            },
+            {
+              "name": "Secret-Scan",
+              "module": "com.mellanox.jenkins.generic_modules.SecretScan",
+              "container": "dind:DIND",
+              "parameters": {
+                "secret_scan_params": ""
+              },
+              "category": "StaticCodeTest",
+              "skip": false,
+              "on_failure": "stop"
+            },
+            {
+              "name": "Spell Check",
+              "module": "com.mellanox.jenkins.generic_modules.SpellCheck",
+              "category": "Pre-build",
+              "container": "dind:DIND",
+              "parameters": {
+                "create_dictionary": "${WORKSPACE}",
+                "spell_check_params": "--dictionary-list aspell_air,aspell_generic --ignore ${SPELL_CHECK_IGNORE_LIST}"
+              },
+              "skip": false,
+              "on_failure": "stop"
+            }
+           ]
+        },
+        {
+          "name": "Static",
+          "module": "com.mellanox.jenkins.generic_modules.RunCmd",
+          "category": "Test",
+          "container": "build-static:POD_AIR@static",
+          "parameters": {
+            "cmd": "semgrep-agent --config p/r2c-ci"
+          },
+          "skip": false,
+          "on_failure": "stop",
+          "out_of_mail": false
+        },
+        {
+          "name": "Lint",
+          "module": "com.mellanox.jenkins.generic_modules.RunCmd",
+          "category": "Test",
+          "container": "build-python:POD_AIR@lint",
+          "parameters": {
+            "cmd": "pip install -r requirements-dev.txt && pylint **/*.py"
+          },
+          "skip": false,
+          "on_failure": "stop",
+          "out_of_mail": false
+        },
+        {
+          "name": "Unit",
+          "module": "ngci_build/modules/python-basic.groovy",
+          "category": "Test",
+          "container": "build-python:POD_AIR@unit",
+          "parameters": {
+            "pip_install": "-r requirements-dev.txt",
+            "cmd": "python3 -m coverage run --omit='tests/*,**/__init__.py,main.py' --source='./' -m pytest tests/*.py",
+            "coverage_report" : true,
+            "publish_html_dir": "htmlcov",
+            "publish_html_files": "index.html",
+            "report_name": "Unit Test Coverage Report"
+          },
+          "skip": false,
+          "on_failure": "stop"
+        }
+      ]
+    },
+    {
+      "phase_3": [
+        {
+          "name": "GitLab Update",
+          "module": "com.nvidia.ngci.modules.gitlab.Update",
+          "category": "Post",
+          "container": "build-python:POD_AIR",
+          "parameters": {},
+          "skip": "false",
+          "on_failure": "stop",
+          "finally": true,
+          "out_of_mail": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,9 +1,0 @@
-coverage
-pydoc-markdown==3.9.0
-pylint==2.4.4
-pylint-print==1.0.0
-pylint-quotes
-pytest
-python-dateutil
-requests
-requests_mock

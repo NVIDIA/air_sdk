@@ -1,0 +1,9 @@
+coverage==7.2.7
+pydoc-markdown==4.8.2
+pylint==2.17.5
+pylint-print==1.0.1
+pylint-quotes==0.2.3
+pytest==7.4.0
+python-dateutil==2.8.2
+requests==2.31.0
+requests_mock==1.11.0

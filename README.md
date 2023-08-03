@@ -88,7 +88,7 @@ Contributions to the SDK are very welcome. All code must pass linting and unit t
 ### Requirements
 
 ```
-python3 -m pip install -r requirements-dev.txt
+python3 -m pip install .[dev]
 ```
 
 ### Linting

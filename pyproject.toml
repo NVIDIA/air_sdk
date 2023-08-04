@@ -5,7 +5,7 @@ description = "Python SDK for interacting with NVIDIA Air"
 license = "MIT"
 classifiers = ["Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent"]
 homepage = "https://github.com/NVIDIA/air_sdk"
-authors = ["Mike Robertson <mrobertson@nvidia.com>"]
+authors = ["NVIDIA Air <air-support@nvidia.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]

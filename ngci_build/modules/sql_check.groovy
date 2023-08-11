@@ -21,7 +21,7 @@ def run_step(name) {
         NGCITools().ciTools.run_sh("env")
         //NGCITools().ciTools.run_sh("sleep 3600")
         dir("${WORKSPACE}/cadet/api"){
-            NGCITools().ciTools.run_sh("pip3 install -r requirements.txt; pip3 install -r requirements-dev.txt")
+            NGCITools().ciTools.run_sh("pip3 install .; pip3 install .[dev]")
             NGCITools().ciTools.run_sh("coverage run --omit='*/tests.py,app/settings.py,app/*sgi.py,manage.py,util/test/*' --source='.' manage.py test --noinput")
         }
         return true

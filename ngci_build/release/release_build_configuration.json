@@ -80,7 +80,7 @@
                     "category": "Test",
                     "container": "build-python:POD_AIR@lint",
                     "parameters": {
-                        "cmd": "pip install -r requirements-dev.txt && pylint **/*.py"
+                        "cmd": "pip install .[dev] && pylint **/*.py"
                     },
                     "skip": false,
                     "on_failure": "stop",
@@ -92,7 +92,7 @@
                     "category": "Test",
                     "container": "build-python:POD_AIR@unit",
                     "parameters": {
-                        "pip_install": "-r requirements-dev.txt",
+                        "pip_install": ".[dev]",
                         "cmd": "python3 -m coverage run --omit='tests/*,**/__init__.py,main.py' --source='./' -m pytest tests/*.py",
                         "coverage_report" : true,
                         "publish_html_dir": "htmlcov",

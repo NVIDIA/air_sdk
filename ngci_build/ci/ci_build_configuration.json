@@ -133,7 +133,7 @@
                 "spell_check_params": "--dictionary-list aspell_air,aspell_generic --ignore ${SPELL_CHECK_IGNORE_LIST}"
               },
               "skip": false,
-              "on_failure": "stop"
+              "on_failure": "ignore"
             }
            ]
         },

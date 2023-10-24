@@ -83,7 +83,7 @@ spec:
         timestamps()
     }
     environment {
-        GENERIC_CI_GIT_BRANCH = '5.0.3-20'
+        GENERIC_CI_GIT_BRANCH = '5.0.3-40'
         JSON_FILE = 'ngci_build/ci/ci_build_configuration.json'
         SKIP_JSON_MERGE = true
         CREDENTIALSID = 'gitlab-user-token'

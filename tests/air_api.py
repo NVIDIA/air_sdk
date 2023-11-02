@@ -21,6 +21,7 @@ from ..air_sdk.air_model import AirModel, LazyLoaded
 from ..air_sdk.capacity import CapacityApi
 from ..air_sdk.demo import DemoApi
 from ..air_sdk.exceptions import AirAuthorizationError, AirForbiddenError, AirUnexpectedResponse
+from ..air_sdk.fleet import FleetApi
 from ..air_sdk.image import ImageApi
 from ..air_sdk.interface import InterfaceApi
 from ..air_sdk.job import JobApi
@@ -102,6 +103,9 @@ class TestAirApi(TestCase):
     def test_demos(self):
         self.assertIsInstance(self.api.demos, DemoApi)
 
+    def test_fleets(self):
+        self.assertIsInstance(self.api.fleets, FleetApi)
+
     def test_images(self):
         self.assertIsInstance(self.api.images, ImageApi)
 
@@ -176,6 +180,7 @@ class TestAirApi(TestCase):
 
     def test_workers(self):
         self.assertIsInstance(self.api.workers, WorkerApi)
+
 
     @patch('air_sdk.air_sdk.login.LoginApi.list')
     def test_authorize_token(self, mock_login):

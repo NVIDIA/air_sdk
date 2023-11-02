@@ -5,7 +5,7 @@
 Simulation module
 """
 
-from . import util
+from . import user_preference, util
 from .air_model import AirModel
 
 class Simulation(AirModel):
@@ -126,10 +126,32 @@ class Simulation(AirModel):
         self.control(action='store')
         self.refresh()
 
-    def delete(self):
+    def delete(self, **kwargs):
         """ Delete the simulation """
-        self.control(action='destroy')
+        self.control(action='destroy', **kwargs)
         self._deleted = True
+
+    def preferences(self, **kwargs):
+        """
+        Returns your account preferences for the simulation
+
+        Arguments:
+            kwargs (dict, optional): All other optional keyword arguments are applied as query
+                parameters/filters
+
+        Returns:
+        [`UserPreference`](/docs/userpreference)
+
+        Example:
+        ```
+        >>> simulation.preferences()
+        {"show": true}
+        ```
+        """
+        res = self._api.client.get(f'{self._api.url.replace("v1", "v2")}{self.id}/preferences/',
+                                   params=kwargs)
+        util.raise_if_invalid_response(res)
+        return user_preference.UserPreference(self._api, _model=self, _version_override='2', **res.json())
 
 class SimulationApi:
     """ High-level interface for the Simulation API """

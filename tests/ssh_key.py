@@ -16,7 +16,7 @@ class TestSSHKey(TestCase):
         self.model.id = 'abc123'
         self.model.name = 'public'
 
-    def test_init_(self):
+    def test_init(self):
         self.assertTrue(self.model._deletable)
         self.assertFalse(self.model._updatable)
 

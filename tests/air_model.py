@@ -47,7 +47,8 @@ class TestAirModel(TestCase):
                                    'SimulationNode': 'nodes'},
                       'organization': 'organizations', 'os': 'images',
                       'preferred_worker': 'workers', 'services': 'services',
-                      'simulation': 'simulations', 'topology': 'topologies', 'worker': 'workers'}
+                      'simulation': 'simulations', 'topology': 'topologies', 'worker': 'workers',
+                      'fleet': 'fleets'}
         self.assertDictEqual(self.model.model_keys, model_keys)
 
     def test_load(self, mock_raise):
@@ -185,7 +186,7 @@ class TestAirModel(TestCase):
         self.model.delete()
         self.assertTrue(self.model._deleted)
         self.model._deleted = False
-        self.model._api.client.delete.assert_called_with(f'{self.model._api.url}{self.model.id}/')
+        self.model._api.client.delete.assert_called_with(f'{self.model._api.url}{self.model.id}/', json={})
         mock_raise.assert_called_with(self.model._api.client.delete.return_value, data_type=None,
                                       status_code=204)
 

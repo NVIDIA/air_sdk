@@ -6,9 +6,9 @@ Tests for account.py
 """
 #pylint: disable=missing-function-docstring,missing-class-docstring
 from unittest import TestCase
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
-from ..air_sdk import account
+from ..air_sdk import account, user_preference
 
 class TestAccount(TestCase):
     def setUp(self):
@@ -55,3 +55,15 @@ class TestAccountApi(TestCase):
         self.assertEqual(len(res), 1)
         self.assertIsInstance(res[0], account.Account)
         self.assertEqual(res[0].foo, 'bar')
+
+    @patch('air_sdk.air_sdk.account.util.raise_if_invalid_response')
+    def test_preferences(self, mock_raise):
+        prefs = {'foo': 'bar'}
+        self.mock_client.get.return_value.json.return_value = {'preferences': prefs}
+        kwargs = {'test': True}
+
+        res = self.api.preferences(**kwargs)
+        self.mock_client.get.assert_called_with(f'{self.url}preferences/', params=kwargs)
+        mock_raise.assert_called_once_with(self.mock_client.get.return_value)
+        self.assertIsInstance(res, user_preference.UserPreference)
+        self.assertEqual(res.preferences, prefs)

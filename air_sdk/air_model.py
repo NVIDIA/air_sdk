@@ -25,7 +25,7 @@ class AirModel:
                                'SimulationNode': 'nodes'},
                   'organization': 'organizations', 'os': 'images', 'preferred_worker': 'workers',
                   'services': 'services', 'simulation': 'simulations', 'topology': 'topologies',
-                  'worker': 'workers'}
+                  'worker': 'workers', 'fleet': 'fleets'}
 
     def __init__(self, api, **kwargs):
         self._deleted = False
@@ -120,7 +120,7 @@ class AirModel:
         res = self._api.client.put(url, json=payload)
         util.raise_if_invalid_response(res)
 
-    def delete(self):
+    def delete(self, **kwargs):
         """
         Delete the object. Once successful, the object should no longer be used and will raise
         [`AirDeletedObject`](/docs/exceptions) when referenced.
@@ -131,7 +131,7 @@ class AirModel:
         if not self._deletable:
             raise NotImplementedError(f'{self.__class__.__name__} does not support deletes')
         url = f'{self._api.url}{self.id}/'
-        res = self._api.client.delete(url)
+        res = self._api.client.delete(url, json=kwargs)
         util.raise_if_invalid_response(res, status_code=204, data_type=None)
         self._deleted = True
 

@@ -9,7 +9,7 @@ import datetime as dt
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
-from ..air_sdk import simulation
+from ..air_sdk import simulation, user_preference
 
 class TestSimulation(TestCase):
     def setUp(self):
@@ -81,6 +81,21 @@ class TestSimulation(TestCase):
     def test_delete(self, mock_control):
         self.model.delete()
         mock_control.assert_called_with(action='destroy')
+
+    @patch('air_sdk.air_sdk.simulation.util.raise_if_invalid_response')
+    def test_preferences(self, mock_raise):
+        prefs = {'foo': 'bar'}
+        self.api.client.get.return_value.json.return_value = {'preferences': prefs}
+        kwargs = {'test': True}
+        self.api.url = 'http://testserver/api/v1/simulation/'
+
+        res = self.model.preferences(**kwargs)
+        self.api.client.get \
+            .assert_called_with(f'{self.api.url.replace("v1", "v2")}{self.model.id}/preferences/',
+                                params=kwargs)
+        mock_raise.assert_called_once_with(self.api.client.get.return_value)
+        self.assertIsInstance(res, user_preference.UserPreference)
+        self.assertEqual(res.preferences, prefs)
 
 class TestSimulationApi(TestCase):
     def setUp(self):

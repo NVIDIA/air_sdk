@@ -19,6 +19,7 @@ from .air_model import AirModel, LazyLoaded
 from .capacity import CapacityApi
 from .demo import DemoApi
 from .exceptions import AirAuthorizationError, AirForbiddenError, AirUnexpectedResponse
+from .fleet import FleetApi
 from .image import ImageApi
 from .interface import InterfaceApi
 from .job import JobApi
@@ -89,6 +90,10 @@ class AirApi:
     @property
     def demos(self):
         return DemoApi(self)
+
+    @property
+    def fleets(self):
+        return FleetApi(self)
 
     @property
     def images(self):
@@ -197,6 +202,7 @@ class AirApi:
     @property
     def workers(self):
         return WorkerApi(self)
+
     #pylint: enable=missing-function-docstring
 
     def authorize(self, **kwargs):

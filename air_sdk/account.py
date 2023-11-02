@@ -5,7 +5,7 @@
 Account module
 """
 
-from . import util
+from . import user_preference, util
 from .air_model import AirModel
 
 class Account(AirModel):
@@ -84,3 +84,24 @@ class AccountApi:
         res = self.client.get(f'{self.url}', params=kwargs)
         util.raise_if_invalid_response(res, data_type=list)
         return [Account(self, **account) for account in res.json()]
+
+    def preferences(self, **kwargs):
+        """
+        Returns your global account preferences
+
+        Arguments:
+            kwargs (dict, optional): All other optional keyword arguments are applied as query
+                parameters/filters
+
+        Returns:
+        [`UserPreference`](/docs/userpreference)
+
+        Example:
+        ```
+        >>> air.accounts.preferences()
+        {"show": true}
+        ```
+        """
+        res = self.client.get(f'{self.url}preferences/', params=kwargs)
+        util.raise_if_invalid_response(res)
+        return user_preference.UserPreference(self, **res.json())

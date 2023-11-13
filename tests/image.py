@@ -83,11 +83,16 @@ class TestImageApi(TestCase):
 
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create(self, mock_raise):
-        org = 'acb123'
         self.client.post.return_value.json.return_value = {'id': 'abc'}
-        res = self.api.create(name='myimage', organization=org)
+        res = self.api.create(name='myimage', organization='acb123', version='3.7.11',
+                              default_username='cumulus', default_password='cumulus!',
+                              cpu_arch='x86')
         self.client.post.assert_called_with(f'{self.client.api_url}/image/',
-                                            json={'name': 'myimage', 'organization': org})
+                                            json={'name': 'myimage', 'organization': 'acb123',
+                                                  'version': '3.7.11',
+                                                  'default_username': 'cumulus',
+                                                  'default_password': 'cumulus!',
+                                                  'cpu_arch': 'x86'})
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         self.assertIsInstance(res, image.Image)
         self.assertEqual(res.id, 'abc')
@@ -95,12 +100,16 @@ class TestImageApi(TestCase):
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     @patch('air_sdk.air_sdk.image.Image.upload')
     def test_create_upload(self, mock_upload, mock_raise):
-        org = 'abc123'
         self.client.post.return_value.json.return_value = {'id': 'abc'}
-        res = self.api.create(name='myimage', filename='myfile', organization=org)
+
+        res = self.api.create(name='myimage', filename='myfile', organization='acb123', version='3.7.11',
+                              default_username='cumulus', default_password='cumulus!', cpu_arch='x86')
         self.client.post.assert_called_with(f'{self.client.api_url}/image/',
                                             json={'name': 'myimage', 'filename': 'myfile',
-                                                  'organization': org})
+                                                  'organization': 'acb123', 'version': '3.7.11',
+                                                  'default_username': 'cumulus',
+                                                  'default_password': 'cumulus!',
+                                                  'cpu_arch': 'x86'})
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         mock_upload.assert_called_with('myfile')
         self.assertIsInstance(res, image.Image)

@@ -137,7 +137,8 @@ class ImageApi:
         util.raise_if_invalid_response(res, data_type=list)
         return [Image(self, **image) for image in res.json()]
 
-    @util.required_kwargs(['name', 'organization'])
+    @util.required_kwargs(['name', 'organization', 'version', 'default_username', 'default_password',
+                           'cpu_arch'])
     def create(self, **kwargs):
         """
         Create a new image

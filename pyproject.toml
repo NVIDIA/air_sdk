@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "air-sdk"
-version = "2.4.0"
+version = "2.4.2"
 description = "Python SDK for interacting with NVIDIA Air"
 license = "MIT"
 classifiers = ["Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent"]

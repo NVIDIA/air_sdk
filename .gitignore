@@ -6,5 +6,6 @@ htmlcov/
 dist/
 air_sdk.egg-info/
 
-# The line below should only be present in the main-github branch
+# The lines below should only be present in the main-github branch
 ngci_build/
+.pulse-trufflehog-allowlist.json

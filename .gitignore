@@ -5,6 +5,7 @@ htmlcov/
 .pytest_cache
 dist/
 air_sdk.egg-info/
+.idea/
 
 # The lines below should only be present in the main-github branch
 ngci_build/

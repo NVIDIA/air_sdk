@@ -2,4 +2,4 @@
 # SPDX-License-Identifier: MIT
 
 """ Expose air_sdk package """
-from .air_sdk import *
+from .air_sdk import *  # noqa: F403

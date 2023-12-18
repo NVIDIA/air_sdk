@@ -1,0 +1,15 @@
+# Maximum allowed length of a line of python code.
+line-length = 110
+
+[lint]
+# The full list of rules is here: https://docs.astral.sh/ruff/rules/
+extend-select = [
+    # Additional flake8
+    'T',
+]
+# Ignore the following codes for all files.
+ignore = []
+
+[format]
+# Use single quotes for non-triple-quoted strings.
+quote-style = 'single'

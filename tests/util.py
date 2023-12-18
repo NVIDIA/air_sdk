@@ -75,7 +75,7 @@ class TestUtil(TestCase):
             decorated(f='test')
         self.assertTrue('requires foo' in str(err.exception))
 
-    @patch('logging.warning')
+    @patch('air_sdk.util.logger.warning')
     def test_deprecated(self, mock_log):
         @util.deprecated()
         def decorated():
@@ -84,7 +84,7 @@ class TestUtil(TestCase):
         self.assertTrue('has been deprecated and will be removed in a future release.' \
                         in mock_log.call_args[0][0])
 
-    @patch('logging.warning')
+    @patch('air_sdk.util.logger.warning')
     def test_deprecated_new(self, mock_log):
         @util.deprecated('new_func')
         def decorated():
@@ -93,7 +93,7 @@ class TestUtil(TestCase):
         self.assertTrue('has been deprecated and will be removed in a future release. ' + \
                         'Use new_func instead.' in mock_log.call_args[0][0])
 
-    @patch('logging.warning')
+    @patch('air_sdk.util.logger.warning')
     def test_validate_timestamps(self, mock_log):
         now = datetime.datetime.now()
         past = now - datetime.timedelta(hours=8)
@@ -101,7 +101,7 @@ class TestUtil(TestCase):
         log = mock_log.call_args[0][0]
         self.assertTrue(f'Simulation created with `sleep_at` in the past: {past}' in log)
 
-    @patch('logging.warning')
+    @patch('air_sdk.util.logger.warning')
     def test_validate_timestamps_future(self, mock_log):
         now = datetime.datetime.now()
         past = now - datetime.timedelta(hours=8)

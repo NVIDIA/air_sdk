@@ -2,4 +2,4 @@
 # SPDX-License-Identifier: MIT
 
 """ Exposes the AIR API client module """
-from .air_api import *
+from .air_api import *  # noqa: F403

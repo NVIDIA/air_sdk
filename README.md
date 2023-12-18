@@ -104,14 +104,144 @@ After Poetry is installed, you can install all dependencies for the project by r
 poetry install --all-extras
 ```
 
-### Linting
-
-```
-pylint **/*.py
-```
-
 ### Unit testing
 
 ```
 ./unit_test.sh
 ```
+
+### Linting
+
+```
+ruff check
+```
+
+## Pre-commit hooks
+In this section, we delineate the usage of pre-commit hooks for this project.   
+
+### Prerequisites
+This section assumes that you've already accomplished the following:
+1. Cloned the codebase.
+2. Have a `.git` configuration file in your local environment (this is where pre-commit will "hook" into git commits).
+3. Created a python virtual environment.
+4. Activated your virtual environment.
+5. Installed all dependencies with `python3 -m pip install -r requirements.txt`
+
+If you don't know whether you have accomplished all of the above, try running `pre-commit --version` or `ruff --version` in your terminal at the source directory of the codebase.
+
+### Adding pre-commit to your environment.
+In order to use pre-commits, they need to be configured into your `.git` directory. This is accomplished by running the following in your terminal:
+```
+>>> pre-commit install
+pre-commit installed at .git/hooks/pre-commit
+>>>
+```
+And that's it! You should now have pre-commit hooks activated on your local environment. 
+
+If you would like to uninstall your pre-commit hooks, run `pre-commit uninstall`.  
+It's important to note that you should NOT run `python3 -m pip uninstall pre-commit` prior to uninstalling pre-commits from your `.git` directory, or else you might be blocked from making commits to your project. 
+If this happens, re-install pre-commit with pip, run `pre-commit uninstall`, and then `python3 -m pip uninstall pre-commit`.
+
+
+#### Working with pre-commit hooks.
+Pre-commit hooks work with git to identify files which you've made changes to and then runs specific operations (such as linting or formatting) on those files.
+
+Currently, our primary hooks are performed by `ruff`, a Python linter and formatter. When attempting to git commit a code change is made that doesn't comply with the default `ruff` configuration and our custom configurations outlined in `.ruff.toml`, `ruff` will attempt to resolve the issue automatically by fixing small linting issues and re-formatting your code.  
+
+In cases where the pre-commit hooks cannot safely correct your code, errors will be printed in your console which typically will provide links to the pieces of code you must address in order to successfully commit the code.
+
+In general, the development workflow is identical to what typically occurs when working on the codebase:
+1. Write/modify some code.
+2. Run `git add .`
+3. Run `git commit -m 'Your detailed commit message here.'`
+
+However, prior to successfully executing step 3 above, all pre-commits configured in `.pre-commit-config.yaml` are run. 
+If the `ruff` formatting and linting both pass, your commit will be made. Otherwise, you will need to address the issues and re-add/commit your code.
+If the linter or formatter end up modifying your code, you will need to `git add .` these changes and commit them as well.
+
+
+### Information on specific pre-commit hooks we use. 
+We currently use the following hooks.
+
+#### [Ruff (linter)](https://docs.astral.sh/ruff/linter/)
+Linting is the process of identifying and highlighting syntactical and stylistic trends and issues within code.
+This process helps developers identify and correct programming errors or unconventional coding practices.
+
+We use the ruff linter for our linting needs. This is configured in our `.pre-commit-config.yaml` here:
+```
+# .pre-commit-config.yaml
+repos:
+    ...
+    hooks:
+    - id: ruff
+        args: [ --fix ]
+```
+We've included the `--fix` argument, which requests that `ruff` attempt to correct safely fixable issues without asking us ahead of time. Ruff also has an `--unsafe-fixes` flag that we could add to address fixes that are more risky to correct via automation, however we are not using that flag at this time.
+
+To manually run the linter, run `ruff --fix path/to/your/directory/file.py` or `ruff --fix path/to/your/directory`.
+
+If you would like to ignore a linting error on a specific piece of code, add a `# noqa: CODE_TO_IGNORE` tag next to the piece of code:
+```
+def this_is_fully_linted(*args, **kwargs):
+    ...
+    
+def this_is_fully_linted_except_F841(*args, **kwargs):  # noqa: F841
+    ...
+```
+
+You can skip the linting of a specific code on entire files by adding `# ruff: noqa: CODE_TO_IGNORE` to the top of the file.
+```
+# ruff: noqa: F841
+
+def this_will_not_be_linted_for_F841(*args, **kwargs):
+    ....
+    
+def this_also_will_not_be_linted_for_F841(*args, **kwargs):
+    ....
+```
+
+To skip linting entirely for the entire folder, simply put `# ruff: noqa` at the top of the file. 
+
+
+#### [Ruff (formatter)](https://docs.astral.sh/ruff/formatter/)
+We use ruff for our code formatting needs. 
+Formatting is the process of styling existing code so that it abides by a predetermined set of standards. 
+This is important when working with large code-bases or when working with other developers since it makes large code-changes more uniform in style and easier to read. 
+When code is more readable, it enables developers to identifying errors in their code logic more easily and helps other developers understand your implementation of features when they are reviewing your code.
+
+
+We use ruff for our code formatting needs. This is configured in our `.pre-commit-config.yaml`  here:
+```
+# .pre-commit-config.yaml
+repos:
+    ...
+    hooks:
+    - id: ruff-format
+```
+To manually format your code, run `ruff format path/to/your/directory/file.py` or `ruff format path/to/your/directory`.
+
+If you would like to suppress formatting on a section of code, you can wrap your code in `# fmt: off` and `# fmt: on`:
+```
+# fmt: off
+def this_function_will_not_be_formatted(arg1,
+    arg2,
+    arg3, arg4,
+):
+    ...
+# fmt: on
+```
+Alternatively, you can add `# fmt: skip` next to a body of code to supress formatting:
+```
+class ThisClassIsFormatted:
+    ...
+    
+    
+class ThisClassIsNotFormatted: # fmt: skip
+    ...
+```
+
+#### VS Code Extension
+There is a `ruff` VS Code extension you may add to your IDE if you are using VS Code. 
+Details on this extension can be found [here](https://github.com/astral-sh/ruff-vscode).
+
+We have already configured the ruff linter and formatter as suggested extensions for the project. They can be found in `.vcode/settings.json`.

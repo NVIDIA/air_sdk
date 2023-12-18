@@ -7,7 +7,6 @@ NVIDIA Air API module
 #pylint: disable=too-many-public-methods
 
 from datetime import date, datetime
-import logging
 from json import JSONDecodeError
 
 import requests
@@ -24,6 +23,7 @@ from .image import ImageApi
 from .interface import InterfaceApi
 from .job import JobApi
 from .link import LinkApi
+from .logger import air_sdk_logger as logger
 from .login import LoginApi
 from .marketplace import MarketplaceApi
 from .node import NodeApi
@@ -257,23 +257,23 @@ class AirApi:
         try:
             if res.json().get('token', None):
                 return res.json()['token']
-            logging.debug('AirApi.get_token :: Response JSON')
-            logging.debug(res.json())
+            logger.debug('AirApi.get_token :: Response JSON')
+            logger.debug(res.json())
             raise AirAuthorizationError('API did not provide a token for ' + username)
         except JSONDecodeError:
             raise AirAuthorizationError('API did not return a valid JSON response')
 
     def _request(self, method, url, *args, **kwargs):
         if kwargs.get('json'):
-            logging.debug(f'unserialized json: {kwargs["json"]}')
+            logger.debug(f'unserialized json: {kwargs["json"]}')
             if isinstance(kwargs['json'], list):
                 kwargs['json'] = [_serialize_dict(obj) for obj in kwargs['json']]
             else:
                 kwargs['json'] = _serialize_dict(kwargs['json'])
         if kwargs.get('params'):
             kwargs['params'] = _serialize_dict(kwargs['params'])
-        logging.debug(f'request args: {args}')
-        logging.debug(f'request kwargs: {kwargs}')
+        logger.debug(f'request args: {args}')
+        logger.debug(f'request kwargs: {kwargs}')
         res = self.client.request(method, url, allow_redirects=False, *args, **kwargs)
         if (res.status_code == 301
                 and urlparse(res.headers.get('Location')).hostname in ALLOWED_HOSTS):

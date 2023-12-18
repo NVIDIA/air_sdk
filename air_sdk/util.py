@@ -6,12 +6,12 @@ Helper utils
 """
 
 import datetime
-import logging
 from json import JSONDecodeError
 
 from dateutil import parser as dateparser
 
 from .exceptions import AirUnexpectedResponse
+from .logger import air_sdk_logger as logger
 
 def raise_if_invalid_response(res, status_code=200, data_type=dict):
     """
@@ -26,7 +26,7 @@ def raise_if_invalid_response(res, status_code=200, data_type=dict):
     """
     json = None
     if res.status_code != status_code:
-        logging.debug(res.text)
+        logger.debug(res.text)
         raise AirUnexpectedResponse(message=res.text, status_code=res.status_code)
     if not data_type:
         return
@@ -68,7 +68,7 @@ def deprecated(new=None):
             msg = f'{method} has been deprecated and will be removed in a future release.'
             if new:
                 msg += f' Use {new} instead.'
-            logging.warning(msg)
+            logger.warning(msg)
             return method(*args, **kwargs)
         return wrapped
     return wrapper
@@ -84,7 +84,7 @@ def validate_timestamps(log_prefix, **kwargs):
     now = datetime.datetime.now()
     for key, value in kwargs.items():
         if value and dateparser.parse(str(value)) <= now:
-            logging.warning(f'{log_prefix} with `{key}` in the past: {value} (now: {now})')
+            logger.warning(f'{log_prefix} with `{key}` in the past: {value} (now: {now})')
 
 def is_datetime_str(value):
     """

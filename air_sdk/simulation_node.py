@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -7,6 +7,7 @@ SimulationNode module
 
 from . import util
 from .air_model import AirModel
+
 
 class SimulationNode(AirModel):
     """
@@ -25,6 +26,7 @@ class SimulationNode(AirModel):
         kwargs (dict, optional): All optional keyword arguments are applied as key/value
                 pairs in the request's JSON payload
     """
+
     _deletable = False
 
     def __repr__(self):
@@ -64,7 +66,7 @@ class SimulationNode(AirModel):
         return {'id': res.json()}
 
     def list_instructions(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         List all instructions for a `SimulationNode`
 
@@ -84,7 +86,7 @@ class SimulationNode(AirModel):
         >>> simulation_node.instructions.list()
         [{'id': '56abc69b-489f-429a-aed9-600f26afc956'}, {'id': '7c9c3449-f071-4bbc-bb42-bef04e44d74e'}]
         ```
-        """ #pylint: enable=line-too-long
+        """  # pylint: enable=line-too-long
         url = f'{self._api.url}{self.id}/instructions/'
         res = self._api.client.get(url, params=kwargs)
         util.raise_if_invalid_response(res, data_type=list)
@@ -137,22 +139,24 @@ class SimulationNode(AirModel):
         self.control(action='rebuild', **kwargs)
 
     def reset(self, **kwargs):
-        """ Reset the `SimulationNode` """
+        """Reset the `SimulationNode`"""
         self.control(action='reset', **kwargs)
 
+
 class SimulationNodeApi:
-    """ Wrapper for the SimulationNode API """
+    """Wrapper for the SimulationNode API"""
+
     def __init__(self, client):
         self.client = client
         self.url = self.client.api_url + '/simulation-node/'
 
     @util.deprecated('SimulationNode.update()')
-    def update_simulation_node(self, simulation_node_id, data): #pylint: disable=missing-function-docstring
+    def update_simulation_node(self, simulation_node_id, data):  # pylint: disable=missing-function-docstring
         node = self.get(simulation_node_id)
         node.update(**data)
 
     @util.deprecated('SimulationNodeApi.list()')
-    def get_simulation_nodes(self, **kwargs): #pylint: disable=missing-function-docstring
+    def get_simulation_nodes(self, **kwargs):  # pylint: disable=missing-function-docstring
         return self.list(**kwargs)
 
     def get(self, simulation_node_id, **kwargs):
@@ -183,7 +187,7 @@ class SimulationNodeApi:
         return SimulationNode(self, **res.json())
 
     def list(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         List existing simulation nodes
 
@@ -203,7 +207,7 @@ class SimulationNodeApi:
         >>> air.simulation_nodes.list()
         [<SimulationNode sim1 c51b49b6-94a7-4c93-950c-e7fa4883591>, <SimulationNode sim2 3134711d-015e-49fb-a6ca-68248a8d4aff>]
         ```
-        """ #pylint: enable=line-too-long
+        """  # pylint: enable=line-too-long
         res = self.client.get(f'{self.url}', params=kwargs)
         util.raise_if_invalid_response(res, data_type=list)
         return [SimulationNode(self, **simulation_node) for simulation_node in res.json()]

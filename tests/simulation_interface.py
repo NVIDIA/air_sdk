@@ -1,14 +1,15 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 Tests for simulation_interface.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring,unused-argument
+# pylint: disable=missing-function-docstring,missing-class-docstring,unused-argument
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from ..air_sdk import simulation_interface
+
 
 class TestSimulationInterface(TestCase):
     def setUp(self):
@@ -47,8 +48,9 @@ class TestSimulationInterfaceApi(TestCase):
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/simulation-interface/abc123/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(
+            f'{self.client.api_url}/simulation-interface/abc123/', params={'foo': 'bar'}
+        )
         mock_raise.assert_called_with(self.client.get.return_value)
         self.assertIsInstance(res, simulation_interface.SimulationInterface)
         self.assertEqual(res.test, 'success')
@@ -57,8 +59,9 @@ class TestSimulationInterfaceApi(TestCase):
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = [{'id': 'abc'}, {'id': 'xyz'}]
         res = self.api.list(foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/simulation-interface/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(
+            f'{self.client.api_url}/simulation-interface/', params={'foo': 'bar'}
+        )
         mock_raise.assert_called_with(self.client.get.return_value, data_type=list)
         self.assertEqual(len(res), 2)
         self.assertIsInstance(res[0], simulation_interface.SimulationInterface)
@@ -68,5 +71,6 @@ class TestSimulationInterfaceApi(TestCase):
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_list_interface(self, mock_raise):
         self.api.list(interface='test')
-        self.client.get.assert_called_with(f'{self.client.api_url}/simulation-interface/',
-                                           params={'original': 'test'})
+        self.client.get.assert_called_with(
+            f'{self.client.api_url}/simulation-interface/', params={'original': 'test'}
+        )

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -7,6 +7,7 @@ Node module
 
 from . import util
 from .air_model import AirModel
+
 
 class Node(AirModel):
     """
@@ -32,6 +33,7 @@ class Node(AirModel):
         kwargs (dict, optional): All optional keyword arguments are applied as key/value
                 pairs in the request's JSON payload
     """
+
     _ignored_update_fields = ['interfaces']
 
     def __repr__(self):
@@ -39,14 +41,16 @@ class Node(AirModel):
             return super().__repr__()
         return f'<Node {self.name} {self.id}>'
 
+
 class NodeApi:
-    """ High-level interface for the Node API """
+    """High-level interface for the Node API"""
+
     def __init__(self, client):
         self.client = client
         self.url = self.client.api_url + '/node/'
 
     @util.deprecated('NodeApi.list()')
-    def get_nodes(self, simulation_id=''): #pylint: disable=missing-function-docstring
+    def get_nodes(self, simulation_id=''):  # pylint: disable=missing-function-docstring
         return self.list(simulation=simulation_id)
 
     def get(self, node_id, **kwargs):
@@ -80,7 +84,7 @@ class NodeApi:
         return Node(self, **res.json())
 
     def list(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         List existing nodes
 
@@ -100,7 +104,7 @@ class NodeApi:
         >>> air.nodes.list()
         [<Node server c51b49b6-94a7-4c93-950c-e7fa4883591>, <Node switch 3134711d-015e-49fb-a6ca-68248a8d4aff>]
         ```
-        """ #pylint: enable=line-too-long
+        """  # pylint: enable=line-too-long
         res = self.client.get(f'{self.url}', params=kwargs)
         util.raise_if_invalid_response(res, data_type=list)
         return [Node(self, **node) for node in res.json()]

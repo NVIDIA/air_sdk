@@ -1,11 +1,11 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 Tests for air_api.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring,protected-access
-#pylint: disable=arguments-differ,unused-argument,no-member,too-many-public-methods
+# pylint: disable=missing-function-docstring,missing-class-docstring,protected-access
+# pylint: disable=arguments-differ,unused-argument,no-member,too-many-public-methods
 
 from json import JSONDecodeError
 from unittest import TestCase
@@ -41,6 +41,7 @@ from ..air_sdk.token import TokenApi
 from ..air_sdk.topology import TopologyApi
 from ..air_sdk.worker import WorkerApi
 
+
 class TestAirSession(TestCase):
     def setUp(self):
         self.session = air_api.AirSession()
@@ -69,6 +70,7 @@ class TestAirSession(TestCase):
         mock_res = MagicMock()
         self.session.rebuild_auth(mock_req, mock_res)
         mock_rebuild.assert_called_with(mock_req, mock_res)
+
 
 class TestAirApi(TestCase):
     @patch('air_sdk.air_sdk.air_api.AirSession')
@@ -181,7 +183,6 @@ class TestAirApi(TestCase):
     def test_workers(self):
         self.assertIsInstance(self.api.workers, WorkerApi)
 
-
     @patch('air_sdk.air_sdk.login.LoginApi.list')
     def test_authorize_token(self, mock_login):
         mock_login.return_value.username = 'john'
@@ -202,16 +203,16 @@ class TestAirApi(TestCase):
     def test_authorize_bad_args(self):
         with pytest.raises(ValueError) as err:
             self.api.authorize()
-        self.assertEqual(str(err.value), 'Must include either `bearer_token` or ' + \
-                                         '`username` and `password` arguments')
+        self.assertEqual(
+            str(err.value), 'Must include either `bearer_token` or ' + '`username` and `password` arguments'
+        )
 
     @patch('air_sdk.air_sdk.air_api.AirApi.post')
     def test_get_token(self, mock_post):
         mock_post.return_value.json.return_value = {'token': 'abc123'}
         res = self.api.get_token('foo', 'bar')
         self.assertEqual(res, 'abc123')
-        mock_post.assert_called_with('http://test/api/v1/login/',
-                                     json={'username': 'foo', 'password': 'bar'})
+        mock_post.assert_called_with('http://test/api/v1/login/', json={'username': 'foo', 'password': 'bar'})
 
     @patch('air_sdk.air_sdk.air_api.AirApi.post')
     def test_get_token_no_token(self, mock_post):
@@ -229,8 +230,9 @@ class TestAirApi(TestCase):
 
     def test_request(self):
         res = self.api._request('GET', 'http://test/', 'test', foo='bar')
-        self.api.client.request.assert_called_with('GET', 'http://test/', 'test',
-                                                   allow_redirects=False, foo='bar')
+        self.api.client.request.assert_called_with(
+            'GET', 'http://test/', 'test', allow_redirects=False, foo='bar'
+        )
         self.assertEqual(res, self.api.client.request.return_value)
 
     def test_request_403(self):
@@ -240,13 +242,16 @@ class TestAirApi(TestCase):
 
     def test_request_raises(self):
         mock_res = MagicMock()
-        self.api.client.request.return_value.raise_for_status = \
-            MagicMock(side_effect=requests.exceptions.HTTPError(response=mock_res))
+        self.api.client.request.return_value.raise_for_status = MagicMock(
+            side_effect=requests.exceptions.HTTPError(response=mock_res)
+        )
         with self.assertRaises(AirUnexpectedResponse) as err:
             self.api._request('GET', 'http://test/', 'test', foo='bar')
-        self.assertEqual(err.exception.message,
-                         'Received an unexpected response from the Air API ' + \
-                         f'({mock_res.status_code}): {mock_res.text}')
+        self.assertEqual(
+            err.exception.message,
+            'Received an unexpected response from the Air API '
+            + f'({mock_res.status_code}): {mock_res.text}',
+        )
         self.assertEqual(err.exception.status_code, mock_res.status_code)
 
     @patch('air_sdk.air_sdk.air_api._serialize_dict')
@@ -259,29 +264,31 @@ class TestAirApi(TestCase):
         mock_for_assert(data[0])
         mock_for_assert(data[1])
         self.assertEqual(mock_serialize.mock_calls, mock_for_assert.mock_calls)
-        self.api.client.request.assert_called_with('GET', 'http://test/', allow_redirects=False,
-                                                   json=[serialized[0], serialized[1]])
+        self.api.client.request.assert_called_with(
+            'GET', 'http://test/', allow_redirects=False, json=[serialized[0], serialized[1]]
+        )
 
     @patch('air_sdk.air_sdk.air_api._serialize_dict')
     def test_request_serialized_json(self, mock_serialize):
         self.api._request('GET', 'http://test/', json='foo')
         mock_serialize.assert_called_with('foo')
-        self.api.client.request.assert_called_with('GET', 'http://test/', allow_redirects=False,
-                                                   json=mock_serialize.return_value)
+        self.api.client.request.assert_called_with(
+            'GET', 'http://test/', allow_redirects=False, json=mock_serialize.return_value
+        )
 
     @patch('air_sdk.air_sdk.air_api._serialize_dict')
     def test_request_serialized_params(self, mock_serialize):
         self.api._request('GET', 'http://test/', params='foo')
         mock_serialize.assert_called_with('foo')
-        self.api.client.request.assert_called_with('GET', 'http://test/', allow_redirects=False,
-                                                   params=mock_serialize.return_value)
+        self.api.client.request.assert_called_with(
+            'GET', 'http://test/', allow_redirects=False, params=mock_serialize.return_value
+        )
 
     def test_request_redirect(self):
         self.api.client.request.return_value.status_code = 301
         self.api.client.request.return_value.headers = {'Location': 'http://air.nvidia.com/'}
         self.api._request('GET', 'http://test/', json={'foo': 'bar'})
-        self.api.client.request.assert_called_with('GET', 'http://air.nvidia.com/',
-                                                   json={'foo': 'bar'})
+        self.api.client.request.assert_called_with('GET', 'http://air.nvidia.com/', json={'foo': 'bar'})
         self.assertEqual(self.api.client.request.call_count, 3)
 
     def test_request_redirect_ignored(self):
@@ -308,14 +315,13 @@ class TestAirApi(TestCase):
     def test_patch(self):
         self.api._request = MagicMock()
         self.api.patch('http://test/api/v1/foo/', 'arg1', arg2='test')
-        self.api._request.assert_called_with('PATCH', 'http://test/api/v1/foo/', 'arg1',
-                                             arg2='test')
+        self.api._request.assert_called_with('PATCH', 'http://test/api/v1/foo/', 'arg1', arg2='test')
 
     def test_delete(self):
         self.api._request = MagicMock()
         self.api.delete('http://test/api/v1/foo/', 'arg1', arg2='test')
-        self.api._request.assert_called_with('DELETE', 'http://test/api/v1/foo/', 'arg1',
-                                             arg2='test')
+        self.api._request.assert_called_with('DELETE', 'http://test/api/v1/foo/', 'arg1', arg2='test')
+
 
 class TestHelpers(TestCase):
     def test_normalize_api_version(self):

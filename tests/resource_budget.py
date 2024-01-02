@@ -1,14 +1,15 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 Tests for resource_budget.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring
+# pylint: disable=missing-function-docstring,missing-class-docstring
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from ..air_sdk import resource_budget
+
 
 class TestResourceBudget(TestCase):
     def setUp(self):
@@ -27,6 +28,7 @@ class TestResourceBudget(TestCase):
         self.model._deleted = True
         self.assertTrue('Deleted Object' in str(self.model))
 
+
 class TestResourceBudgetApi(TestCase):
     def setUp(self):
         self.client = MagicMock()
@@ -41,8 +43,9 @@ class TestResourceBudgetApi(TestCase):
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/resource-budget/abc123/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(
+            f'{self.client.api_url}/resource-budget/abc123/', params={'foo': 'bar'}
+        )
         mock_raise.assert_called_with(self.client.get.return_value)
         self.assertIsInstance(res, resource_budget.ResourceBudget)
         self.assertEqual(res.test, 'success')

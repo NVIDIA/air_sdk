@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -7,6 +7,7 @@ SSH Key module
 
 from . import util
 from .air_model import AirModel
+
 
 class SSHKey(AirModel):
     """
@@ -25,6 +26,7 @@ class SSHKey(AirModel):
     ### refresh
     Syncs the key with all values returned by the API
     """
+
     _updatable = False
 
     def __repr__(self):
@@ -32,14 +34,16 @@ class SSHKey(AirModel):
             return super().__repr__()
         return f'<SSHKey {self.name} {self.id}>'
 
+
 class SSHKeyApi:
-    """ High-level interface for the SSHKey API """
+    """High-level interface for the SSHKey API"""
+
     def __init__(self, client):
         self.client = client
         self.url = self.client.api_url + '/sshkey/'
 
     def list(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         List existing keys
 
@@ -59,7 +63,7 @@ class SSHKeyApi:
         >>> air.ssh_keys.list()
         [<SSHKey mykey c51b49b6-94a7-4c93-950c-e7fa4883591>, <SSHKey test_key 3134711d-015e-49fb-a6ca-68248a8d4aff>]
         ```
-        """ #pylint: enable=line-too-long
+        """  # pylint: enable=line-too-long
         res = self.client.get(f'{self.url}', params=kwargs)
         util.raise_if_invalid_response(res, data_type=list)
         return [SSHKey(self, **key) for key in res.json()]

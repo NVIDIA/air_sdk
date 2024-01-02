@@ -1,15 +1,16 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 Tests for organization.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring,protected-access
+# pylint: disable=missing-function-docstring,missing-class-docstring,protected-access
 from copy import deepcopy
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from ..air_sdk import organization
+
 
 class TestOrganization(TestCase):
     def setUp(self):
@@ -23,8 +24,7 @@ class TestOrganization(TestCase):
         self.assertTrue(self.model._deletable)
         self.assertTrue(self.model._updatable)
         self.assertEqual(self.model.ORG_MEMBER_ROLE, 'Organization Member')
-        self.assertEqual(self.model._members_api_url,
-                         f'{self.api.url}{self.model.id}/members/')
+        self.assertEqual(self.model._members_api_url, f'{self.api.url}{self.model.id}/members/')
 
     def test_repr(self):
         self.assertEqual(str(self.model), f'<Organization {self.model.name} {self.model.id}>')
@@ -37,9 +37,9 @@ class TestOrganization(TestCase):
     def test_add_member(self, mock_refresh):
         username = 'user1@nvidia.com'
         self.model.add_member(username)
-        self.api.client.post.assert_called_once_with(self.model._members_api_url,
-                                                     json={'username': username,
-                                                           'roles': [self.model.ORG_MEMBER_ROLE]})
+        self.api.client.post.assert_called_once_with(
+            self.model._members_api_url, json={'username': username, 'roles': [self.model.ORG_MEMBER_ROLE]}
+        )
         mock_refresh.assert_called_once()
 
     @patch('air_sdk.air_sdk.organization.Organization.refresh')
@@ -47,8 +47,9 @@ class TestOrganization(TestCase):
         username = 'user1@nvidia.com'
         role = 'test role'
         self.model.add_member(username, [role])
-        self.api.client.post.assert_called_once_with(self.model._members_api_url,
-                                                     json={'username': username, 'roles': [role]})
+        self.api.client.post.assert_called_once_with(
+            self.model._members_api_url, json={'username': username, 'roles': [role]}
+        )
         mock_refresh.assert_called_once()
 
     @patch('air_sdk.air_sdk.organization.Organization.refresh')
@@ -58,16 +59,18 @@ class TestOrganization(TestCase):
         member2_with_role = deepcopy(member2)
         member2_with_role['roles'] = [self.model.ORG_MEMBER_ROLE]
         self.model.add_members([member1, member2])
-        self.api.client.post.assert_called_once_with(self.model._members_api_url,
-                                                     json=[member1, member2_with_role])
+        self.api.client.post.assert_called_once_with(
+            self.model._members_api_url, json=[member1, member2_with_role]
+        )
         mock_refresh.assert_called_once()
 
     @patch('air_sdk.air_sdk.organization.Organization.refresh')
     def test_remove_member(self, mock_refresh):
         username = 'user1@nvidia.com'
         self.model.remove_member(username)
-        self.api.client.delete.assert_called_once_with(self.model._members_api_url,
-                                                       json={'username': username})
+        self.api.client.delete.assert_called_once_with(
+            self.model._members_api_url, json={'username': username}
+        )
         mock_refresh.assert_called_once()
         mock_refresh.assert_called_once()
 
@@ -89,6 +92,7 @@ class TestOrganization(TestCase):
         self.assertEqual(mock_remove.mock_calls, mock_for_assert.mock_calls)
         mock_refresh.assert_called_once()
 
+
 class TestOrganizationApi(TestCase):
     def setUp(self):
         self.client = MagicMock()
@@ -104,8 +108,9 @@ class TestOrganizationApi(TestCase):
         org_id = 'abc123'
         self.client.get.return_value.json.return_value = {'id': org_id, 'name': 'test'}
         res = self.api.get('abc123', foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/organization/abc123/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(
+            f'{self.client.api_url}/organization/abc123/', params={'foo': 'bar'}
+        )
         mock_raise.assert_called_with(self.client.get.return_value)
         self.assertIsInstance(res, organization.Organization)
         self.assertEqual(res.id, org_id)
@@ -114,8 +119,7 @@ class TestOrganizationApi(TestCase):
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = [{'id': 'abc'}, {'id': 'xyz'}]
         res = self.api.list(foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/organization/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(f'{self.client.api_url}/organization/', params={'foo': 'bar'})
         mock_raise.assert_called_with(self.client.get.return_value, data_type=list)
         self.assertEqual(len(res), 2)
         self.assertIsInstance(res[0], organization.Organization)
@@ -126,8 +130,9 @@ class TestOrganizationApi(TestCase):
     def test_create(self, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         res = self.api.create(name='abc123', members=['def123'])
-        self.client.post.assert_called_with(f'{self.client.api_url}/organization/',
-                                            json={'name': 'abc123', 'members': ['def123']})
+        self.client.post.assert_called_with(
+            f'{self.client.api_url}/organization/', json={'name': 'abc123', 'members': ['def123']}
+        )
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         self.assertIsInstance(res, organization.Organization)
         self.assertEqual(res.id, 'abc')

@@ -1,10 +1,10 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 Tests for util.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring,no-self-use,unused-argument
+# pylint: disable=missing-function-docstring,missing-class-docstring,no-self-use,unused-argument
 
 import datetime
 
@@ -13,6 +13,7 @@ from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from ..air_sdk import exceptions, util
+
 
 class TestUtil(TestCase):
     def test_raise_if_invalid_response(self):
@@ -26,9 +27,10 @@ class TestUtil(TestCase):
         mock_res.status_code = 400
         with self.assertRaises(exceptions.AirUnexpectedResponse) as err:
             util.raise_if_invalid_response(mock_res)
-        self.assertEqual(err.exception.message,
-                         'Received an unexpected response from the Air API (400): ' +
-                         str(mock_res.text))
+        self.assertEqual(
+            err.exception.message,
+            'Received an unexpected response from the Air API (400): ' + str(mock_res.text),
+        )
         self.assertEqual(err.exception.status_code, 400)
 
     def test_raise_if_invalid_response_no_data(self):
@@ -42,9 +44,10 @@ class TestUtil(TestCase):
         mock_res.json.side_effect = JSONDecodeError('test', 'foo', 0)
         with self.assertRaises(exceptions.AirUnexpectedResponse) as err:
             util.raise_if_invalid_response(mock_res)
-        self.assertEqual(err.exception.message,
-                         'Received an unexpected response from the Air API (200): ' +
-                         str(mock_res.text))
+        self.assertEqual(
+            err.exception.message,
+            'Received an unexpected response from the Air API (200): ' + str(mock_res.text),
+        )
         self.assertEqual(err.exception.status_code, 200)
 
     def test_raise_if_invalid_bad_data_type(self):
@@ -53,16 +56,19 @@ class TestUtil(TestCase):
         mock_res.json.return_value = {}
         with self.assertRaises(exceptions.AirUnexpectedResponse) as err:
             util.raise_if_invalid_response(mock_res, data_type=list)
-        self.assertEqual(err.exception.message,
-                         'Received an unexpected response from the Air API (200): ' + \
-                         'Expected API response to be of type <class \'list\'>, ' + \
-                         'got <class \'dict\'>')
+        self.assertEqual(
+            err.exception.message,
+            'Received an unexpected response from the Air API (200): '
+            + "Expected API response to be of type <class 'list'>, "
+            + "got <class 'dict'>",
+        )
         self.assertEqual(err.exception.status_code, 200)
 
     def test_required_kwargs(self):
         @util.required_kwargs(['foo', 'bar'])
         def decorated(**kwargs):
             pass
+
         with self.assertRaises(AttributeError) as err:
             decorated(foo='test')
         self.assertTrue('requires bar' in str(err.exception))
@@ -71,6 +77,7 @@ class TestUtil(TestCase):
         @util.required_kwargs('foo')
         def decorated(**kwargs):
             pass
+
         with self.assertRaises(AttributeError) as err:
             decorated(f='test')
         self.assertTrue('requires foo' in str(err.exception))
@@ -80,18 +87,23 @@ class TestUtil(TestCase):
         @util.deprecated()
         def decorated():
             pass
+
         decorated()
-        self.assertTrue('has been deprecated and will be removed in a future release.' \
-                        in mock_log.call_args[0][0])
+        self.assertTrue(
+            'has been deprecated and will be removed in a future release.' in mock_log.call_args[0][0]
+        )
 
     @patch('air_sdk.util.logger.warning')
     def test_deprecated_new(self, mock_log):
         @util.deprecated('new_func')
         def decorated():
             pass
+
         decorated()
-        self.assertTrue('has been deprecated and will be removed in a future release. ' + \
-                        'Use new_func instead.' in mock_log.call_args[0][0])
+        self.assertTrue(
+            'has been deprecated and will be removed in a future release. ' + 'Use new_func instead.'
+            in mock_log.call_args[0][0]
+        )
 
     @patch('air_sdk.util.logger.warning')
     def test_validate_timestamps(self, mock_log):

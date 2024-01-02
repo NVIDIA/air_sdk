@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -7,6 +7,7 @@ Permission module
 
 from . import util
 from .air_model import AirModel
+
 
 class Permission(AirModel):
     """
@@ -32,6 +33,7 @@ class Permission(AirModel):
         kwargs (dict, optional): All optional keyword arguments are applied as key/value
                 pairs in the request's JSON payload
     """
+
     _updatable = False
 
     def __repr__(self):
@@ -39,14 +41,16 @@ class Permission(AirModel):
             return super().__repr__()
         return f'<Permission {self.id}>'
 
+
 class PermissionApi:
-    """ High-level interface for the Permission API """
+    """High-level interface for the Permission API"""
+
     def __init__(self, client):
         self.client = client
         self.url = self.client.api_url + '/permission/'
 
     @util.deprecated('PermissionApi.create()')
-    def create_permission(self, email, **kwargs): #pylint: disable=missing-function-docstring
+    def create_permission(self, email, **kwargs):  # pylint: disable=missing-function-docstring
         kwargs['email'] = email
         return self.create(**kwargs)
 
@@ -111,7 +115,7 @@ class PermissionApi:
         return Permission(self, **res.json())
 
     def list(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         List existing permissions
 
@@ -131,7 +135,7 @@ class PermissionApi:
         >>> air.permissions.list()
         [<Permission c51b49b6-94a7-4c93-950c-e7fa4883591>, <Permission 3134711d-015e-49fb-a6ca-68248a8d4aff>]
         ```
-        """ #pylint: enable=line-too-long
+        """  # pylint: enable=line-too-long
         res = self.client.get(f'{self.url}', params=kwargs)
         util.raise_if_invalid_response(res, data_type=list)
         return [Permission(self, **permission) for permission in res.json()]

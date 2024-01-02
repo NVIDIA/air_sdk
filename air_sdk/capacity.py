@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -7,6 +7,7 @@ Capacity module
 
 from . import util
 from .air_model import AirModel
+
 
 class Capacity(AirModel):
     """
@@ -18,6 +19,7 @@ class Capacity(AirModel):
     ### refresh
     Syncs the capacity with all values returned by the API
     """
+
     _deletable = False
     _updatable = False
 
@@ -26,14 +28,16 @@ class Capacity(AirModel):
             return super().__repr__()
         return f'<Capacity {self.copies}>'
 
+
 class CapacityApi:
-    """ High-level interface for the Simulation API """
+    """High-level interface for the Simulation API"""
+
     def __init__(self, client):
         self.client = client
         self.url = self.client.api_url + '/capacity/'
 
     @util.deprecated('CapacityApi.get()')
-    def get_capacity(self, simulation=None, simulation_id=None): #pylint: disable=missing-function-docstring
+    def get_capacity(self, simulation=None, simulation_id=None):  # pylint: disable=missing-function-docstring
         if not simulation and not simulation_id:
             raise ValueError('Must pass a simulation or simulation_id argument')
         sim_id = simulation_id or simulation.id

@@ -1,14 +1,15 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 Tests for login.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring
+# pylint: disable=missing-function-docstring,missing-class-docstring
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from ..air_sdk import login
+
 
 class TestLogin(TestCase):
     def setUp(self):
@@ -25,6 +26,7 @@ class TestLogin(TestCase):
     def test_repr_deleted(self):
         self.model._deleted = True
         self.assertTrue('Deleted Object' in str(self.model))
+
 
 class TestLoginApi(TestCase):
     def setUp(self):

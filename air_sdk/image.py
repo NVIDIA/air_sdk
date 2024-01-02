@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -7,6 +7,7 @@ Image module
 
 from . import util
 from .air_model import AirModel
+
 
 class Image(AirModel):
     """
@@ -32,6 +33,7 @@ class Image(AirModel):
         kwargs (dict, optional): All optional keyword arguments are applied as key/value
                 pairs in the request's JSON payload
     """
+
     def copy(self, organization):
         """
         Make a copy of the image in another organization
@@ -78,8 +80,10 @@ class Image(AirModel):
             return super().__repr__()
         return f'<Image {self.name} {self.id}>'
 
+
 class ImageApi:
-    """ High-level interface for the Image API """
+    """High-level interface for the Image API"""
+
     def __init__(self, client):
         self.client = client
         self.url = self.client.api_url + '/image/'
@@ -112,7 +116,7 @@ class ImageApi:
         return Image(self, **res.json())
 
     def list(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         List existing images
 
@@ -132,13 +136,14 @@ class ImageApi:
         >>> air.images.list()
         [<Image cumulus-vx-4.2.1 c51b49b6-94a7-4c93-950c-e7fa4883591>, <Image generic/ubuntu18.04 3134711d-015e-49fb-a6ca-68248a8d4aff>]
         ```
-        """ #pylint: enable=line-too-long
+        """  # pylint: enable=line-too-long
         res = self.client.get(f'{self.url}', params=kwargs)
         util.raise_if_invalid_response(res, data_type=list)
         return [Image(self, **image) for image in res.json()]
 
-    @util.required_kwargs(['name', 'organization', 'version', 'default_username', 'default_password',
-                           'cpu_arch'])
+    @util.required_kwargs(
+        ['name', 'organization', 'version', 'default_username', 'default_password', 'cpu_arch']
+    )
     def create(self, **kwargs):
         """
         Create a new image

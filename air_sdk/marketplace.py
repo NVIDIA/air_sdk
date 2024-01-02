@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -8,27 +8,31 @@ Marketplace Demo module
 from . import util
 from .air_model import AirModel
 
+
 class Marketplace(AirModel):
     """
     Manage marketplace demos
 
     """
+
     _updatable = False
     _deletable = False
 
     def __repr__(self):
         if self._deleted or not self.name:
             return super().__repr__()
-        return f'<Marketplace Demo \'{self.name}\' {self.id}>'
+        return f"<Marketplace Demo '{self.name}' {self.id}>"
+
 
 class MarketplaceApi:
-    """ High-level interface for the Marketplace API """
+    """High-level interface for the Marketplace API"""
+
     def __init__(self, client):
         self.client = client
         self.url = self.client.api_url + '/marketplace/demo/'
 
     def list(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         List existing keys
 
@@ -48,7 +52,7 @@ class MarketplaceApi:
         >>> air.marketplace.list()
         [<Marketplace Demo EVPN Centralized c51b49b6-94a7-4c93-950c-e7fa4883591>]
         ```
-        """ #pylint: enable=line-too-long
+        """  # pylint: enable=line-too-long
         res = self.client.get(f'{self.url}', params=kwargs)
         util.raise_if_invalid_response(res, data_type=list)
         return [Marketplace(self, **key) for key in res.json()]

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -7,6 +7,7 @@ Token module
 
 from . import util
 from .air_model import AirModel
+
 
 class Token(AirModel):
     """
@@ -18,7 +19,8 @@ class Token(AirModel):
     ### refresh
     Syncs the interface with all values returned by the API
     """
-    #_deletable = False
+
+    # _deletable = False
     _updatable = False
 
     def __repr__(self):
@@ -30,8 +32,10 @@ class Token(AirModel):
             return f'<Token {self.name} {self.token}>'
         return f'<Token {self.name}>'
 
+
 class TokenApi:
-    """ High-level interface for the Token API """
+    """High-level interface for the Token API"""
+
     def __init__(self, client):
         self.client = client
         self.url = self.client.api_url + '/api-token/'
@@ -60,7 +64,7 @@ class TokenApi:
         util.raise_if_invalid_response(res, status_code=204, data_type=None)
 
     def list(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         List existing tokens
 
@@ -81,7 +85,7 @@ class TokenApi:
         [<Interface eth0 c51b49b6-94a7-4c93-950c-e7fa4883591>, <Interface eth1 3134711d-015e-49fb-a6ca-68248a8d4aff>]
         ```
         """
-        #pylint: enable=line-too-long
+        # pylint: enable=line-too-long
         res = self.client.get(f'{self.url}', params=kwargs)
         util.raise_if_invalid_response(res, data_type=list)
         return [Token(self, **token) for token in res.json()]

@@ -1,14 +1,15 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 Tests for token.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring
+# pylint: disable=missing-function-docstring,missing-class-docstring
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from ..air_sdk import token
+
 
 class TestAPIToken(TestCase):
     def setUp(self):
@@ -51,8 +52,7 @@ class TestTokenApi(TestCase):
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = [{'id': 'abc'}, {'id': 'xyz'}]
         res = self.api.list(foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/api-token/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(f'{self.client.api_url}/api-token/', params={'foo': 'bar'})
         mock_raise.assert_called_with(self.client.get.return_value, data_type=list)
         self.assertEqual(len(res), 2)
         self.assertIsInstance(res[0], token.Token)
@@ -63,8 +63,7 @@ class TestTokenApi(TestCase):
     def test_create(self, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         res = self.api.create(name='test')
-        self.client.post.assert_called_with(f'{self.client.api_url}/api-token/',
-                                            json={'name': 'test'})
+        self.client.post.assert_called_with(f'{self.client.api_url}/api-token/', json={'name': 'test'})
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         self.assertIsInstance(res, token.Token)
         self.assertEqual(res.id, 'abc')
@@ -77,7 +76,5 @@ class TestTokenApi(TestCase):
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_delete(self, mock_raise):
         self.api.delete('abc')
-        self.client.delete.assert_called_with(f'{self.client.api_url}/api-token/abc/',
-                                              params={})
-        mock_raise.assert_called_with(self.client.delete.return_value, status_code=204,
-                                      data_type=None)
+        self.client.delete.assert_called_with(f'{self.client.api_url}/api-token/abc/', params={})
+        mock_raise.assert_called_with(self.client.delete.return_value, status_code=204, data_type=None)

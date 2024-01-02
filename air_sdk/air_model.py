@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -10,22 +10,37 @@ import json
 from . import util
 from .exceptions import AirObjectDeleted
 
+
 class AirModel:
-    """ Base class for AIR object models """
-    model_keys = {'account': 'accounts', 'base_simulation': 'simulations', 'bios': 'images',
-                  'connection': 'links', 'demo': 'demos', 'interface': 'simulation_interfaces',
-                  'interfaces': {'Node': 'interfaces', 'SimulationNode': 'simulation_interfaces',
-                                 'Link': 'interfaces'},
-                  'job': 'jobs', 'last_worker': 'worker',
-                  'node': {'Interface': 'nodes', 'NodeInstruction': 'simulation_nodes',
-                           'SimulationInterface': 'simulation_nodes',
-                           'TopologyInstruction': 'nodes'},
-                  'nodes': 'simulation_nodes',
-                  'original': {'SimulationInterface': 'interfaces',
-                               'SimulationNode': 'nodes'},
-                  'organization': 'organizations', 'os': 'images', 'preferred_worker': 'workers',
-                  'services': 'services', 'simulation': 'simulations', 'topology': 'topologies',
-                  'worker': 'workers', 'fleet': 'fleets'}
+    """Base class for AIR object models"""
+
+    model_keys = {
+        'account': 'accounts',
+        'base_simulation': 'simulations',
+        'bios': 'images',
+        'connection': 'links',
+        'demo': 'demos',
+        'interface': 'simulation_interfaces',
+        'interfaces': {'Node': 'interfaces', 'SimulationNode': 'simulation_interfaces', 'Link': 'interfaces'},
+        'job': 'jobs',
+        'last_worker': 'worker',
+        'node': {
+            'Interface': 'nodes',
+            'NodeInstruction': 'simulation_nodes',
+            'SimulationInterface': 'simulation_nodes',
+            'TopologyInstruction': 'nodes',
+        },
+        'nodes': 'simulation_nodes',
+        'original': {'SimulationInterface': 'interfaces', 'SimulationNode': 'nodes'},
+        'organization': 'organizations',
+        'os': 'images',
+        'preferred_worker': 'workers',
+        'services': 'services',
+        'simulation': 'simulations',
+        'topology': 'topologies',
+        'worker': 'workers',
+        'fleet': 'fleets',
+    }
 
     def __init__(self, api, **kwargs):
         self._deleted = False
@@ -42,9 +57,10 @@ class AirModel:
                 _value = datetime_obj
             if key in self.model_keys and value:
                 if isinstance(value, list) and not isinstance(value, LazyLoadedList):
-                    _value = LazyLoadedList([LazyLoaded(id=_get_item_id(item),
-                                                        model=self._get_model_key(key))
-                                             for item in value], self._api)
+                    _value = LazyLoadedList(
+                        [LazyLoaded(id=_get_item_id(item), model=self._get_model_key(key)) for item in value],
+                        self._api,
+                    )
                 elif isinstance(value, (LazyLoaded, LazyLoadedList)):
                     _value = value
                 elif value.startswith('http'):
@@ -76,7 +92,7 @@ class AirModel:
         try:
             original = super().__getattribute__(name)
             api = super().__getattribute__('_api')
-            id = super().__getattribute__('id') #pylint: disable=redefined-builtin
+            id = super().__getattribute__('id')  # pylint: disable=redefined-builtin
         except AttributeError:
             original = None
             api = None
@@ -136,11 +152,11 @@ class AirModel:
         self._deleted = True
 
     def refresh(self):
-        """ Syncs the object with all values returned by the API """
+        """Syncs the object with all values returned by the API"""
         self._load(**self._api.get(self.id).__dict__)
 
     def json(self):
-        """ Returns a JSON string representation of the object """
+        """Returns a JSON string representation of the object"""
         payload = {}
         for key, value in self.__dict__.items():
             if isinstance(value, (datetime, date)):
@@ -155,9 +171,11 @@ class AirModel:
                 payload[key] = value
         return json.dumps(payload)
 
+
 class LazyLoaded:
-    """ A lazy object whose data will be loaded later """
-    def __init__(self, id, model): #pylint: disable=redefined-builtin
+    """A lazy object whose data will be loaded later"""
+
+    def __init__(self, id, model):  # pylint: disable=redefined-builtin
         self.id = id
         self.model = model
 
@@ -169,8 +187,10 @@ class LazyLoaded:
             model_str = model_str[:-1]
         return f'<air_sdk.air_model.LazyLoaded {model_str} {self.id}>'
 
+
 class LazyLoadedList(list):
-    """ A list whose items are LazyLoaded """
+    """A list whose items are LazyLoaded"""
+
     def __init__(self, items, api):
         self._api = api
         super().__init__(items)
@@ -189,6 +209,7 @@ class LazyLoadedList(list):
                 yield getattr(self._api.client, item.model).get(item.id)
             else:
                 yield item
+
 
 def _get_item_id(item):
     if isinstance(item, dict):

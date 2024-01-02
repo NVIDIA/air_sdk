@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -7,6 +7,7 @@ Demo module
 
 from . import util
 from .air_model import AirModel
+
 
 class Demo(AirModel):
     """
@@ -17,16 +18,19 @@ class Demo(AirModel):
     ### refresh
     Syncs the demo with all values returned by the API
     """
+
     _deletable = False
     _updatable = False
 
     def __repr__(self):
         if self._deleted or not self.name:
             return super().__repr__()
-        return f'<Demo \'{self.name}\' {self.id}>'
+        return f"<Demo '{self.name}' {self.id}>"
+
 
 class DemoApi:
-    """ High-level interface for the Demo API """
+    """High-level interface for the Demo API"""
+
     def __init__(self, client):
         self.client = client
         self.url = self.client.api_url + '/demo/'
@@ -59,7 +63,7 @@ class DemoApi:
         return Demo(self, **res.json())
 
     def list(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         List existing demos
 
@@ -79,7 +83,7 @@ class DemoApi:
         >>> air.demos.list()
         [<Demo EVPN c51b49b6-94a7-4c93-950c-e7fa4883591>, <Demo Challenges 3134711d-015e-49fb-a6ca-68248a8d4aff>]
         ```
-        """ #pylint: enable=line-too-long
+        """  # pylint: enable=line-too-long
         res = self.client.get(f'{self.url}', params=kwargs)
         util.raise_if_invalid_response(res, data_type=list)
         return [Demo(self, **demo) for demo in res.json()]

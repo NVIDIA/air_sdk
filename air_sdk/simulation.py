@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -7,6 +7,7 @@ Simulation module
 
 from . import user_preference, util
 from .air_model import AirModel
+
 
 class Simulation(AirModel):
     """
@@ -25,12 +26,13 @@ class Simulation(AirModel):
         kwargs (dict, optional): All optional keyword arguments are applied as key/value
                 pairs in the request's JSON payload
     """
+
     _deletable = False
 
     def __repr__(self):
         if self._deleted or not self.title:
             return super().__repr__()
-        return f'<Simulation \'{self.title}\' {self.id}>'
+        return f"<Simulation '{self.title}' {self.id}>"
 
     def create_service(self, name, interface, dest_port, **kwargs):
         """
@@ -58,9 +60,9 @@ class Simulation(AirModel):
         <Service myservice 9603d0d5-5526-4a0f-91b8-a600010d0091>
         ```
         """
-        service = self._api.client.services.create(simulation=self.id, name=name,
-                                                   interface=interface, dest_port=dest_port,
-                                                   **kwargs)
+        service = self._api.client.services.create(
+            simulation=self.id, name=name, interface=interface, dest_port=dest_port, **kwargs
+        )
         self.refresh()
         return service
 
@@ -109,25 +111,25 @@ class Simulation(AirModel):
         return res.json()
 
     def load(self):
-        """ Alias for `start()` """
+        """Alias for `start()`"""
         self.start()
 
     def start(self):
-        """ Start/load the simulation """
+        """Start/load the simulation"""
         self.control(action='load')
         self.refresh()
 
     def stop(self):
-        """ Alias for `store()` """
+        """Alias for `store()`"""
         self.store()
 
     def store(self):
-        """ Store and power off the simulation """
+        """Store and power off the simulation"""
         self.control(action='store')
         self.refresh()
 
     def delete(self, **kwargs):
-        """ Delete the simulation """
+        """Delete the simulation"""
         self.control(action='destroy', **kwargs)
         self._deleted = True
 
@@ -148,31 +150,34 @@ class Simulation(AirModel):
         {"show": true}
         ```
         """
-        res = self._api.client.get(f'{self._api.url.replace("v1", "v2")}{self.id}/preferences/',
-                                   params=kwargs)
+        res = self._api.client.get(
+            f'{self._api.url.replace("v1", "v2")}{self.id}/preferences/', params=kwargs
+        )
         util.raise_if_invalid_response(res)
         return user_preference.UserPreference(self._api, _model=self, _version_override='2', **res.json())
 
+
 class SimulationApi:
-    """ High-level interface for the Simulation API """
+    """High-level interface for the Simulation API"""
+
     def __init__(self, client):
         self.client = client
         self.url = self.client.api_url + '/simulation/'
 
     @util.deprecated('SimulationApi.list()')
-    def get_simulations(self): #pylint: disable=missing-function-docstring
+    def get_simulations(self):  # pylint: disable=missing-function-docstring
         return self.list()
 
     @util.deprecated('SimulationApi.get()')
-    def get_simulation(self, simulation_id): #pylint: disable=missing-function-docstring
+    def get_simulation(self, simulation_id):  # pylint: disable=missing-function-docstring
         return self.get(simulation_id)
 
     @util.deprecated('SimulationApi.create()')
-    def create_simulation(self, **kwargs): #pylint: disable=missing-function-docstring
+    def create_simulation(self, **kwargs):  # pylint: disable=missing-function-docstring
         return self.create(**kwargs)
 
     @util.deprecated('Simulation.update()')
-    def update_simulation(self, simulation_id, data): #pylint: disable=missing-function-docstring
+    def update_simulation(self, simulation_id, data):  # pylint: disable=missing-function-docstring
         sim = self.get(simulation_id)
         sim.update(**data)
 
@@ -206,7 +211,7 @@ class SimulationApi:
         return Simulation(self, **response['simulation']), response
 
     @util.deprecated('Simulation.control()')
-    def control(self, simulation_id, action, **kwargs): #pylint: disable=missing-function-docstring
+    def control(self, simulation_id, action, **kwargs):  # pylint: disable=missing-function-docstring
         sim = self.get(simulation_id)
         return sim.control(action=action, **kwargs)
 
@@ -260,7 +265,7 @@ class SimulationApi:
         return Simulation(self, **res.json())
 
     def list(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         List existing simulations
 
@@ -280,7 +285,7 @@ class SimulationApi:
         >>> air.simulations.list()
         [<Simulation sim1 c51b49b6-94a7-4c93-950c-e7fa4883591>, <Simulation sim2 3134711d-015e-49fb-a6ca-68248a8d4aff>]
         ```
-        """ #pylint: enable=line-too-long
+        """  # pylint: enable=line-too-long
         res = self.client.get(f'{self.url}', params=kwargs)
         util.raise_if_invalid_response(res, data_type=list)
         return [Simulation(self, **simulation) for simulation in res.json()]
@@ -308,8 +313,9 @@ class SimulationApi:
         <Simulation my_sim 01298e0c-4ef1-43ec-9675-93160eb29d9f>
         ```
         """
-        util.validate_timestamps('Simulation created', expires_at=kwargs.get('expires_at'),
-                                 sleep_at=kwargs.get('sleep_at'))
+        util.validate_timestamps(
+            'Simulation created', expires_at=kwargs.get('expires_at'), sleep_at=kwargs.get('sleep_at')
+        )
         res = self.client.post(self.url, json=kwargs)
         util.raise_if_invalid_response(res, status_code=201)
         return Simulation(self, **res.json())

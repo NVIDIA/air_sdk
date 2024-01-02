@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -7,6 +7,7 @@ Organization module
 
 from . import util
 from .air_model import AirModel
+
 
 class Organization(AirModel):
     """
@@ -32,6 +33,7 @@ class Organization(AirModel):
         kwargs (dict, optional): All optional keyword arguments are applied as key/value
                 pairs in the request's JSON payload
     """
+
     ORG_MEMBER_ROLE = 'Organization Member'
 
     def __init__(self, *args, **kwargs):
@@ -62,11 +64,11 @@ class Organization(AirModel):
         _roles = roles
         if not _roles:
             _roles = [self.ORG_MEMBER_ROLE]
-        self._api.client.post(self._members_api_url, json={'username':  username, 'roles': _roles})
+        self._api.client.post(self._members_api_url, json={'username': username, 'roles': _roles})
         self.refresh()
 
     def add_members(self, members: list):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         Add new members to the organization
 
@@ -80,7 +82,7 @@ class Organization(AirModel):
         ```
         >>> organization.add_members([{'username': 'user1@nvidia.com', 'roles': ['Organization Admin']}, {'username': 'user2@nvidia.com'}])
         ```
-        """ #pylint: enable=line-too-long
+        """  # pylint: enable=line-too-long
         for member in members:
             if not member.get('roles', []):
                 member['roles'] = [self.ORG_MEMBER_ROLE]
@@ -117,8 +119,10 @@ class Organization(AirModel):
             self.remove_member(member, _refresh_when_done=False)
         self.refresh()
 
+
 class OrganizationApi:
-    """ High-level interface for the Organization API """
+    """High-level interface for the Organization API"""
+
     def __init__(self, client):
         self.client = client
         self.url = self.client.api_url + '/organization/'
@@ -151,7 +155,7 @@ class OrganizationApi:
         return Organization(self, **res.json())
 
     def list(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         List existing organizations
 
@@ -171,14 +175,14 @@ class OrganizationApi:
         >>> air.organizations.list()
         [<Organization NVIDIA c51b49b6-94a7-4c93-950c-e7fa4883591>, <Organization Customer 3134711d-015e-49fb-a6ca-68248a8d4aff>]
         ```
-        """ #pylint: enable=line-too-long
+        """  # pylint: enable=line-too-long
         res = self.client.get(f'{self.url}', params=kwargs)
         util.raise_if_invalid_response(res, data_type=list)
         return [Organization(self, **organization) for organization in res.json()]
 
     @util.required_kwargs(['name'])
     def create(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         Create a new organization
 
@@ -205,7 +209,7 @@ class OrganizationApi:
         >>> air.organizations.create(name='NVIDIA', members=[{'username': 'user1@nvidia.com', 'roles': ['Organization Admin']}, {'username': 'user2@nvidia.com'}])
         <Organization NVIDIA 01298e0c-4ef1-43ec-9675-93160eb29d9f>
         ```
-        """ #pylint: enable=line-too-long
+        """  # pylint: enable=line-too-long
         res = self.client.post(self.url, json=kwargs)
         util.raise_if_invalid_response(res, status_code=201)
         return Organization(self, **res.json())

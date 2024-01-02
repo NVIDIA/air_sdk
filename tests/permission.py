@@ -1,14 +1,15 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 Tests for permission.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring
+# pylint: disable=missing-function-docstring,missing-class-docstring
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from ..air_sdk import permission
+
 
 class TestPermission(TestCase):
     def setUp(self):
@@ -47,8 +48,7 @@ class TestPermissionApi(TestCase):
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/permission/abc123/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(f'{self.client.api_url}/permission/abc123/', params={'foo': 'bar'})
         mock_raise.assert_called_with(self.client.get.return_value)
         self.assertIsInstance(res, permission.Permission)
         self.assertEqual(res.test, 'success')
@@ -57,8 +57,7 @@ class TestPermissionApi(TestCase):
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = [{'id': 'abc'}, {'id': 'xyz'}]
         res = self.api.list(foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/permission/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(f'{self.client.api_url}/permission/', params={'foo': 'bar'})
         mock_raise.assert_called_with(self.client.get.return_value, data_type=list)
         self.assertEqual(len(res), 2)
         self.assertIsInstance(res[0], permission.Permission)
@@ -69,8 +68,9 @@ class TestPermissionApi(TestCase):
     def test_create(self, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         res = self.api.create(simulation='abc123', email='me@test.com')
-        self.client.post.assert_called_with(f'{self.client.api_url}/permission/',
-                                            json={'simulation': 'abc123', 'email': 'me@test.com'})
+        self.client.post.assert_called_with(
+            f'{self.client.api_url}/permission/', json={'simulation': 'abc123', 'email': 'me@test.com'}
+        )
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         self.assertIsInstance(res, permission.Permission)
         self.assertEqual(res.id, 'abc')
@@ -81,5 +81,5 @@ class TestPermissionApi(TestCase):
         self.assertTrue('requires email' in str(err.exception))
         with self.assertRaises(AttributeError) as err:
             self.api.create(email='me@test.com')
-        msg = 'requires one of the following: (\'topology\', \'simulation\', \'subject_id\')'
+        msg = "requires one of the following: ('topology', 'simulation', 'subject_id')"
         self.assertTrue(msg in str(err.exception))

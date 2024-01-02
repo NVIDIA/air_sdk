@@ -1,14 +1,15 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 Tests for simulation_node.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring,unused-argument
+# pylint: disable=missing-function-docstring,missing-class-docstring,unused-argument
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from ..air_sdk import simulation_node
+
 
 class TestSimulationNode(TestCase):
     def setUp(self):
@@ -28,14 +29,13 @@ class TestSimulationNode(TestCase):
         self.model._deleted = True
         self.assertTrue('Deleted Object' in str(self.model))
 
-
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create_instructions(self, mock_raise):
         res = self.model.create_instructions(executor='shell', data='echo')
-        self.api.client.post.assert_called_with(f'{self.api.url}abc123/instructions/',
-                                                json={'executor': 'shell', 'data': 'echo'})
-        mock_raise.assert_called_with(self.api.client.post.return_value, status_code=201,
-                                      data_type=str)
+        self.api.client.post.assert_called_with(
+            f'{self.api.url}abc123/instructions/', json={'executor': 'shell', 'data': 'echo'}
+        )
+        mock_raise.assert_called_with(self.api.client.post.return_value, status_code=201, data_type=str)
         self.assertEqual(res, {'id': self.api.client.post.return_value.json.return_value})
 
     def test_create_instructions_required_kwargs(self):
@@ -49,14 +49,16 @@ class TestSimulationNode(TestCase):
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create_instructions_list(self, mock_raise):
         self.model.create_instructions(executor='shell', data=['line1', 'line2'])
-        self.api.client.post.assert_called_with(f'{self.api.url}abc123/instructions/',
-                                                json={'executor': 'shell', 'data': 'line1\nline2'})
+        self.api.client.post.assert_called_with(
+            f'{self.api.url}abc123/instructions/', json={'executor': 'shell', 'data': 'line1\nline2'}
+        )
 
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_list_instructions(self, mock_raise):
         res = self.model.list_instructions(foo='bar')
-        self.api.client.get.assert_called_with(f'{self.api.url}{self.model.id}/instructions/',
-                                               params={'foo': 'bar'})
+        self.api.client.get.assert_called_with(
+            f'{self.api.url}{self.model.id}/instructions/', params={'foo': 'bar'}
+        )
         mock_raise.assert_called_with(self.api.client.get.return_value, data_type=list)
         self.assertEqual(res, self.api.client.get.return_value.json.return_value)
 
@@ -64,14 +66,14 @@ class TestSimulationNode(TestCase):
     def test_delete_instructions(self, mock_raise):
         self.model.delete_instructions()
         self.api.client.delete.assert_called_with(f'{self.api.url}{self.model.id}/instructions/')
-        mock_raise.assert_called_with(self.api.client.delete.return_value, status_code=204,
-                                      data_type=None)
+        mock_raise.assert_called_with(self.api.client.delete.return_value, status_code=204, data_type=None)
 
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_control(self, mock_raise):
         res = self.model.control(action='test')
-        self.api.client.post.assert_called_with(f'{self.api.url}{self.model.id}/control/',
-                                                json={'action': 'test'})
+        self.api.client.post.assert_called_with(
+            f'{self.api.url}{self.model.id}/control/', json={'action': 'test'}
+        )
         mock_raise.assert_called_with(self.api.client.post.return_value)
         self.assertEqual(res, self.api.client.post.return_value.json.return_value)
 
@@ -89,6 +91,7 @@ class TestSimulationNode(TestCase):
     def test_reset(self, mock_control):
         self.model.reset(foo='bar')
         mock_control.assert_called_with(action='reset', foo='bar')
+
 
 class TestSimulationNodeApi(TestCase):
     def setUp(self):
@@ -116,8 +119,9 @@ class TestSimulationNodeApi(TestCase):
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/simulation-node/abc123/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(
+            f'{self.client.api_url}/simulation-node/abc123/', params={'foo': 'bar'}
+        )
         mock_raise.assert_called_with(self.client.get.return_value)
         self.assertIsInstance(res, simulation_node.SimulationNode)
         self.assertEqual(res.test, 'success')
@@ -126,8 +130,7 @@ class TestSimulationNodeApi(TestCase):
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = [{'id': 'abc'}, {'id': 'xyz'}]
         res = self.api.list(foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/simulation-node/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(f'{self.client.api_url}/simulation-node/', params={'foo': 'bar'})
         mock_raise.assert_called_with(self.client.get.return_value, data_type=list)
         self.assertEqual(len(res), 2)
         self.assertIsInstance(res[0], simulation_node.SimulationNode)

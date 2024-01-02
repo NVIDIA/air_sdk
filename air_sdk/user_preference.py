@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -11,6 +11,7 @@ import re
 from .air_model import AirModel
 from . import util
 
+
 class UserPreference(AirModel):
     """
     A collection of your user preferences, which may be global for your account or specific to a single
@@ -22,6 +23,7 @@ class UserPreference(AirModel):
     ### refresh
     Syncs the key with all values returned by the API
     """
+
     _deletable = False
 
     def __init__(self, api, **kwargs):
@@ -54,7 +56,7 @@ class UserPreference(AirModel):
         return url
 
     def refresh(self):
-        """ Syncs the object with all values returned by the API """
+        """Syncs the object with all values returned by the API"""
         instance = self._model or self._api
         self._load(**instance.preferences().__dict__)
 

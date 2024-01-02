@@ -1,16 +1,17 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 Tests for logger.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring,no-self-use,unused-argument
+# pylint: disable=missing-function-docstring,missing-class-docstring,no-self-use,unused-argument
 
 import logging
 from unittest import TestCase
 from unittest.mock import MagicMock
 
 from ..air_sdk.logger import air_sdk_logger, _redact
+
 
 class TestLogger(TestCase):
     def test_logger(self):

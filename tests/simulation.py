@@ -1,15 +1,16 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 Tests for simulation.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring,duplicate-code,unused-argument
+# pylint: disable=missing-function-docstring,missing-class-docstring,duplicate-code,unused-argument
 import datetime as dt
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from ..air_sdk import simulation, user_preference
+
 
 class TestSimulation(TestCase):
     def setUp(self):
@@ -24,7 +25,7 @@ class TestSimulation(TestCase):
         self.assertTrue(self.model._updatable)
 
     def test_repr(self):
-        self.assertEqual(str(self.model), f'<Simulation \'{self.model.title}\' {self.model.id}>')
+        self.assertEqual(str(self.model), f"<Simulation '{self.model.title}' {self.model.id}>")
 
     def test_repr_deleted(self):
         self.model._deleted = True
@@ -33,16 +34,17 @@ class TestSimulation(TestCase):
     @patch('air_sdk.air_sdk.simulation.Simulation.refresh')
     def test_create_service(self, mock_refresh):
         res = self.model.create_service('test', 'intf', 22, foo='bar')
-        self.api.client.services.create.assert_called_with(simulation=self.model.id, name='test',
-                                                           interface='intf', dest_port=22,
-                                                           foo='bar')
+        self.api.client.services.create.assert_called_with(
+            simulation=self.model.id, name='test', interface='intf', dest_port=22, foo='bar'
+        )
         mock_refresh.asserrt_called()
         self.assertEqual(res, self.api.client.services.create.return_value)
 
     def test_add_permission(self):
         res = self.model.add_permission('me@test.com', foo='bar')
-        self.api.client.permissions.create.assert_called_with(email='me@test.com',
-                                                              simulation=self.model.id, foo='bar')
+        self.api.client.permissions.create.assert_called_with(
+            email='me@test.com', simulation=self.model.id, foo='bar'
+        )
         self.assertEqual(res, self.api.client.permissions.create.return_value)
 
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
@@ -90,12 +92,13 @@ class TestSimulation(TestCase):
         self.api.url = 'http://testserver/api/v1/simulation/'
 
         res = self.model.preferences(**kwargs)
-        self.api.client.get \
-            .assert_called_with(f'{self.api.url.replace("v1", "v2")}{self.model.id}/preferences/',
-                                params=kwargs)
+        self.api.client.get.assert_called_with(
+            f'{self.api.url.replace("v1", "v2")}{self.model.id}/preferences/', params=kwargs
+        )
         mock_raise.assert_called_once_with(self.api.client.get.return_value)
         self.assertIsInstance(res, user_preference.UserPreference)
         self.assertEqual(res.preferences, prefs)
+
 
 class TestSimulationApi(TestCase):
     def setUp(self):
@@ -169,8 +172,7 @@ class TestSimulationApi(TestCase):
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/simulation/abc123/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(f'{self.client.api_url}/simulation/abc123/', params={'foo': 'bar'})
         mock_raise.assert_called_with(self.client.get.return_value)
         self.assertIsInstance(res, simulation.Simulation)
         self.assertEqual(res.test, 'success')
@@ -179,8 +181,7 @@ class TestSimulationApi(TestCase):
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = [{'id': 'abc'}, {'id': 'xyz'}]
         res = self.api.list(foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/simulation/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(f'{self.client.api_url}/simulation/', params={'foo': 'bar'})
         mock_raise.assert_called_with(self.client.get.return_value, data_type=list)
         self.assertEqual(len(res), 2)
         self.assertIsInstance(res[0], simulation.Simulation)
@@ -192,8 +193,7 @@ class TestSimulationApi(TestCase):
     def test_create(self, mock_validate, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         res = self.api.create(topology='abc123')
-        self.client.post.assert_called_with(f'{self.client.api_url}/simulation/',
-                                            json={'topology': 'abc123'})
+        self.client.post.assert_called_with(f'{self.client.api_url}/simulation/', json={'topology': 'abc123'})
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         self.assertIsInstance(res, simulation.Simulation)
         self.assertEqual(res.id, 'abc')
@@ -203,16 +203,14 @@ class TestSimulationApi(TestCase):
     @patch('air_sdk.air_sdk.util.validate_timestamps')
     def test_create_timestamps(self, mock_validate, mock_raise):
         self.api.create(topology='abc123', expires_at='expired', sleep_at='sleepy')
-        mock_validate.assert_called_with('Simulation created', expires_at='expired',
-                                         sleep_at='sleepy')
+        mock_validate.assert_called_with('Simulation created', expires_at='expired', sleep_at='sleepy')
 
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     @patch('air_sdk.air_sdk.util.validate_timestamps')
     def test_create_datetime(self, mock_validate, mock_raise):
         time = dt.datetime(2030, 12, 12, 22, 5, 3)
         self.api.create(topology='abc123', expires_at=time, sleep_at=time)
-        mock_validate.assert_called_with('Simulation created', expires_at=time,
-                                         sleep_at=time)
+        mock_validate.assert_called_with('Simulation created', expires_at=time, sleep_at=time)
 
     def test_create_required_kwargs(self):
         with self.assertRaises(AttributeError) as err:

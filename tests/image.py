@@ -1,14 +1,15 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 Tests for image.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring
+# pylint: disable=missing-function-docstring,missing-class-docstring
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from ..air_sdk import image, organization
+
 
 class TestImage(TestCase):
     def setUp(self):
@@ -35,8 +36,9 @@ class TestImage(TestCase):
         mock_post = self.mock_api.client.post
         mock_post.return_value.json.return_value = {'id': new_id, 'name': 'new-image'}
         res = self.model.copy(self.org1)
-        mock_post.assert_called_once_with(f'{self.mock_api.url}{self.model.id}/copy/',
-                                          json={'organization': self.org1})
+        mock_post.assert_called_once_with(
+            f'{self.mock_api.url}{self.model.id}/copy/', json={'organization': self.org1}
+        )
         mock_raise.assert_called_once_with(self.mock_api.client.post.return_value, status_code=201)
         self.assertEqual(res.id, new_id)
 
@@ -45,10 +47,12 @@ class TestImage(TestCase):
     def test_upload(self, mock_raise, mock_open):
         self.model.upload('myfile')
         mock_put = self.mock_api.client.put
-        mock_put.assert_called_with(f'{self.mock_api.url}{self.model.id}/upload/',
-                                    data=mock_open.return_value.__enter__.return_value)
+        mock_put.assert_called_with(
+            f'{self.mock_api.url}{self.model.id}/upload/', data=mock_open.return_value.__enter__.return_value
+        )
         mock_open.assert_called_with('myfile', 'rb')
         mock_raise.assert_called_with(mock_put.return_value, status_code=204, data_type=None)
+
 
 class TestImageApi(TestCase):
     def setUp(self):
@@ -64,8 +68,7 @@ class TestImageApi(TestCase):
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/image/abc123/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(f'{self.client.api_url}/image/abc123/', params={'foo': 'bar'})
         mock_raise.assert_called_with(self.client.get.return_value)
         self.assertIsInstance(res, image.Image)
         self.assertEqual(res.test, 'success')
@@ -84,15 +87,25 @@ class TestImageApi(TestCase):
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create(self, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
-        res = self.api.create(name='myimage', organization='acb123', version='3.7.11',
-                              default_username='cumulus', default_password='cumulus!',
-                              cpu_arch='x86')
-        self.client.post.assert_called_with(f'{self.client.api_url}/image/',
-                                            json={'name': 'myimage', 'organization': 'acb123',
-                                                  'version': '3.7.11',
-                                                  'default_username': 'cumulus',
-                                                  'default_password': 'cumulus!',
-                                                  'cpu_arch': 'x86'})
+        res = self.api.create(
+            name='myimage',
+            organization='acb123',
+            version='3.7.11',
+            default_username='cumulus',
+            default_password='cumulus!',
+            cpu_arch='x86',
+        )
+        self.client.post.assert_called_with(
+            f'{self.client.api_url}/image/',
+            json={
+                'name': 'myimage',
+                'organization': 'acb123',
+                'version': '3.7.11',
+                'default_username': 'cumulus',
+                'default_password': 'cumulus!',
+                'cpu_arch': 'x86',
+            },
+        )
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         self.assertIsInstance(res, image.Image)
         self.assertEqual(res.id, 'abc')
@@ -102,14 +115,27 @@ class TestImageApi(TestCase):
     def test_create_upload(self, mock_upload, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
 
-        res = self.api.create(name='myimage', filename='myfile', organization='acb123', version='3.7.11',
-                              default_username='cumulus', default_password='cumulus!', cpu_arch='x86')
-        self.client.post.assert_called_with(f'{self.client.api_url}/image/',
-                                            json={'name': 'myimage', 'filename': 'myfile',
-                                                  'organization': 'acb123', 'version': '3.7.11',
-                                                  'default_username': 'cumulus',
-                                                  'default_password': 'cumulus!',
-                                                  'cpu_arch': 'x86'})
+        res = self.api.create(
+            name='myimage',
+            filename='myfile',
+            organization='acb123',
+            version='3.7.11',
+            default_username='cumulus',
+            default_password='cumulus!',
+            cpu_arch='x86',
+        )
+        self.client.post.assert_called_with(
+            f'{self.client.api_url}/image/',
+            json={
+                'name': 'myimage',
+                'filename': 'myfile',
+                'organization': 'acb123',
+                'version': '3.7.11',
+                'default_username': 'cumulus',
+                'default_password': 'cumulus!',
+                'cpu_arch': 'x86',
+            },
+        )
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         mock_upload.assert_called_with('myfile')
         self.assertIsInstance(res, image.Image)

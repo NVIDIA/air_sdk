@@ -1,14 +1,15 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 Tests for fleet.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring
+# pylint: disable=missing-function-docstring,missing-class-docstring
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from ..air_sdk import fleet, organization
+
 
 class TestFleet(TestCase):
     def setUp(self):
@@ -28,6 +29,7 @@ class TestFleet(TestCase):
         self.model._deleted = True
         self.assertTrue('Deleted Object' in str(self.model))
 
+
 class TestFleetApi(TestCase):
     def setUp(self):
         self.client = MagicMock()
@@ -44,16 +46,19 @@ class TestFleetApi(TestCase):
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/fleet/abc123/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(f'{self.client.api_url}/fleet/abc123/', params={'foo': 'bar'})
         mock_raise.assert_called_with(self.client.get.return_value)
         self.assertIsInstance(res, fleet.Fleet)
         self.assertEqual(res.test, 'success')
 
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_list(self, mock_raise):
-        self.client.get.return_value.json.return_value = {'count': 2, 'next': 'blabla', 'previous': None,
-                                                          'results':[{'id': 'abc'}, {'id': 'xyz'}]}
+        self.client.get.return_value.json.return_value = {
+            'count': 2,
+            'next': 'blabla',
+            'previous': None,
+            'results': [{'id': 'abc'}, {'id': 'xyz'}],
+        }
         res = self.api.list(foo='bar')
         self.client.get.assert_called_with(f'{self.client.api_url}/fleet/', params={'foo': 'bar'})
         mock_raise.assert_called_with(self.client.get.return_value, data_type=dict)
@@ -65,12 +70,18 @@ class TestFleetApi(TestCase):
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create(self, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
-        res = self.api.create(name='test_fleet_2', prefix_length=65,
-                              organization=str(self.org.id), port_range=22)
-        self.client.post.assert_called_with(f'{self.client.api_url}/fleet/',
-                                            json={'name': 'test_fleet_2', 'prefix_length': 65,
-                                                  'organization': str(self.org.id),
-                                                  'port_range': 22})
+        res = self.api.create(
+            name='test_fleet_2', prefix_length=65, organization=str(self.org.id), port_range=22
+        )
+        self.client.post.assert_called_with(
+            f'{self.client.api_url}/fleet/',
+            json={
+                'name': 'test_fleet_2',
+                'prefix_length': 65,
+                'organization': str(self.org.id),
+                'port_range': 22,
+            },
+        )
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         self.assertIsInstance(res, fleet.Fleet)
         self.assertEqual(res.id, 'abc')

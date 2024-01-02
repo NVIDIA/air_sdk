@@ -1,10 +1,10 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 NVIDIA Air API module
 """
-#pylint: disable=too-many-public-methods
+# pylint: disable=too-many-public-methods
 
 from datetime import date, datetime
 from json import JSONDecodeError
@@ -39,21 +39,29 @@ from .token import TokenApi
 from .topology import TopologyApi
 from .worker import WorkerApi
 
-ALLOWED_HOSTS = ['air.nvidia.com', 'staging.air.nvidia.com', 'air.cumulusnetworks.com',
-                 'staging.air.cumulusnetworks.com']
+ALLOWED_HOSTS = [
+    'air.nvidia.com',
+    'staging.air.nvidia.com',
+    'air.cumulusnetworks.com',
+    'staging.air.cumulusnetworks.com',
+]
+
 
 class AirSession(requests.Session):
-    """ Wrapper around requests.Session """
+    """Wrapper around requests.Session"""
+
     def rebuild_auth(self, prepared_request, response):
-        """ Allow credential sharing between nvidia.com and cumulusnetworks.com only """
+        """Allow credential sharing between nvidia.com and cumulusnetworks.com only"""
         if urlparse(prepared_request.url).hostname in ALLOWED_HOSTS:
             return
         super().rebuild_auth(prepared_request, response)
+
 
 class AirApi:
     """
     Main interface for an API client instance
     """
+
     def __init__(self, api_url='https://air.nvidia.com/api/', api_version='v1', **kwargs):
         """
         Create a new API client instance. The caller MUST provide either `username` and `password`
@@ -74,7 +82,7 @@ class AirApi:
         self.username = None
         self.authorize(**kwargs)
 
-    #pylint: disable=missing-function-docstring
+    # pylint: disable=missing-function-docstring
     @property
     def accounts(self):
         return AccountApi(self)
@@ -203,7 +211,7 @@ class AirApi:
     def workers(self):
         return WorkerApi(self)
 
-    #pylint: enable=missing-function-docstring
+    # pylint: enable=missing-function-docstring
 
     def authorize(self, **kwargs):
         """
@@ -229,8 +237,7 @@ class AirApi:
         elif kwargs.get('username', None) and kwargs.get('password', None):
             token = self.get_token(kwargs['username'], kwargs['password'])
         else:
-            raise ValueError('Must include either `bearer_token` or ' + \
-                             '`username` and `password` arguments')
+            raise ValueError('Must include either `bearer_token` or ' + '`username` and `password` arguments')
         self.token = token
         self.client.headers.update({'authorization': 'Bearer ' + token})
         login = self.login.list()
@@ -275,8 +282,7 @@ class AirApi:
         logger.debug(f'request args: {args}')
         logger.debug(f'request kwargs: {kwargs}')
         res = self.client.request(method, url, allow_redirects=False, *args, **kwargs)
-        if (res.status_code == 301
-                and urlparse(res.headers.get('Location')).hostname in ALLOWED_HOSTS):
+        if res.status_code == 301 and urlparse(res.headers.get('Location')).hostname in ALLOWED_HOSTS:
             res = self.client.request(method, res.headers['Location'], *args, **kwargs)
         if getattr(res, 'status_code') == 403:
             raise AirForbiddenError
@@ -287,24 +293,25 @@ class AirApi:
         return res
 
     def get(self, url, *args, **kwargs):
-        """ Wrapper method for GET requests """
+        """Wrapper method for GET requests"""
         return self._request('GET', url, *args, **kwargs)
 
     def post(self, url, *args, **kwargs):
-        """ Wrapper method for POST requests """
+        """Wrapper method for POST requests"""
         return self._request('POST', url, *args, **kwargs)
 
     def put(self, url, *args, **kwargs):
-        """ Wrapper method for PUT requests """
+        """Wrapper method for PUT requests"""
         return self._request('PUT', url, *args, **kwargs)
 
     def patch(self, url, *args, **kwargs):
-        """ Wrapper method for PATCH requests """
+        """Wrapper method for PATCH requests"""
         return self._request('PATCH', url, *args, **kwargs)
 
     def delete(self, url, *args, **kwargs):
-        """ Wrapper method for DELETE requests """
+        """Wrapper method for DELETE requests"""
         return self._request('DELETE', url, *args, **kwargs)
+
 
 def _normalize_api_version(version):
     try:
@@ -314,12 +321,14 @@ def _normalize_api_version(version):
         pass
     return version
 
+
 def _normalize_api_url(url):
     if url[-1] != '/':
         url += '/'
     if not url.endswith('api/'):
         url += 'api/'
     return url
+
 
 def _serialize_dict(raw_dict):
     clone = {}
@@ -335,6 +344,7 @@ def _serialize_dict(raw_dict):
         elif not key.startswith('_'):
             clone[key] = value
     return clone
+
 
 def _serialize_list(raw_list):
     clone = []

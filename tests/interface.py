@@ -1,14 +1,15 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 Tests for interface.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring
+# pylint: disable=missing-function-docstring,missing-class-docstring
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from ..air_sdk import interface
+
 
 class TestInterface(TestCase):
     def setUp(self):
@@ -27,6 +28,7 @@ class TestInterface(TestCase):
         self.model._deleted = True
         self.assertTrue('Deleted Object' in str(self.model))
 
+
 class TestInterfaceApi(TestCase):
     def setUp(self):
         self.client = MagicMock()
@@ -41,8 +43,7 @@ class TestInterfaceApi(TestCase):
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/interface/abc123/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(f'{self.client.api_url}/interface/abc123/', params={'foo': 'bar'})
         mock_raise.assert_called_with(self.client.get.return_value)
         self.assertIsInstance(res, interface.Interface)
         self.assertEqual(res.test, 'success')
@@ -51,8 +52,7 @@ class TestInterfaceApi(TestCase):
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = [{'id': 'abc'}, {'id': 'xyz'}]
         res = self.api.list(foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/interface/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(f'{self.client.api_url}/interface/', params={'foo': 'bar'})
         mock_raise.assert_called_with(self.client.get.return_value, data_type=list)
         self.assertEqual(len(res), 2)
         self.assertIsInstance(res[0], interface.Interface)

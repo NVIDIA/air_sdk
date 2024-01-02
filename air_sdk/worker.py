@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -7,6 +7,7 @@ Worker module
 
 from . import util
 from .air_model import AirModel
+
 
 class Worker(AirModel):
     """
@@ -46,20 +47,22 @@ class Worker(AirModel):
         Arguments:
         available (bool)
         """
-        self.available = available #pylint: disable=attribute-defined-outside-init
+        self.available = available  # pylint: disable=attribute-defined-outside-init
+
 
 class WorkerApi:
-    """ High-level interface for the Worker API """
+    """High-level interface for the Worker API"""
+
     def __init__(self, client):
         self.client = client
         self.url = self.client.api_url + '/worker/'
 
     @util.deprecated('WorkerApi.list()')
-    def get_workers(self, **kwargs): #pylint: disable=missing-function-docstring
+    def get_workers(self, **kwargs):  # pylint: disable=missing-function-docstring
         return self.list(**kwargs)
 
     @util.deprecated('Worker.update()')
-    def update_worker(self, worker_id, **kwargs): #pylint: disable=missing-function-docstring
+    def update_worker(self, worker_id, **kwargs):  # pylint: disable=missing-function-docstring
         worker = self.get(worker_id)
         return worker.update(**kwargs)
 
@@ -91,7 +94,7 @@ class WorkerApi:
         return Worker(self, **res.json())
 
     def list(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         List existing workers
 
@@ -111,14 +114,14 @@ class WorkerApi:
         >>> air.workers.list()
         [<Worker worker01 c51b49b6-94a7-4c93-950c-e7fa4883591>, <Worker worker02 3134711d-015e-49fb-a6ca-68248a8d4aff>]
         ```
-        """ #pylint: enable=line-too-long
+        """  # pylint: enable=line-too-long
         res = self.client.get(f'{self.url}', params=kwargs)
         util.raise_if_invalid_response(res, data_type=list)
         return [Worker(self, **worker) for worker in res.json()]
 
     @util.required_kwargs(['ip_address', 'fleet', 'fqdn', 'contact'])
     def create(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         Create a new worker
 
@@ -149,7 +152,7 @@ class WorkerApi:
         >>> w.registration_token
         '<my token>'
         ```
-        """ #pylint: enable=line-too-long
+        """  # pylint: enable=line-too-long
         res = self.client.post(self.url, json=kwargs)
         util.raise_if_invalid_response(res, status_code=201)
         return Worker(self, **res.json())

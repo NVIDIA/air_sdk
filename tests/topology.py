@@ -1,15 +1,16 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 Tests for topology.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring,unused-argument
+# pylint: disable=missing-function-docstring,missing-class-docstring,unused-argument
 import io
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from ..air_sdk import topology
+
 
 class TestTopology(TestCase):
     def setUp(self):
@@ -29,8 +30,9 @@ class TestTopology(TestCase):
 
     def test_add_permission(self):
         res = self.model.add_permission('me@test.com', foo='bar')
-        self.api.client.permissions.create.assert_called_with(email='me@test.com',
-                                                              topology=self.model.id, foo='bar')
+        self.api.client.permissions.create.assert_called_with(
+            email='me@test.com', topology=self.model.id, foo='bar'
+        )
         self.assertEqual(res, self.api.client.permissions.create.return_value)
 
     def test_repr_deleted(self):
@@ -68,8 +70,7 @@ class TestTopologyApi(TestCase):
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/topology/abc123/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(f'{self.client.api_url}/topology/abc123/', params={'foo': 'bar'})
         mock_raise.assert_called_with(self.client.get.return_value)
         self.assertIsInstance(res, topology.Topology)
         self.assertEqual(res.test, 'success')
@@ -78,8 +79,7 @@ class TestTopologyApi(TestCase):
     def test_list(self, mock_raise):
         self.client.get.return_value.json.return_value = [{'id': 'abc'}, {'id': 'xyz'}]
         res = self.api.list(foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/topology/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(f'{self.client.api_url}/topology/', params={'foo': 'bar'})
         mock_raise.assert_called_with(self.client.get.return_value, data_type=list)
         self.assertEqual(len(res), 2)
         self.assertIsInstance(res[0], topology.Topology)
@@ -90,8 +90,7 @@ class TestTopologyApi(TestCase):
     def test_create_json(self, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         res = self.api.create(json={'foo': 'bar'})
-        self.client.post.assert_called_with(f'{self.client.api_url}/topology/',
-                                            json={'foo': 'bar'})
+        self.client.post.assert_called_with(f'{self.client.api_url}/topology/', json={'foo': 'bar'})
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         self.assertIsInstance(res, topology.Topology)
         self.assertEqual(res.id, 'abc')
@@ -101,8 +100,9 @@ class TestTopologyApi(TestCase):
     def test_create_dot(self, mock_raise, *args):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         res = self.api.create(dot='test')
-        self.client.post.assert_called_with(f'{self.client.api_url}/topology/', data=b'test',
-                                            headers={'Content-type': 'text/vnd.graphviz'})
+        self.client.post.assert_called_with(
+            f'{self.client.api_url}/topology/', data=b'test', headers={'Content-type': 'text/vnd.graphviz'}
+        )
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         self.assertIsInstance(res, topology.Topology)
         self.assertEqual(res.id, 'abc')
@@ -113,8 +113,9 @@ class TestTopologyApi(TestCase):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         mock_file = MagicMock(spec=io.IOBase)
         res = self.api.create(dot=mock_file)
-        self.client.post.assert_called_with(f'{self.client.api_url}/topology/', data=mock_file,
-                                            headers={'Content-type': 'text/vnd.graphviz'})
+        self.client.post.assert_called_with(
+            f'{self.client.api_url}/topology/', data=mock_file, headers={'Content-type': 'text/vnd.graphviz'}
+        )
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         self.assertIsInstance(res, topology.Topology)
         self.assertEqual(res.id, 'abc')
@@ -126,9 +127,11 @@ class TestTopologyApi(TestCase):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         file_path = '/tmp/topo.dot'
         res = self.api.create(dot=file_path)
-        self.client.post.assert_called_with(f'{self.client.api_url}/topology/',
-                                            data=mock_open.return_value.read.return_value,
-                                            headers={'Content-type': 'text/vnd.graphviz'})
+        self.client.post.assert_called_with(
+            f'{self.client.api_url}/topology/',
+            data=mock_open.return_value.read.return_value,
+            headers={'Content-type': 'text/vnd.graphviz'},
+        )
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         self.assertIsInstance(res, topology.Topology)
         self.assertEqual(res.id, 'abc')
@@ -138,4 +141,4 @@ class TestTopologyApi(TestCase):
     def test_create_required_kwargs(self):
         with self.assertRaises(AttributeError) as err:
             self.api.create()
-        self.assertTrue('requires one of the following: (\'json\', \'dot\')' in str(err.exception))
+        self.assertTrue("requires one of the following: ('json', 'dot')" in str(err.exception))

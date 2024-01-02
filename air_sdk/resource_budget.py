@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -7,6 +7,7 @@ ResourceBudget module
 
 from . import util
 from .air_model import AirModel
+
 
 class ResourceBudget(AirModel):
     """
@@ -25,6 +26,7 @@ class ResourceBudget(AirModel):
         kwargs (dict, optional): All optional keyword arguments are applied as key/value
                 pairs in the request's JSON payload
     """
+
     _deletable = False
 
     def __repr__(self):
@@ -32,8 +34,10 @@ class ResourceBudget(AirModel):
             return super().__repr__()
         return f'<ResourceBudget {self.id}>'
 
+
 class ResourceBudgetApi:
-    """ High-level interface for the ResourceBudget API """
+    """High-level interface for the ResourceBudget API"""
+
     def __init__(self, client):
         self.client = client
         self.url = self.client.api_url + '/resource-budget/'
@@ -66,7 +70,7 @@ class ResourceBudgetApi:
         return ResourceBudget(self, **res.json())
 
     def list(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         List existing budgets
 
@@ -86,7 +90,7 @@ class ResourceBudgetApi:
         >>> air.resource_budgets.list()
         [<ResourceBudget c604c262-396a-48a0-a8f6-31708c0cff82>, <ResourceBudget 906675f7-8b8d-4f52-b59d-52847af2f0ef>]
         ```
-        """ #pylint: enable=line-too-long
+        """  # pylint: enable=line-too-long
         res = self.client.get(f'{self.url}', params=kwargs)
         util.raise_if_invalid_response(res, data_type=list)
         return [ResourceBudget(self, **budget) for budget in res.json()]

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -10,6 +10,7 @@ import os
 
 from . import util
 from .air_model import AirModel
+
 
 class Topology(AirModel):
     """
@@ -35,6 +36,7 @@ class Topology(AirModel):
         kwargs (dict, optional): All optional keyword arguments are applied as key/value
                 pairs in the request's JSON payload
     """
+
     _ignored_update_fields = ['links', 'nodes']
 
     def __repr__(self):
@@ -62,22 +64,24 @@ class Topology(AirModel):
         """
         return self._api.client.permissions.create(email=email, topology=self.id, **kwargs)
 
+
 class TopologyApi:
-    """ High-level interface for the Topology API """
+    """High-level interface for the Topology API"""
+
     def __init__(self, client):
         self.client = client
         self.url = self.client.api_url + '/topology/'
 
     @util.deprecated('TopologyApi.list()')
-    def get_topologies(self): #pylint: disable=missing-function-docstring
+    def get_topologies(self):  # pylint: disable=missing-function-docstring
         return self.list()
 
     @util.deprecated('TopologyApi.create()')
-    def create_topology(self, json=None, dot=None): #pylint: disable=missing-function-docstring
+    def create_topology(self, json=None, dot=None):  # pylint: disable=missing-function-docstring
         return self.create(json=json, dot=dot)
 
     @util.deprecated('Topology.update()')
-    def update_topology(self, topology_id, data): #pylint: disable=missing-function-docstring
+    def update_topology(self, topology_id, data):  # pylint: disable=missing-function-docstring
         topology = self.get(topology_id)
         return topology.update(**data)
 
@@ -109,7 +113,7 @@ class TopologyApi:
         return Topology(self, **res.json())
 
     def list(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         List existing topologies
 
@@ -129,14 +133,14 @@ class TopologyApi:
         >>> air.topologies.list()
         [<Topology my_network1 c51b49b6-94a7-4c93-950c-e7fa4883591>, <Topology my_network2 3134711d-015e-49fb-a6ca-68248a8d4aff>]
         ```
-        """ #pylint: enable=line-too-long
+        """  # pylint: enable=line-too-long
         res = self.client.get(f'{self.url}', params=kwargs)
         util.raise_if_invalid_response(res, data_type=list)
         return [Topology(self, **topology) for topology in res.json()]
 
     @util.required_kwargs([('json', 'dot')])
     def create(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         Create a new topology. The caller must provide either `dot` (recommended) or `json`.
 
@@ -172,7 +176,6 @@ class TopologyApi:
                 payload = open(kwargs['dot'], 'r').read()
             else:
                 payload = kwargs['dot'].encode('utf-8')
-            res = self.client.post(self.url, data=payload,
-                                   headers={'Content-type': 'text/vnd.graphviz'})
+            res = self.client.post(self.url, data=payload, headers={'Content-type': 'text/vnd.graphviz'})
         util.raise_if_invalid_response(res, status_code=201)
         return Topology(self, **res.json())

@@ -1,15 +1,16 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 Tests for user_preference.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring,protected-access,unused-argument
+# pylint: disable=missing-function-docstring,missing-class-docstring,protected-access,unused-argument
 import json
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from ..air_sdk import simulation, user_preference
+
 
 class TestUserPreference(TestCase):
     def setUp(self):
@@ -20,8 +21,9 @@ class TestUserPreference(TestCase):
         self.sim_api.url = 'http://testserver/v1/simulation/'
         self.sim = simulation.Simulation(self.sim_api)
         self.sim.id = 'abc123'
-        self.sim_prefs = user_preference.UserPreference(self.sim_api, _model=self.sim,
-                                                        preferences={'foo': 'bar'})
+        self.sim_prefs = user_preference.UserPreference(
+            self.sim_api, _model=self.sim, preferences={'foo': 'bar'}
+        )
 
     def test_init(self):
         self.assertFalse(self.account_prefs._deletable)
@@ -55,8 +57,9 @@ class TestUserPreference(TestCase):
     def test_build_url_version_override(self):
         pref = user_preference.UserPreference(self.sim_api, _model=self.sim, _version_override='2')
 
-        self.assertEqual(pref._build_url(),
-                         f'{self.sim_api.url.replace("v1", "v2")}{self.sim.id}/preferences/')
+        self.assertEqual(
+            pref._build_url(), f'{self.sim_api.url.replace("v1", "v2")}{self.sim.id}/preferences/'
+        )
 
     @patch('air_sdk.air_sdk.user_preference.UserPreference._load')
     def test_refresh(self, mock_load):
@@ -75,6 +78,7 @@ class TestUserPreference(TestCase):
         self.account_prefs.update(test=True)
         mock_refresh.assert_called_once()
         self.assertTrue(self.account_prefs.preferences['test'])
-        self.account_api.client.put.assert_called_once_with(self.account_prefs._url,
-                                                            json=self.account_prefs.__dict__)
+        self.account_api.client.put.assert_called_once_with(
+            self.account_prefs._url, json=self.account_prefs.__dict__
+        )
         mock_raise.assert_called_once_with(self.account_api.client.put.return_value)

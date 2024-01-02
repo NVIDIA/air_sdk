@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -7,6 +7,7 @@ SimulationInterface module
 
 from . import util
 from .air_model import AirModel
+
 
 class SimulationInterface(AirModel):
     """
@@ -25,6 +26,7 @@ class SimulationInterface(AirModel):
         kwargs (dict, optional): All optional keyword arguments are applied as key/value
                 pairs in the request's JSON payload
     """
+
     _deletable = False
 
     def __repr__(self):
@@ -32,14 +34,16 @@ class SimulationInterface(AirModel):
             return super().__repr__()
         return f'<SimulationInterface {self.id}>'
 
+
 class SimulationInterfaceApi:
-    """ High-level interface for the SimulationInterface API """
+    """High-level interface for the SimulationInterface API"""
+
     def __init__(self, client):
         self.client = client
         self.url = self.client.api_url + '/simulation-interface/'
 
     @util.deprecated('SimulationInterfaceApi.list()')
-    def get_simulation_interfaces(self, simulation_id='', original_id=''): #pylint: disable=missing-function-docstring
+    def get_simulation_interfaces(self, simulation_id='', original_id=''):  # pylint: disable=missing-function-docstring
         return self.list(simulation=simulation_id, original=original_id)
 
     def get(self, simulation_interface_id, **kwargs):
@@ -70,7 +74,7 @@ class SimulationInterfaceApi:
         return SimulationInterface(self, **res.json())
 
     def list(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         List existing simulation interfaces
 
@@ -90,11 +94,10 @@ class SimulationInterfaceApi:
         >>> air.simulation_interfaces.list()
         [<SimulationInterface c51b49b6-94a7-4c93-950c-e7fa4883591>, <SimulationInterface 3134711d-015e-49fb-a6ca-68248a8d4aff>]
         ```
-        """ #pylint: enable=line-too-long
+        """  # pylint: enable=line-too-long
         if kwargs.get('interface'):
             kwargs['original'] = kwargs['interface']
             del kwargs['interface']
         res = self.client.get(f'{self.url}', params=kwargs)
         util.raise_if_invalid_response(res, data_type=list)
-        return [SimulationInterface(self, **simulation_interface)
-                for simulation_interface in res.json()]
+        return [SimulationInterface(self, **simulation_interface) for simulation_interface in res.json()]

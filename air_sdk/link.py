@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -7,6 +7,7 @@ Link module
 
 from . import util
 from .air_model import AirModel
+
 
 class Link(AirModel):
     """
@@ -32,13 +33,16 @@ class Link(AirModel):
         kwargs (dict, optional): All optional keyword arguments are applied as key/value
                 pairs in the request's JSON payload
     """
+
     def __repr__(self):
         if self._deleted:
             return super().__repr__()
         return f'<Link {self.id}>'
 
+
 class LinkApi:
-    """ High-level interface for the Link API """
+    """High-level interface for the Link API"""
+
     def __init__(self, client):
         self.client = client
         self.url = self.client.api_url + '/link/'
@@ -97,7 +101,7 @@ class LinkApi:
 
     @util.required_kwargs(['topology', 'interfaces'])
     def create(self, **kwargs):
-        #pylint: disable=line-too-long
+        # pylint: disable=line-too-long
         """
         Create a new link
 
@@ -119,7 +123,7 @@ class LinkApi:
         >>> air.links.create(topology=topology, interfaces=[intf1, 'fd61e3d8-af2f-4735-8b1d-356ee6bf4abe'])
         <Link 01298e0c-4ef1-43ec-9675-93160eb29d9f>
         ```
-        """ #pylint: enable=line-too-long
+        """  # pylint: enable=line-too-long
         res = self.client.post(self.url, json=kwargs)
         util.raise_if_invalid_response(res, status_code=201)
         return Link(self, **res.json())

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
@@ -7,6 +7,7 @@ Login module
 
 from . import util
 from .air_model import AirModel
+
 
 class Login(AirModel):
     """
@@ -18,6 +19,7 @@ class Login(AirModel):
     ### refresh
     Syncs the login info with all values returned by the API
     """
+
     _deletable = False
     _updatable = False
 
@@ -26,8 +28,10 @@ class Login(AirModel):
             return super().__repr__()
         return f'<Login {self.id}>'
 
+
 class LoginApi:
-    """ High-level interface for the Login API """
+    """High-level interface for the Login API"""
+
     def __init__(self, client):
         self.client = client
         self.url = self.client.api_url + '/login/'

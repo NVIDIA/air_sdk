@@ -1,14 +1,15 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 Tests for ssh_key.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring
+# pylint: disable=missing-function-docstring,missing-class-docstring
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from ..air_sdk import ssh_key
+
 
 class TestSSHKey(TestCase):
     def setUp(self):
@@ -53,8 +54,9 @@ class TestSSHKeyApi(TestCase):
     def test_create(self, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         res = self.api.create(public_key='abc123', name='test')
-        self.client.post.assert_called_with(f'{self.client.api_url}/sshkey/',
-                                            json={'public_key': 'abc123', 'name': 'test'})
+        self.client.post.assert_called_with(
+            f'{self.client.api_url}/sshkey/', json={'public_key': 'abc123', 'name': 'test'}
+        )
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         self.assertIsInstance(res, ssh_key.SSHKey)
         self.assertEqual(res.id, 'abc')

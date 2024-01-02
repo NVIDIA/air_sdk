@@ -1,15 +1,16 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 """
 Tests for capacity.py
 """
-#pylint: disable=missing-function-docstring,missing-class-docstring,unused-argument
+# pylint: disable=missing-function-docstring,missing-class-docstring,unused-argument
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from ..air_sdk import capacity
 from ..air_sdk.simulation import Simulation
+
 
 class TestCapacity(TestCase):
     def setUp(self):
@@ -26,6 +27,7 @@ class TestCapacity(TestCase):
     def test_repr_deleted(self):
         self.model._deleted = True
         self.assertTrue('Deleted Object' in str(self.model))
+
 
 class TestCapacityApi(TestCase):
     def setUp(self):
@@ -59,8 +61,7 @@ class TestCapacityApi(TestCase):
     def test_get(self, mock_raise):
         self.client.get.return_value.json.return_value = {'test': 'success'}
         res = self.api.get('abc123', foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/capacity/abc123/',
-                                           params={'foo': 'bar'})
+        self.client.get.assert_called_with(f'{self.client.api_url}/capacity/abc123/', params={'foo': 'bar'})
         mock_raise.assert_called_with(self.client.get.return_value)
         self.assertIsInstance(res, capacity.Capacity)
         self.assertEqual(res.test, 'success')

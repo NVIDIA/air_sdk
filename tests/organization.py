@@ -9,7 +9,8 @@ from copy import deepcopy
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
-from ..air_sdk import organization
+from ..air_sdk import organization, fleet
+
 
 
 class TestOrganization(TestCase):
@@ -91,6 +92,17 @@ class TestOrganization(TestCase):
         mock_for_assert(members[1], _refresh_when_done=False)
         self.assertEqual(mock_remove.mock_calls, mock_for_assert.mock_calls)
         mock_refresh.assert_called_once()
+
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    def test_create_fleet(self, mock_raise):
+        self.api.client.post.return_value.json.return_value = {'id': 'abc'}
+        fleet_name = 'fleet1'
+        fleet_url = fleet.FleetApi(self.model._api.client).url
+        self.model.create_fleet(name=fleet_name)
+        mock_raise.assert_called_with(self.api.client.post.return_value, status_code=201)
+        self.api.client.post.assert_called_once_with(
+            fleet_url, json={'name': fleet_name, 'organization': self.model.id}
+        )
 
 
 class TestOrganizationApi(TestCase):

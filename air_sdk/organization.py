@@ -7,6 +7,8 @@ Organization module
 
 from . import util
 from .air_model import AirModel
+from .fleet import Fleet, FleetApi
+
 
 
 class Organization(AirModel):
@@ -118,6 +120,42 @@ class Organization(AirModel):
         for member in members:
             self.remove_member(member, _refresh_when_done=False)
         self.refresh()
+
+    @util.required_kwargs(['name'])
+    def create_fleet(self, **kwargs):
+        # pylint: disable=line-too-long
+        """
+        Create a new fleet for this organization
+        Arguments:
+            name (str): Name of the fleet
+            prefix (str, optional): Prefix for the fleet's IPv6 addresses
+            prefix_length (int, optional): Length of the IPv6 address prefix
+            gateway_ipv4 (str, optional): IPv4 gateway address for the fleet
+            port_range (str, optional): Range of ports available on the fleet
+            container_ipv4_network (str, optional): IPv4 network address for containers in the fleet
+            container_prefix (int, optional): Prefix length for container IP addresses
+            labels (list, optional): List of labels to assign to the fleet
+            kwargs (dict, optional): All other optional keyword arguments are applied as key/value
+                pairs in the request's JSON payload
+
+        Returns:
+            [`Fleet`](/docs/fleet)
+
+        Raises:
+        [`AirUnexpectedResposne`](/docs/exceptions) - API did not return a 200 OK
+            or valid response JSON
+
+        Example:
+        ```
+        >>> air.organization.create_fleet(name='MyFleet', prefix='fd10:1:1::', prefix_length=48, gateway_ipv4='10.0.0.1', port_range='20000-40000', container_ipv4_network='172.16.0.0', container_prefix=16, labels=['label1', 'label2'])
+        <Fleet MyFleet 3dadd54d-583c-432e-9383-a2b0b1d7f221>
+        ```
+        """  # pylint: enable=line-too-long
+        url = FleetApi(self._api.client).url
+        kwargs['organization'] = self.id
+        res = self._api.client.post(url, json=kwargs)
+        util.raise_if_invalid_response(res, status_code=201)
+        return Fleet(self, **res.json())
 
 
 class OrganizationApi:

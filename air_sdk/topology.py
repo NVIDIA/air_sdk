@@ -10,6 +10,8 @@ import os
 
 from . import util
 from .air_model import AirModel
+from .logger import air_sdk_logger as logger
+
 
 
 class Topology(AirModel):
@@ -170,6 +172,12 @@ class TopologyApi:
         if kwargs.get('json'):
             res = self.client.post(self.url, json=kwargs['json'])
         else:
+            extra_kwargs = [key for key in kwargs if key != 'dot']
+            if extra_kwargs:
+                logger.warning(
+                    f'{extra_kwargs} kwargs are ignored when using using `dot`. '
+                    'You may want to use simulations.create() instead.'
+                )
             if isinstance(kwargs['dot'], io.IOBase):
                 payload = kwargs['dot']
             elif os.path.isfile(kwargs['dot']):

@@ -10,7 +10,6 @@ from .air_model import AirModel
 from .fleet import Fleet, FleetApi
 
 
-
 class Organization(AirModel):
     """
     Manage an Organization

@@ -12,7 +12,6 @@ from unittest.mock import MagicMock, patch
 from ..air_sdk import organization, fleet
 
 
-
 class TestOrganization(TestCase):
     def setUp(self):
         self.api = MagicMock()

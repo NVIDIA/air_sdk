@@ -99,7 +99,10 @@ class TestTopologyApi(TestCase):
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create_dot(self, mock_raise, *args):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
-        res = self.api.create(dot='test')
+
+        with patch('air_sdk.air_sdk.topology.logger.warning') as mock_log:
+            res = self.api.create(dot='test')
+        mock_log.assert_not_called()
         self.client.post.assert_called_with(
             f'{self.client.api_url}/topology/', data=b'test', headers={'Content-type': 'text/vnd.graphviz'}
         )
@@ -137,6 +140,15 @@ class TestTopologyApi(TestCase):
         self.assertEqual(res.id, 'abc')
         mock_isfile.assert_called_once_with(file_path)
         mock_open.assert_called_once_with(file_path, 'r')
+
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    def test_create_dot_extra_kwargs(self, *args):
+        with patch('air_sdk.air_sdk.topology.logger.warning') as mock_log:
+            self.api.create(dot='test', test='foo')
+        mock_log.assert_called_once_with(
+            "['test'] kwargs are ignored when using using `dot`. "
+            'You may want to use simulations.create() instead.'
+        )
 
     def test_create_required_kwargs(self):
         with self.assertRaises(AttributeError) as err:

@@ -6,6 +6,7 @@ Tests for simulation.py
 """
 # pylint: disable=missing-function-docstring,missing-class-docstring,duplicate-code,unused-argument
 import datetime as dt
+import io
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
@@ -190,7 +191,7 @@ class TestSimulationApi(TestCase):
 
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     @patch('air_sdk.air_sdk.util.validate_timestamps')
-    def test_create(self, mock_validate, mock_raise):
+    def test_create_topology(self, mock_validate, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
         res = self.api.create(topology='abc123')
         self.client.post.assert_called_with(f'{self.client.api_url}/simulation/', json={'topology': 'abc123'})
@@ -198,6 +199,48 @@ class TestSimulationApi(TestCase):
         self.assertIsInstance(res, simulation.Simulation)
         self.assertEqual(res.id, 'abc')
         mock_validate.assert_called_with('Simulation created', expires_at=None, sleep_at=None)
+
+    @patch('air_sdk.air_sdk.simulation.os.path.isfile', return_value=False)
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    def test_create_topology_data_str(self, *args):
+        org = 'xyz'
+        dot = 'test'
+        self.client.post.return_value.json.return_value = {'id': 'abc'}
+
+        res = self.api.create(topology_data=dot, organization=org)
+        self.client.post.assert_called_with(
+            f'{self.client.api_url.replace("v1", "v2")}/simulation/',
+            json={'organization': org, 'topology_data': dot},
+        )
+        self.assertIsInstance(res, simulation.Simulation)
+
+    @patch('air_sdk.air_sdk.simulation.os.path.isfile', return_value=False)
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    def test_create_topology_data_fd(self, *args):
+        dot = MagicMock(spec=io.IOBase)
+        dot.read = MagicMock()
+        self.client.post.return_value.json.return_value = {'id': 'abc'}
+
+        res = self.api.create(topology_data=dot)
+        self.client.post.assert_called_with(
+            f'{self.client.api_url.replace("v1", "v2")}/simulation/', json={'topology_data': dot.read()}
+        )
+        self.assertIsInstance(res, simulation.Simulation)
+
+    @patch('air_sdk.air_sdk.simulation.os.path.isfile', return_value=True)
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    def test_create_topology_data_path(self, *args):
+        path = '/tmp/test.dot'
+        dot = 'test'
+        self.client.post.return_value.json.return_value = {'id': 'abc'}
+
+        with patch('builtins.open') as mock_open:
+            mock_open.return_value.__enter__.return_value.read.return_value = dot
+            res = self.api.create(topology_data=path)
+        self.client.post.assert_called_with(
+            f'{self.client.api_url.replace("v1", "v2")}/simulation/', json={'topology_data': dot}
+        )
+        self.assertIsInstance(res, simulation.Simulation)
 
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     @patch('air_sdk.air_sdk.util.validate_timestamps')
@@ -215,4 +258,4 @@ class TestSimulationApi(TestCase):
     def test_create_required_kwargs(self):
         with self.assertRaises(AttributeError) as err:
             self.api.create()
-        self.assertTrue('requires topology' in str(err.exception))
+        self.assertTrue("requires one of the following: ('topology', 'topology_data')" in str(err.exception))

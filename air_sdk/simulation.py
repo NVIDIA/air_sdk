@@ -5,6 +5,9 @@
 Simulation module
 """
 
+import io
+import os
+
 from . import user_preference, util
 from .air_model import AirModel
 
@@ -164,6 +167,18 @@ class SimulationApi:
         self.client = client
         self.url = self.client.api_url + '/simulation/'
 
+    def _create_v1(self, **kwargs):
+        return self.client.post(self.url, json=kwargs)
+
+    def _create_v2(self, **kwargs):
+        topology_data = kwargs['topology_data']
+        if isinstance(kwargs['topology_data'], io.IOBase):
+            topology_data = kwargs['topology_data'].read()
+        elif os.path.isfile(kwargs['topology_data']):
+            with open(kwargs['topology_data'], 'r', encoding='utf-8') as data_file:
+                topology_data = data_file.read()
+        return self.client.post(self.url.replace('v1', 'v2'), json={**kwargs, 'topology_data': topology_data})
+
     @util.deprecated('SimulationApi.list()')
     def get_simulations(self):  # pylint: disable=missing-function-docstring
         return self.list()
@@ -290,13 +305,16 @@ class SimulationApi:
         util.raise_if_invalid_response(res, data_type=list)
         return [Simulation(self, **simulation) for simulation in res.json()]
 
-    @util.required_kwargs(['topology'])
+    @util.required_kwargs([('topology', 'topology_data')])
     def create(self, **kwargs):
         """
-        Create a new simulation
+        Create a new simulation. The caller must provide either `topology` or `topology_data`.
 
         Arguments:
-            topology (str | `Topology`): `Topology` or ID
+            topology (str | `Topology`, optional): `Topology` or ID
+            topology_data (str | fd, optional): Topology in DOT format. This can be passed as a string
+                containing the raw DOT data, a path to the DOT file on your local disk,
+                or as a file descriptor for a local file
             kwargs (dict, optional): All other optional keyword arguments are applied as key/value
                 pairs in the request's JSON payload
 
@@ -311,11 +329,20 @@ class SimulationApi:
         ```
         >>> air.simulations.create(topology=topology, title='my_sim')
         <Simulation my_sim 01298e0c-4ef1-43ec-9675-93160eb29d9f>
+        >>> air.simulations.create(topology_data='/tmp/my_net.dot', organization=my_org)
+        <Simulation my_sim c0a4c018-0b85-4439-979d-9814166aaeac>
+        >>> air.simulations.create(topology_data='graph "my_sim" { "server1" [ function="server" os="generic/ubuntu2204"] }', organization=my_org)
+        <Simulation my_sim b9c0c68e-d4bd-4e9e-8a49-9faf41efaf70>
+        >>> air.simulations.create(topology_data=open('/tmp/my_net.dot', 'r', encoding='utf-8')), organization=my_org)
+        <Simulation my_sim 86162934-baa7-4d9a-a826-5863f92b03ef>
         ```
         """
         util.validate_timestamps(
             'Simulation created', expires_at=kwargs.get('expires_at'), sleep_at=kwargs.get('sleep_at')
         )
-        res = self.client.post(self.url, json=kwargs)
+        if kwargs.get('topology'):
+            res = self._create_v1(**kwargs)
+        else:
+            res = self._create_v2(**kwargs)
         util.raise_if_invalid_response(res, status_code=201)
         return Simulation(self, **res.json())

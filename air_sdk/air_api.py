@@ -77,7 +77,9 @@ class AirApi:
         """
         self.client = AirSession()
         self.client.headers.update({'content-type': 'application/json'})
+
         self.api_url = _normalize_api_url(api_url) + _normalize_api_version(api_version)
+        self._kwargs = kwargs
         self.token = None
         self.username = None
         self.authorize(**kwargs)
@@ -260,7 +262,7 @@ class AirApi:
         """
         route = '/login/'
         data = {'username': username, 'password': password}
-        res = self.post(self.api_url + route, json=data)
+        res = self.post(self.api_url + route, json=data, attempt_reauth=False)
         try:
             if res.json().get('token', None):
                 return res.json()['token']
@@ -271,6 +273,7 @@ class AirApi:
             raise AirAuthorizationError('API did not return a valid JSON response')
 
     def _request(self, method, url, *args, **kwargs):
+        attempt_reauth = kwargs.pop('attempt_reauth', True)
         if kwargs.get('json'):
             logger.debug(f'unserialized json: {kwargs["json"]}')
             if isinstance(kwargs['json'], list):
@@ -285,6 +288,10 @@ class AirApi:
         if res.status_code == 301 and urlparse(res.headers.get('Location')).hostname in ALLOWED_HOSTS:
             res = self.client.request(method, res.headers['Location'], *args, **kwargs)
         if getattr(res, 'status_code') == 403:
+            if attempt_reauth and self._kwargs.get('username') and self._kwargs.get('password'):
+                logger.debug('Request failed with 403, attempting reauth')
+                self.authorize(**self._kwargs)
+                return self._request(method, url, *args, **{'attempt_reauth': False, **kwargs})
             raise AirForbiddenError
         try:
             res.raise_for_status()

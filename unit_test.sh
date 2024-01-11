@@ -3,5 +3,5 @@
 # SPDX-License-Identifier: MIT
 
 python3 -m coverage run --omit=.tests/*,*/__init__.py --source='./air_sdk' -m pytest -s tests/*
-coverage report
+coverage report -m
 coverage html

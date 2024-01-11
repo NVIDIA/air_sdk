@@ -13,7 +13,6 @@ from .air_model import AirModel
 from .logger import air_sdk_logger as logger
 
 
-
 class Topology(AirModel):
     """
     Manage a Topology

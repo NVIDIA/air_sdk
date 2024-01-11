@@ -212,7 +212,9 @@ class TestAirApi(TestCase):
         mock_post.return_value.json.return_value = {'token': 'abc123'}
         res = self.api.get_token('foo', 'bar')
         self.assertEqual(res, 'abc123')
-        mock_post.assert_called_with('http://test/api/v1/login/', json={'username': 'foo', 'password': 'bar'})
+        mock_post.assert_called_with(
+            'http://test/api/v1/login/', attempt_reauth=False, json={'username': 'foo', 'password': 'bar'}
+        )
 
     @patch('air_sdk.air_sdk.air_api.AirApi.post')
     def test_get_token_no_token(self, mock_post):
@@ -235,10 +237,13 @@ class TestAirApi(TestCase):
         )
         self.assertEqual(res, self.api.client.request.return_value)
 
-    def test_request_403(self):
+    @patch('air_sdk.air_sdk.air_api.AirApi.authorize')
+    def test_request_403(self, mock_authorize):
         self.api.client.request.return_value.status_code = 403
+
         with self.assertRaises(AirForbiddenError):
             self.api._request('GET', 'http://test/', 'test', foo='bar')
+        mock_authorize.assert_not_called()
 
     def test_request_raises(self):
         mock_res = MagicMock()
@@ -296,6 +301,22 @@ class TestAirApi(TestCase):
         self.api.client.request.return_value.headers = {'Location': 'http://air.evil.com/'}
         self.api._request('GET', 'http://test/', json={'foo': 'bar'})
         self.assertEqual(self.api.client.request.call_count, 2)
+
+    @patch('air_sdk.air_sdk.air_api.AirApi.authorize')
+    def test_request_attempt_reauth(self, mock_authorize):
+        method = 'GET'
+        url = 'http://test/'
+        args = ['testing']
+        kwargs = {'foo': 'bar'}
+        self.api._kwargs = {'username': 'test', 'password': 'abc123'}
+        self.api.client.request.return_value.status_code = 403
+
+        original_request = self.api._request
+        with patch('air_sdk.air_sdk.air_api.AirApi._request') as mock_request:
+            ret = original_request(method, url, *args, **kwargs)
+        self.assertEqual(ret, mock_request.return_value)
+        mock_authorize.assert_called_once_with(**self.api._kwargs)
+        mock_request.assert_called_once_with(method, url, *args, **{'attempt_reauth': False, **kwargs})
 
     def test_get(self):
         self.api._request = MagicMock()

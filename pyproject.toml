@@ -16,7 +16,6 @@ requests = "2.31.0"
 # Optional extras for development
 coverage = { version = "7.2.7", optional = true}
 pre-commit = {version = "2.21", optional = true}
-pydoc-markdown = { version = "4.8.2", optional = true}
 pytest = { version = "7.4.0", optional = true}
 requests-mock = { version = "1.11.0", optional = true}
 ruff = { version = "0.1.7", optional = true}
@@ -25,7 +24,6 @@ ruff = { version = "0.1.7", optional = true}
 dev = [
     "coverage",
     "pre-commit",
-    "pydoc-markdown",
     "pytest",
     "requests_mock",
     "ruff",

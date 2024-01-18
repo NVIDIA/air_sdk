@@ -125,7 +125,7 @@ This section assumes that you've already accomplished the following:
 2. Have a `.git` configuration file in your local environment (this is where pre-commit will "hook" into git commits).
 3. Created a python virtual environment.
 4. Activated your virtual environment.
-5. Installed all dependencies with `python3 -m pip install -r requirements.txt`
+5. Installed all dependencies with `poetry install --all-extras`
 
 If you don't know whether you have accomplished all of the above, try running `pre-commit --version` or `ruff --version` in your terminal at the source directory of the codebase.
 

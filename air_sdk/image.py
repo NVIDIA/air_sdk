@@ -7,6 +7,8 @@ Image module
 
 from . import util
 from .air_model import AirModel
+from .logger import air_sdk_logger as logger
+
 
 
 class Image(AirModel):
@@ -164,13 +166,24 @@ class ImageApi:
 
         Example:
         ```
-        >>> air.images.create(name='my_image', filename='/tmp/my_image.qcow2', agent_enabled=False)
+        >>> image = air.images.create(name='my_image', filename='/tmp/my_image.qcow2', agent_enabled=False)
+        >>> image
         <Image my_image 01298e0c-4ef1-43ec-9675-93160eb29d9f>
+        >>> image.upload_status
+        'COMPLETE'
+        >>> alt_img = air.images.create(name='my_alt_img', filename='/tmp/alt_img.qcow2', agent_enabled=False)
+        >>> alt_img.upload_status
+        'FAILED'
         ```
         """
         res = self.client.post(self.url, json=kwargs)
         util.raise_if_invalid_response(res, status_code=201)
         image = Image(self, **res.json())
-        if kwargs.get('filename'):
-            image.upload(kwargs['filename'])
+        filename = kwargs.get('filename')
+        if filename:
+            try:
+                image.upload(filename)
+            except util.AirUnexpectedResponse as err:
+                logger.error(err.message)
+            image.refresh()
         return image

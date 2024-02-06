@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.1] - 2024-02-01
+### Fixed
+- `AirApi.images.create()` now logs an error and still returns the `Image` object when an upload attempt fails
+
 ## [2.8.0] - 2024-01-08
 ### Added
 - For sessions authenticated using a username and password, the `AirApi` client instance will now automatically try to refresh its authorization token after it expires

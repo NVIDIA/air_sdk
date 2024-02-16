@@ -10,7 +10,6 @@ from .air_model import AirModel
 from .logger import air_sdk_logger as logger
 
 
-
 class Image(AirModel):
     """
     Manage an Image

@@ -13,7 +13,6 @@ from ..air_sdk.image import Image, ImageApi
 from ..air_sdk.organization import Organization
 
 
-
 class TestImage(TestCase):
     def setUp(self):
         self.mock_api = MagicMock()
@@ -90,13 +89,8 @@ class TestImageApi(TestCase):
     def test_get(self, mock_raise):
         image_id = str(uuid.uuid4())
         self.client.get.return_value.json.return_value = {'test': 'success'}
-<<<<<<< HEAD
-        res = self.api.get('abc123', foo='bar')
-        self.client.get.assert_called_with(f'{self.client.api_url}/image/abc123/', params={'foo': 'bar'})
-=======
         res = self.api.get(image_id, foo='bar')
         self.client.get.assert_called_with(f'{self.image_post_url}{image_id}/', params={'foo': 'bar'})
->>>>>>> origin/main
         mock_raise.assert_called_with(self.client.get.return_value)
         self.assertIsInstance(res, Image)
         self.assertEqual(res.test, 'success')
@@ -116,66 +110,17 @@ class TestImageApi(TestCase):
 
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     def test_create(self, mock_raise):
-<<<<<<< HEAD
-        self.client.post.return_value.json.return_value = {'id': 'abc'}
-        res = self.api.create(
-            name='myimage',
-            organization='acb123',
-            version='3.7.11',
-            default_username='cumulus',
-            default_password='cumulus!',
-            cpu_arch='x86',
-        )
-        self.client.post.assert_called_with(
-            f'{self.client.api_url}/image/',
-            json={
-                'name': 'myimage',
-                'organization': 'acb123',
-                'version': '3.7.11',
-                'default_username': 'cumulus',
-                'default_password': 'cumulus!',
-                'cpu_arch': 'x86',
-            },
-        )
-=======
         image_id = str(uuid.uuid4())
         self.client.post.return_value.json.return_value = {'id': image_id}
         payload = self.get_test_image_create_info()
         image = self.api.create(**payload)
         self.client.post.assert_called_with(self.image_post_url, json=payload)
->>>>>>> origin/main
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         self.assertIsInstance(image, Image)
         self.assertEqual(image.id, image_id)
 
     @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
     @patch('air_sdk.air_sdk.image.Image.upload')
-<<<<<<< HEAD
-    def test_create_upload(self, mock_upload, mock_raise):
-        self.client.post.return_value.json.return_value = {'id': 'abc'}
-
-        res = self.api.create(
-            name='myimage',
-            filename='myfile',
-            organization='acb123',
-            version='3.7.11',
-            default_username='cumulus',
-            default_password='cumulus!',
-            cpu_arch='x86',
-        )
-        self.client.post.assert_called_with(
-            f'{self.client.api_url}/image/',
-            json={
-                'name': 'myimage',
-                'filename': 'myfile',
-                'organization': 'acb123',
-                'version': '3.7.11',
-                'default_username': 'cumulus',
-                'default_password': 'cumulus!',
-                'cpu_arch': 'x86',
-            },
-        )
-=======
     @patch('air_sdk.air_sdk.image.Image.refresh')
     def test_create_upload(self, mock_refresh, mock_upload, mock_raise):
         image_id = str(uuid.uuid4())
@@ -183,7 +128,6 @@ class TestImageApi(TestCase):
         payload = self.get_test_image_create_info(filename='myfile')
         image = self.api.create(**payload)
         self.client.post.assert_called_with(self.image_post_url, json=payload)
->>>>>>> origin/main
         mock_raise.assert_called_with(self.client.post.return_value, status_code=201)
         mock_upload.assert_called_with(payload['filename'])
         mock_refresh.assert_called_with()

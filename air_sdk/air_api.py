@@ -50,11 +50,19 @@ ALLOWED_HOSTS = [
 class AirSession(requests.Session):
     """Wrapper around requests.Session"""
 
+    default_connect_timeout = 16
+    default_read_timeout = 61
+
     def rebuild_auth(self, prepared_request, response):
         """Allow credential sharing between nvidia.com and cumulusnetworks.com only"""
         if urlparse(prepared_request.url).hostname in ALLOWED_HOSTS:
             return
         super().rebuild_auth(prepared_request, response)
+
+    def request(self, method, url, **kwargs):
+        """Override request method to pass the timeout"""
+        kwargs.setdefault('timeout', (self.default_connect_timeout, self.default_read_timeout))
+        return super().request(method, url, **kwargs)
 
 
 class AirApi:
@@ -288,11 +296,15 @@ class AirApi:
         if res.status_code == 301 and urlparse(res.headers.get('Location')).hostname in ALLOWED_HOSTS:
             res = self.client.request(method, res.headers['Location'], *args, **kwargs)
         if getattr(res, 'status_code') == 403:
+            missing_creds_err_msg = '{"detail":"Authentication credentials were not provided."}'
             if attempt_reauth and self._kwargs.get('username') and self._kwargs.get('password'):
                 logger.debug('Request failed with 403, attempting reauth')
                 self.authorize(**self._kwargs)
                 return self._request(method, url, *args, **{'attempt_reauth': False, **kwargs})
-            raise AirForbiddenError
+            if res.text != missing_creds_err_msg:
+                raise AirForbiddenError(res.text)
+            else:
+                raise AirForbiddenError
         try:
             res.raise_for_status()
         except requests.exceptions.HTTPError as err:

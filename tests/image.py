@@ -55,6 +55,22 @@ class TestImage(TestCase):
         mock_open.assert_called_with('myfile', 'rb')
         mock_raise.assert_called_with(mock_put.return_value, status_code=204, data_type=None)
 
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    def test_publish(self, mock_raise):
+        self.model.publish(contact='contact@nvidia.com')
+        mock_put = self.mock_api.client.put
+        mock_put.assert_called_with(
+            f'{self.mock_api.url}{self.model.id}/publish/', json={'contact': 'contact@nvidia.com'}
+        )
+        mock_raise.assert_called_with(mock_put.return_value, status_code=204, data_type=None)
+
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    def test_unpublish(self, mock_raise):
+        self.model.unpublish()
+        mock_delete = self.mock_api.client.delete
+        mock_delete.assert_called_with(f'{self.mock_api.url}{self.model.id}/publish/')
+        mock_raise.assert_called_with(mock_delete.return_value, status_code=204, data_type=None)
+
 
 class TestImageApi(TestCase):
     def setUp(self):

@@ -71,6 +71,16 @@ class TestAirSession(TestCase):
         self.session.rebuild_auth(mock_req, mock_res)
         mock_rebuild.assert_called_with(mock_req, mock_res)
 
+    @patch('air_sdk.air_sdk.air_api.requests.Session.request', side_effect=requests.exceptions.ReadTimeout)
+    def test_rebuild_request_timeout(self, mock_requests):
+        with self.assertRaises(requests.exceptions.ReadTimeout):
+            self.session.request('GET', 'http://test/')
+        mock_requests.assert_called_once_with(
+            'GET',
+            'http://test/',
+            timeout=(self.session.default_connect_timeout, self.session.default_read_timeout),
+        )
+
 
 class TestAirApi(TestCase):
     @patch('air_sdk.air_sdk.air_api.AirSession')
@@ -243,6 +253,16 @@ class TestAirApi(TestCase):
 
         with self.assertRaises(AirForbiddenError):
             self.api._request('GET', 'http://test/', 'test', foo='bar')
+        mock_authorize.assert_not_called()
+
+    @patch('air_sdk.air_sdk.air_api.AirApi.authorize')
+    def test_request_403_customized_err_from_backend(self, mock_authorize):
+        self.api.client.request.return_value.status_code = 403
+        msg = '{"detail":"customized error message"}'
+        self.api.client.request.return_value.text = msg
+        with self.assertRaises(AirForbiddenError) as err:
+            self.api._request('GET', 'http://test/', 'test', foo='bar')
+        self.assertEqual(str(err.exception), msg)
         mock_authorize.assert_not_called()
 
     def test_request_raises(self):

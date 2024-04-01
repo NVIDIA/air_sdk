@@ -172,15 +172,12 @@ class TestAirModel(TestCase):
         self.model._api.client.patch.assert_called_with(f'{self.api.url}abc123/', json={'foo': 'bar'})
         mock_raise.assert_called_with(self.model._api.client.patch.return_value)
 
-    @patch('air_sdk.air_sdk.air_model.AirModel.refresh')
-    def test_update(self, mock_refresh, mock_raise):
-        self.model.update(test='new')
-        mock_refresh.assert_called()
-        self.model._api.client.put.assert_called_with(
-            f'{self.model._api.url}{self.model.id}/', json=self.model.__dict__
+    def test_update(self, mock_raise):
+        self.model.update(foo='new')
+        self.model._api.client.patch.assert_called_with(
+            f'{self.model._api.url}{self.model.id}/', json={'foo': 'new'}
         )
-        mock_raise.assert_called_with(self.model._api.client.put.return_value)
-        self.assertEqual(self.model.test, 'new')
+        mock_raise.assert_called_with(self.model._api.client.patch.return_value)
 
     def test_update_not_updatable(self, mock_raise):
         self.model._updatable = False
@@ -191,12 +188,11 @@ class TestAirModel(TestCase):
     def test_update_ignored_fields(self, mock_raise):
         self.model.ignore_me = True
         self.model._ignored_update_fields = ['ignore_me']
-        self.model.update(test='new')
-        payload = self.model.__dict__
-        del payload['ignore_me']
-        self.model._api.client.put.assert_called_with(f'{self.model._api.url}{self.model.id}/', json=payload)
-        mock_raise.assert_called_with(self.model._api.client.put.return_value)
-        self.assertEqual(self.model.test, 'new')
+        self.model.update(foo='new', ignore_me=False)
+        self.model._api.client.patch.assert_called_with(
+            f'{self.model._api.url}{self.model.id}/', json={'foo': 'new'}
+        )
+        mock_raise.assert_called_with(self.model._api.client.patch.return_value)
 
     def test_delete(self, mock_raise):
         self.model.delete()

@@ -123,17 +123,15 @@ class AirModel:
         if not self._updatable:
             raise NotImplementedError(f'{self.__class__.__name__} does not support updates')
         url = f'{self._api.url}{self.id}/'
-        self.refresh()
-        self.__dict__.update(kwargs)
-        payload = self.__dict__
         ignored_fields = getattr(self, '_ignored_update_fields', None)
+        args = kwargs
         if ignored_fields:
             allowed_payload = {}
-            for key, value in payload.items():
+            for key, value in kwargs.items():
                 if key not in ignored_fields:
                     allowed_payload[key] = value
-            payload = allowed_payload
-        res = self._api.client.put(url, json=payload)
+            args = allowed_payload
+        res = self._api.client.patch(url, json=args)
         util.raise_if_invalid_response(res)
 
     def delete(self, **kwargs):

@@ -61,7 +61,9 @@ class AirSession(requests.Session):
 
     def request(self, method, url, **kwargs):
         """Override request method to pass the timeout"""
-        kwargs.setdefault('timeout', (self.default_connect_timeout, self.default_read_timeout))
+        connect_timeout = kwargs.pop('default_connect_timeout', self.default_connect_timeout)
+        read_timeout = kwargs.pop('default_read_timeout', self.default_read_timeout)
+        kwargs.setdefault('timeout', (connect_timeout, read_timeout))
         return super().request(method, url, **kwargs)
 
 

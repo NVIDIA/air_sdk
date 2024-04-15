@@ -73,7 +73,42 @@ class Image(AirModel):
         """
         url = f'{self._api.url}{self.id}/upload/'
         with open(filename, 'rb') as image_file:
-            res = self._api.client.put(url, data=image_file)
+            res = self._api.client.put(url, default_read_timeout=300, data=image_file)
+        util.raise_if_invalid_response(res, status_code=204, data_type=None)
+
+    @util.required_kwargs(['contact'])
+    def publish(self, contact: str):
+        """
+        Publish the image for public use
+
+        Arguments:
+            contact (str): The email address for the contact person associated with this image.
+
+        Raises:
+        [`AirUnexpectedResposne`](/docs/exceptions) - Publish failed
+        Example:
+        ```
+        >>> image.publish(contact='contact@nvidia.com')
+        ```
+        """
+        url = f'{self._api.url}{self.id}/publish/'
+        res = self._api.client.put(url, json={'contact': contact})
+        util.raise_if_invalid_response(res, status_code=204, data_type=None)
+
+    def unpublish(self):
+        """
+        Unpublish the image from public use
+
+        Raises:
+        [`AirUnexpectedResposne`](/docs/exceptions) - Unpublish failed
+
+        Example:
+        ```
+        >>> image.unpublish()
+        ```
+        """
+        url = f'{self._api.url}{self.id}/publish/'
+        res = self._api.client.delete(url)
         util.raise_if_invalid_response(res, status_code=204, data_type=None)
 
     @util.required_kwargs(['contact'])

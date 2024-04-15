@@ -50,7 +50,9 @@ class TestImage(TestCase):
         self.model.upload('myfile')
         mock_put = self.mock_api.client.put
         mock_put.assert_called_with(
-            f'{self.mock_api.url}{self.model.id}/upload/', data=mock_open.return_value.__enter__.return_value
+            f'{self.mock_api.url}{self.model.id}/upload/',
+            default_read_timeout=300,
+            data=mock_open.return_value.__enter__.return_value,
         )
         mock_open.assert_called_with('myfile', 'rb')
         mock_raise.assert_called_with(mock_put.return_value, status_code=204, data_type=None)

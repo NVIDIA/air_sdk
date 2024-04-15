@@ -73,12 +73,14 @@ class TestAirSession(TestCase):
 
     @patch('air_sdk.air_sdk.air_api.requests.Session.request', side_effect=requests.exceptions.ReadTimeout)
     def test_rebuild_request_timeout(self, mock_requests):
+        default_connect_timeout = 16
+        default_read_timeout = 61
         with self.assertRaises(requests.exceptions.ReadTimeout):
             self.session.request('GET', 'http://test/')
         mock_requests.assert_called_once_with(
             'GET',
             'http://test/',
-            timeout=(self.session.default_connect_timeout, self.session.default_read_timeout),
+            timeout=(default_connect_timeout, default_read_timeout),
         )
 
 

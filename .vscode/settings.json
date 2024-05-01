@@ -2,8 +2,14 @@
     "[python]": {
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
-        "source.fixAll": true
+            "source.fixAll": "explicit"
         },
         "editor.defaultFormatter": "charliermarsh.ruff"
-    }
+    },
+    "ruff.lint.args": ["--config=.ruff.toml"],
+    "ruff.format.args": [
+        "--config=.ruff.toml"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
 }

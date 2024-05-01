@@ -4,11 +4,39 @@
 """
 Base classes for AIR object models
 """
-from datetime import date, datetime
+
+from __future__ import annotations
+
 import json
+import re
+import sys
+from abc import ABC
+from datetime import date, datetime
+from http import HTTPStatus
+from typing import TYPE_CHECKING, Dict, Generic, List, Optional, Type, TypeVar, Union
+from urllib.parse import urlparse
+
+# ensure 3.7 compatibility
+if sys.version_info < (3, 8):  # pragma: no cover
+
+    def get_args(generic_alias):
+        return generic_alias.__args__
+else:  # pragma: no cover
+    from typing import get_args
+
 
 from . import util
 from .exceptions import AirObjectDeleted
+
+# `AirApi` exposes resource APIs via its properties
+# this means that we can not import `AirApi` for type hinting purposes as this will cause a circular import
+# therefore, we only import `AirApi` during type checking
+if TYPE_CHECKING:  # pragma: no cover
+    from typing import Literal
+
+    from .air_api import AirApi
+
+TAirModel = TypeVar('TAirModel', bound='AirModel')
 
 
 class AirModel:
@@ -21,7 +49,11 @@ class AirModel:
         'connection': 'links',
         'demo': 'demos',
         'interface': 'simulation_interfaces',
-        'interfaces': {'Node': 'interfaces', 'SimulationNode': 'simulation_interfaces', 'Link': 'interfaces'},
+        'interfaces': {
+            'Node': 'interfaces',
+            'SimulationNode': 'simulation_interfaces',
+            'Link': 'interfaces',
+        },
         'job': 'jobs',
         'last_worker': 'worker',
         'node': {
@@ -31,7 +63,10 @@ class AirModel:
             'TopologyInstruction': 'nodes',
         },
         'nodes': 'simulation_nodes',
-        'original': {'SimulationInterface': 'interfaces', 'SimulationNode': 'nodes'},
+        'original': {
+            'SimulationInterface': 'interfaces',
+            'SimulationNode': 'nodes',
+        },
         'organization': 'organizations',
         'os': 'images',
         'preferred_worker': 'workers',
@@ -40,9 +75,10 @@ class AirModel:
         'topology': 'topologies',
         'worker': 'workers',
         'fleet': 'fleets',
+        'userconfig': 'userconfigs',
     }
 
-    def __init__(self, api, **kwargs):
+    def __init__(self, api: AirModelAPI, **kwargs):
         self._deleted = False
         super().__setattr__('_updatable', getattr(self, '_updatable', True))
         super().__setattr__('_deletable', getattr(self, '_deletable', True))
@@ -161,6 +197,8 @@ class AirModel:
                 value = value.isoformat()
             if key.startswith('_'):
                 continue
+            if callable(value):
+                continue
             if isinstance(value, (AirModel, LazyLoaded)):
                 payload[key] = value.id
             elif isinstance(value, LazyLoadedList):
@@ -216,3 +254,124 @@ def _get_item_id(item):
         return item.split('/')[6]
     except (AttributeError, IndexError):
         return item
+
+
+class AirModelAPI(ABC, Generic[TAirModel]):
+    """
+    Generic class for representing Air resource APIs. Implements functionalities which are common across all resources.
+
+    Usage example:
+    ```
+    class UserConfigAPI(AirModelAPI[UserConfig]):
+        \"\"\"High-level interface for the UserConfig API.\"\"\"
+
+        API_VERSION = 2
+        API_PATH = 'userconfigs'
+    ```
+    """
+
+    API_VERSION: int = 1
+    API_PATH: Optional[str] = None
+
+    def __init__(self, client: AirApi):
+        if not self.API_PATH:
+            raise AttributeError('Model API path `API_PATH` is not properly defined')
+
+        self.client = client
+        parsed_url = urlparse(self.client.api_url, allow_fragments=False)
+        parsed_url = parsed_url._replace(
+            path=re.sub(
+                pattern=r'/v[1-2](/|$)?', repl=f'/v{self.API_VERSION}\\1', string=parsed_url.path, count=1
+            )
+        )
+        self.parsed_url = util.url_path_join(parsed_url, self.API_PATH, trailing_slash=False)
+        self.url = util.url_path_join(self.parsed_url, trailing_slash=True).geturl()
+
+    @property
+    def model(self) -> Type[TAirModel]:
+        """Returns the respective model for this API."""
+
+        return get_args(self.__orig_bases__[0])[0]
+
+    def get(self, id: str, **kwargs) -> TAirModel:
+        """
+        Get an existing instance of a resource by ID.
+
+        Arguments:
+            id (str): Instance ID
+            kwargs (dict, optional): All other optional keyword arguments are applied as query
+                parameters/filters
+
+        Raises:
+        `AirUnexpectedResponse` - API did not return a 200 OK
+            or valid response JSON
+
+        Example:
+        ```
+        >>> air.organizations.get('3dadd54d-583c-432e-9383-a2b0b1d7f551')
+        <Organization NVIDIA 3dadd54d-583c-432e-9383-a2b0b1d7f551>
+        ```
+        """
+
+        url = util.url_path_join(self.parsed_url, id, trailing_slash=True).geturl()
+        response = self.client.get(url, params=kwargs)
+        util.raise_if_invalid_response(response)
+
+        return self.model(self, **response.json())
+
+    def list(self, **kwargs) -> List[TAirModel]:
+        """
+        List existing instances of a resource.
+
+        Arguments:
+            kwargs (dict, optional): All other optional keyword arguments are applied as query
+                parameters/filters
+
+        Raises:
+        `AirUnexpectedResponse` - API did not return a 200 OK
+            or valid response JSON
+
+        Example:
+        ```
+        >>> air.organizations.list()
+        [<Organization NVIDIA c51b49b6-94a7-4c93-950c-e7fa4883591>, <Organization Customer 3134711d-015e-49fb-a6ca-68248a8d4aff>]
+        ```
+        """
+
+        url = util.url_path_join(self.parsed_url, trailing_slash=True).geturl()
+        response = self.client.get(url, params=kwargs)
+        util.raise_if_invalid_response(response, data_type=(list, dict))
+
+        # response can either be a list of instances or a paginated response containing the first page of instances
+        # TODO iterate pages
+        parsed_response: Union[List[Dict], Dict[Literal['results'], List[Dict]]] = response.json()
+        if isinstance(parsed_response, list):
+            models_data = parsed_response
+        else:
+            models_data = parsed_response['results']
+
+        return [self.model(self, **model_data) for model_data in models_data]
+
+    def create(self, **kwargs) -> TAirModel:
+        """
+        Create a new instance of a resource.
+
+        Arguments:
+            kwargs (dict, optional): All other optional keyword arguments are applied as key/value
+                pairs in the request's JSON payload
+
+        Raises:
+        `AirUnexpectedResponse` - API did not return a 200 OK
+            or valid response JSON
+
+        Example:
+        ```
+        >>> air.organizations.create(name='NVIDIA', members=[{'username': 'user1@nvidia.com', 'roles': ['Organization Admin']}, {'username': 'user2@nvidia.com'}])
+        <Organization NVIDIA 01298e0c-4ef1-43ec-9675-93160eb29d9f>
+        """
+
+        url = util.url_path_join(self.parsed_url, trailing_slash=True).geturl()
+        response = self.client.post(url, json=kwargs)
+        util.raise_if_invalid_response(response, status_code=HTTPStatus.CREATED)
+
+        return self.model(self, **response.json())

@@ -31,12 +31,13 @@ from .organization import OrganizationApi
 from .permission import PermissionApi
 from .resource_budget import ResourceBudgetApi
 from .service import ServiceApi
-from .ssh_key import SSHKeyApi
 from .simulation import SimulationApi
 from .simulation_interface import SimulationInterfaceApi
 from .simulation_node import SimulationNodeApi
+from .ssh_key import SSHKeyApi
 from .token import TokenApi
 from .topology import TopologyApi
+from .userconfig import UserConfigAPI
 from .worker import WorkerApi
 
 ALLOWED_HOSTS = [
@@ -222,6 +223,10 @@ class AirApi:
     @property
     def workers(self):
         return WorkerApi(self)
+
+    @property
+    def user_configs(self):
+        return UserConfigAPI(self)
 
     # pylint: enable=missing-function-docstring
 

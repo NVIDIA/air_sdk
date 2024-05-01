@@ -5,8 +5,30 @@
 SimulationNode module
 """
 
+import json
+import sys
+from functools import wraps
+from typing import Callable, Dict, Optional, TypeVar
+
 from . import util
-from .air_model import AirModel
+from .air_model import AirModel, AirModelAPI
+from .userconfig import UserConfig
+
+# ensure 3.7 compatibility
+if sys.version_info < (3, 8):  # pragma: no cover
+    CloudInitAssignment = Dict[str, Optional[str]]
+    CloudInitAssignmentResponse = Dict[str, Optional[str]]
+else:  # pragma: no cover
+    from typing import Literal, Union
+
+    CloudInitAssignmentFields = Literal['user_data', 'meta_data']
+    CloudInitAssignmentResponseFields = Union[
+        CloudInitAssignmentFields, Literal['simulation_node', 'user_data_name', 'meta_data_name']
+    ]
+
+    CloudInitAssignment = Dict[CloudInitAssignmentFields, Optional[str]]
+    CloudInitAssignmentResponse = Dict[CloudInitAssignmentResponseFields, Optional[str]]
+
 
 
 class SimulationNode(AirModel):
@@ -28,6 +50,28 @@ class SimulationNode(AirModel):
     """
 
     _deletable = False
+
+    def __init__(self, api, **kwargs):
+        super().__init__(api, **kwargs)
+
+        # inject v2 functionalities for ease of use
+        self_v2_api = _SimulationNodeAPI(self._api.client)
+        self_v2 = self_v2_api.model(self_v2_api)
+
+        TMethod = TypeVar('TMethod', bound='Callable')
+
+        def _with_updated_v2(method: TMethod) -> TMethod:
+            """Updates mirrored v2 SimulatedNode with v1 data."""
+
+            @wraps(method)
+            def _wrapper(*args, **kwargs):
+                self_v2._load(**json.loads(self.json()))
+                return method(*args, **kwargs)
+
+            return _wrapper
+
+        self.get_cloud_init_assignment = _with_updated_v2(self_v2.get_cloud_init_assignment)
+        self.set_cloud_init_assignment = _with_updated_v2(self_v2.set_cloud_init_assignment)
 
     def __repr__(self):
         if self._deleted:
@@ -211,3 +255,79 @@ class SimulationNodeApi:
         res = self.client.get(f'{self.url}', params=kwargs)
         util.raise_if_invalid_response(res, data_type=list)
         return [SimulationNode(self, **simulation_node) for simulation_node in res.json()]
+
+
+class _v2:
+    """Temporary private class for v2 related SimulationNode resources."""
+
+    class SimulationNode(AirModel):
+        """Manage a v2 SimulationNode."""
+
+        CLOUD_INIT_PATH = 'cloud-init'
+
+        def get_cloud_init_assignment(self) -> CloudInitAssignmentResponse:
+            """Returns current state of cloud-init script assignments for the node."""
+
+            url = util.url_path_join(
+                self._api.parsed_url, self.id, self.CLOUD_INIT_PATH, trailing_slash=True
+            ).geturl()
+            response = self._api.client.get(url)
+            util.raise_if_invalid_response(response, data_type=dict)
+
+            return response.json()
+
+        def set_cloud_init_assignment(
+            self, script_mapping: CloudInitAssignment
+        ) -> CloudInitAssignmentResponse:
+            """
+            Edits cloud-init script assignment for the node as defined in `script_mapping`.
+            Returns new state of cloud-init script assignments for the node.
+
+            Any combination of script keys can be provided within `script_mapping`.
+            Explicit `None` as a value for a key will clear the assignment for that specific script.
+
+            Example:
+            ```
+            # only sets user-data
+            node.set_cloud_init_assignment({
+                'user_data': my_script
+            })
+
+            # sets user-data, clears assignment for meta-data
+            node.set_cloud_init_assignment({
+                'user_data': my_script,
+                'meta_data': None
+            })
+
+            # identical to `node.get_cloud_init_assignment()`
+            node.set_cloud_init_assignment({})
+            ```
+            """
+
+            patch_payload: CloudInitAssignment = {}
+            for script_type in [
+                script_type for script_type in script_mapping if script_type in ['user_data', 'meta_data']
+            ]:
+                script = script_mapping[script_type]
+                if isinstance(script, UserConfig):
+                    patch_payload[script_type] = script.id
+                else:
+                    patch_payload[script_type] = script
+
+            if not patch_payload:
+                return self.get_cloud_init_assignment()
+
+            url = util.url_path_join(
+                self._api.parsed_url, self.id, self.CLOUD_INIT_PATH, trailing_slash=True
+            ).geturl()
+            response = self._api.client.patch(url, json=patch_payload)
+            util.raise_if_invalid_response(response, data_type=dict)
+
+            return response.json()
+
+
+class _SimulationNodeAPI(AirModelAPI[_v2.SimulationNode]):
+    """High-level interface for the SimulationNode v2 API."""
+
+    API_VERSION = 2
+    API_PATH = 'simulations/nodes'

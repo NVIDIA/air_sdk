@@ -110,6 +110,8 @@ poetry install --all-extras
 ./unit_test.sh
 ```
 
+When using VSCode, tests can be easily launched and debugged using the `Testing` tab on the left sidebar.
+
 ### Linting
 
 ```

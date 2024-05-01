@@ -7,10 +7,10 @@ Tests for util.py
 # pylint: disable=missing-function-docstring,missing-class-docstring,no-self-use,unused-argument
 
 import datetime
-
 from json import JSONDecodeError
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
+from urllib.parse import urlparse
 
 from ..air_sdk import exceptions, util
 
@@ -63,6 +63,18 @@ class TestUtil(TestCase):
             + "got <class 'dict'>",
         )
         self.assertEqual(err.exception.status_code, 200)
+
+    def test_raise_if_invalid_type_tuple(self):
+        mock_res_list = MagicMock()
+        mock_res_list.status_code = 200
+        mock_res_list.json.return_value = []
+
+        mock_res_dict = MagicMock()
+        mock_res_dict.status_code = 200
+        mock_res_dict.json.return_value = {}
+
+        util.raise_if_invalid_response(mock_res_list, data_type=(list, dict))
+        util.raise_if_invalid_response(mock_res_dict, data_type=(list, dict))
 
     def test_required_kwargs(self):
         @util.required_kwargs(['foo', 'bar'])
@@ -121,3 +133,24 @@ class TestUtil(TestCase):
         util.validate_timestamps('Simulation created', expires_at=past, sleep_at=future)
         log = mock_log.call_args[0][0]
         self.assertTrue(f'Simulation created with `expires_at` in the past: {past}' in log)
+
+    def test_url_path_join(self):
+        original = 'http://example.com/a/b'
+        joined = 'http://example.com/a/b/c/d'
+        self.assertEqual(
+            util.url_path_join(urlparse(original), 'c', 'd', trailing_slash=False).geturl(), joined
+        )
+
+    def test_url_path_join_add_trailing_slash(self):
+        original = 'http://example.com/a/b'
+        joined = 'http://example.com/a/b/c/'
+        self.assertEqual(util.url_path_join(urlparse(original), 'c', trailing_slash=True).geturl(), joined)
+
+    def test_url_path_join_keep_trailing_slash(self):
+        original = 'http://example.com/a/b/'
+        self.assertEqual(util.url_path_join(urlparse(original), trailing_slash=True).geturl(), original)
+
+    def test_url_path_join_remove_trailing_slash(self):
+        original = 'http://example.com/a/b/'
+        joined = 'http://example.com/a/b'
+        self.assertEqual(util.url_path_join(urlparse(original), trailing_slash=False).geturl(), joined)

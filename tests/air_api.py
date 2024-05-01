@@ -7,10 +7,10 @@ Tests for air_api.py
 # pylint: disable=missing-function-docstring,missing-class-docstring,protected-access
 # pylint: disable=arguments-differ,unused-argument,no-member,too-many-public-methods
 
+import datetime as dt
 from json import JSONDecodeError
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
-import datetime as dt
 
 import pytest
 import requests
@@ -33,12 +33,13 @@ from ..air_sdk.organization import OrganizationApi
 from ..air_sdk.permission import PermissionApi
 from ..air_sdk.resource_budget import ResourceBudgetApi
 from ..air_sdk.service import ServiceApi
-from ..air_sdk.ssh_key import SSHKeyApi
 from ..air_sdk.simulation import SimulationApi
 from ..air_sdk.simulation_interface import SimulationInterfaceApi
 from ..air_sdk.simulation_node import SimulationNodeApi
+from ..air_sdk.ssh_key import SSHKeyApi
 from ..air_sdk.token import TokenApi
 from ..air_sdk.topology import TopologyApi
+from ..air_sdk.userconfig import UserConfigAPI
 from ..air_sdk.worker import WorkerApi
 
 
@@ -194,6 +195,9 @@ class TestAirApi(TestCase):
 
     def test_workers(self):
         self.assertIsInstance(self.api.workers, WorkerApi)
+
+    def test_userconfigs(self):
+        self.assertIsInstance(self.api.user_configs, UserConfigAPI)
 
     @patch('air_sdk.air_sdk.login.LoginApi.list')
     def test_authorize_token(self, mock_login):

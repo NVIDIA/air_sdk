@@ -7,6 +7,7 @@ Helper utils
 
 import datetime
 from json import JSONDecodeError
+from urllib.parse import ParseResult
 
 from dateutil import parser as dateparser
 
@@ -111,3 +112,26 @@ def is_datetime_str(value):
         except ValueError:
             pass
     return False
+
+
+def url_path_join(base: ParseResult, *segments: str, trailing_slash: bool = False) -> ParseResult:
+    """
+    Appends provided path segments (if any) to provided base URL.
+    Appends or removes a trailing slash at the end of path as specified by `trailing_slash` argument.
+
+    Examples:
+    ```
+    url = urlparse("https://example.com/a/b")
+
+    url_path_join(url, "c", "d")                        # https://example.com/a/b/c/d
+    url_path_join(url, "c", "d", trailing_slash=True)   # https://example.com/a/b/c/d/
+    url_path_join(url, trailing_slash=True)             # https://example.com/a/b/
+    ```
+    """
+
+    resulting_path = base.path
+    for segment in segments:
+        resulting_path = f"{resulting_path.rstrip('/')}/{segment.lstrip('/')}"
+
+    resulting_url = base._replace(path=resulting_path.rstrip('/') + ('/' if trailing_slash else ''))
+    return resulting_url

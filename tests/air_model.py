@@ -4,10 +4,14 @@
 """
 Tests for air_model.py
 """
+
 # pylint: disable=missing-function-docstring,missing-class-docstring,unused-argument
 # pylint: disable=too-many-public-methods,duplicate-code,protected-access
 import datetime as dt
+import json
 from datetime import date, datetime
+from http import HTTPStatus
+from typing import Dict
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
@@ -64,6 +68,7 @@ class TestAirModel(TestCase):
             'topology': 'topologies',
             'worker': 'workers',
             'fleet': 'fleets',
+            'userconfig': 'userconfigs',
         }
         self.assertDictEqual(self.model.model_keys, model_keys)
 
@@ -286,3 +291,94 @@ class TestHelpers(TestCase):
 
     def test_get_item_id_url(self):
         self.assertEqual(air_model._get_item_id('http://testserver/api/v1/test/abc123'), 'abc123')
+
+
+class TestAirModelAPI(TestCase):
+    def setUp(self):
+        class MyResource(air_model.AirModel):
+            pass
+
+        class MyResourceAPI(air_model.AirModelAPI[MyResource]):
+            API_PATH = 'my/resource'
+
+        self.client = MagicMock()
+        self.instance = MyResource(self.client, id='my-id')
+        self.resource_class = MyResource
+        self.api_class = MyResourceAPI
+        self.client_response = MagicMock()
+        self.client.api_url = 'https://example.com/api/v1'
+
+        def _get_side_effect(url: str, params: Dict = {}):
+            if url == 'https://example.com/api/v1/my/resource/':
+                if params.get('pagination', False):
+                    self.client_response.json.return_value = {'results': [json.loads(self.instance.json())]}
+                else:
+                    self.client_response.json.return_value = [json.loads(self.instance.json())]
+            else:
+                self.client_response.json.return_value = json.loads(self.instance.json())
+
+            return self.client_response
+
+        self.client.get.side_effect = _get_side_effect
+
+    def test_init(self):
+        api = self.api_class(self.client)
+        self.assertEqual(api.parsed_url.geturl(), 'https://example.com/api/v1/my/resource')
+        self.assertEqual(api.url, 'https://example.com/api/v1/my/resource/')
+
+    def test_init_api_change(self):
+        self.api_class.API_VERSION = 2
+        self.api_class.API_PATH = 'my/v1/resource'
+
+        api = self.api_class(self.client)
+        self.assertEqual(api.parsed_url.geturl(), 'https://example.com/api/v2/my/v1/resource')
+        self.assertEqual(api.url, 'https://example.com/api/v2/my/v1/resource/')
+
+    def test_init_no_api_path(self):
+        self.api_class.API_PATH = None
+        with self.assertRaises(AttributeError):
+            self.api_class(self.client)
+
+    def test_model(self):
+        self.assertEqual(self.api_class(self.client).model, self.resource_class)
+
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    def test_get(self, mock_raise: MagicMock):
+        instance_params = {'a': 'b'}
+        api = self.api_class(self.client)
+        instance = api.get(self.instance.id, **instance_params)
+
+        self.client.get.assert_called_with(
+            f'https://example.com/api/v1/my/resource/{self.instance.id}/', params=instance_params
+        )
+        mock_raise.assert_called_with(self.client_response)
+        self.assertTrue(isinstance(instance, api.model))
+
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    def test_list(self, mock_raise: MagicMock):
+        list_params = {'pagination': False}
+        api = self.api_class(self.client)
+        instances = api.list(**list_params)
+
+        self.client.get.assert_called_with('https://example.com/api/v1/my/resource/', params=list_params)
+        mock_raise.assert_called_with(self.client_response, data_type=(list, dict))
+        self.assertListEqual([instance.id for instance in instances], [self.instance.id])
+
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    def test_list_pagination(self, mock_raise: MagicMock):
+        list_params = {'pagination': True}
+        api = self.api_class(self.client)
+        instances = api.list(**list_params)
+
+        self.client.get.assert_called_with('https://example.com/api/v1/my/resource/', params=list_params)
+        mock_raise.assert_called_with(self.client_response, data_type=(list, dict))
+        self.assertListEqual([instance.id for instance in instances], [self.instance.id])
+
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    def test_create(self, mock_raise: MagicMock):
+        create_params = {'a': 'b'}
+        api = self.api_class(self.client)
+        api.create(**create_params)
+
+        self.client.post.assert_called_with('https://example.com/api/v1/my/resource/', json=create_params)
+        mock_raise.assert_called_with(self.client.post.return_value, status_code=HTTPStatus.CREATED)

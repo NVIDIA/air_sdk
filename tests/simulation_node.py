@@ -8,13 +8,15 @@ Tests for simulation_node.py
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
-from ..air_sdk import simulation_node
+from ..air_sdk import simulation_node, userconfig
+
 
 
 class TestSimulationNode(TestCase):
     def setUp(self):
         self.api = MagicMock()
         self.api.url = 'http://testserver/api/'
+        self.api.client.api_url = self.api.url
         self.model = simulation_node.SimulationNode(self.api)
         self.model.id = 'abc123'
 
@@ -91,6 +93,42 @@ class TestSimulationNode(TestCase):
     def test_reset(self, mock_control):
         self.model.reset(foo='bar')
         mock_control.assert_called_with(action='reset', foo='bar')
+
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    def test_get_cloud_init_assignment(self, mock_raise: MagicMock):
+        self.model.get_cloud_init_assignment()
+        self.api.client.get.assert_called_with(
+            f'{self.api.url}{simulation_node._SimulationNodeAPI.API_PATH}/{self.model.id}/{simulation_node._v2.SimulationNode.CLOUD_INIT_PATH}/'
+        )
+        mock_raise.assert_called_with(self.api.client.get.return_value, data_type=dict)
+
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    def test_set_cloud_init_assignment_all_types(self, mock_raise: MagicMock):
+        user_data = MagicMock(spec=userconfig.UserConfig(self.api.client, id='uuid'))
+        self.model.set_cloud_init_assignment(script_mapping={'user_data': user_data, 'meta_data': None})
+        self.api.client.patch.assert_called_with(
+            f'{self.api.url}{simulation_node._SimulationNodeAPI.API_PATH}/{self.model.id}/{simulation_node._v2.SimulationNode.CLOUD_INIT_PATH}/',
+            json={'user_data': user_data.id, 'meta_data': None},
+        )
+        mock_raise.assert_called_with(self.api.client.patch.return_value, data_type=dict)
+
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    def test_set_cloud_init_assignment_single_type(self, mock_raise: MagicMock):
+        meta_data = MagicMock(spec=userconfig.UserConfig(self.api.client, id='uuid'))
+        self.model.set_cloud_init_assignment(script_mapping={'meta_data': meta_data})
+        self.api.client.patch.assert_called_with(
+            f'{self.api.url}{simulation_node._SimulationNodeAPI.API_PATH}/{self.model.id}/{simulation_node._v2.SimulationNode.CLOUD_INIT_PATH}/',
+            json={'meta_data': meta_data.id},
+        )
+        mock_raise.assert_called_with(self.api.client.patch.return_value, data_type=dict)
+
+    @patch('air_sdk.air_sdk.util.raise_if_invalid_response')
+    def test_set_cloud_init_assignment_empty_mapping(self, mock_raise: MagicMock):
+        self.model.set_cloud_init_assignment(script_mapping={})
+        self.api.client.get.assert_called_with(
+            f'{self.api.url}{simulation_node._SimulationNodeAPI.API_PATH}/{self.model.id}/{simulation_node._v2.SimulationNode.CLOUD_INIT_PATH}/'
+        )
+        mock_raise.assert_called_with(self.api.client.get.return_value, data_type=dict)
 
 
 class TestSimulationNodeApi(TestCase):

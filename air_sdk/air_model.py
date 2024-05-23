@@ -47,6 +47,7 @@ class AirModel:
         'base_simulation': 'simulations',
         'bios': 'images',
         'connection': 'links',
+        'creator': 'accounts',
         'demo': 'demos',
         'interface': 'simulation_interfaces',
         'interfaces': {

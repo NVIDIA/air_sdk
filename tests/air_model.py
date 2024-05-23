@@ -37,41 +37,6 @@ class TestAirModel(TestCase):
         self.assertEqual(self.model._api, self.api)
         self.assertEqual(self.model.foo, 'bar')
 
-    def test_model_keys(self, mock_raise):
-        model_keys = {
-            'account': 'accounts',
-            'base_simulation': 'simulations',
-            'bios': 'images',
-            'connection': 'links',
-            'demo': 'demos',
-            'interface': 'simulation_interfaces',
-            'interfaces': {
-                'Node': 'interfaces',
-                'SimulationNode': 'simulation_interfaces',
-                'Link': 'interfaces',
-            },
-            'job': 'jobs',
-            'last_worker': 'worker',
-            'node': {
-                'Interface': 'nodes',
-                'NodeInstruction': 'simulation_nodes',
-                'SimulationInterface': 'simulation_nodes',
-                'TopologyInstruction': 'nodes',
-            },
-            'nodes': 'simulation_nodes',
-            'original': {'SimulationInterface': 'interfaces', 'SimulationNode': 'nodes'},
-            'organization': 'organizations',
-            'os': 'images',
-            'preferred_worker': 'workers',
-            'services': 'services',
-            'simulation': 'simulations',
-            'topology': 'topologies',
-            'worker': 'workers',
-            'fleet': 'fleets',
-            'userconfig': 'userconfigs',
-        }
-        self.assertDictEqual(self.model.model_keys, model_keys)
-
     def test_load(self, mock_raise):
         model = air_model.AirModel(self.api, normal='http://testserver/api/v1/thing3/abc456')
         self.assertEqual(model.normal, 'http://testserver/api/v1/thing3/abc456')

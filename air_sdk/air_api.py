@@ -37,6 +37,7 @@ from .simulation_node import SimulationNodeApi
 from .ssh_key import SSHKeyApi
 from .token import TokenApi
 from .topology import TopologyApi
+from .topology_file import TopologyFileApi
 from .userconfig import UserConfigAPI
 from .worker import WorkerApi
 
@@ -210,6 +211,10 @@ class AirApi:
     @util.deprecated('AirApi.topologies')
     def topology(self):
         return self.topologies
+
+    @property
+    def topology_files(self):
+        return TopologyFileApi(self)
 
     @property
     def topologies(self):

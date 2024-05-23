@@ -11,7 +11,6 @@ from unittest.mock import MagicMock, patch
 from ..air_sdk import simulation_node, userconfig
 
 
-
 class TestSimulationNode(TestCase):
     def setUp(self):
         self.api = MagicMock()

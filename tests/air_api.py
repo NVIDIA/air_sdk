@@ -39,6 +39,7 @@ from ..air_sdk.simulation_node import SimulationNodeApi
 from ..air_sdk.ssh_key import SSHKeyApi
 from ..air_sdk.token import TokenApi
 from ..air_sdk.topology import TopologyApi
+from ..air_sdk.topology_file import TopologyFileApi
 from ..air_sdk.userconfig import UserConfigAPI
 from ..air_sdk.worker import WorkerApi
 
@@ -186,6 +187,9 @@ class TestAirApi(TestCase):
 
     def test_topology(self):
         self.assertIsInstance(self.api.topology, TopologyApi)
+
+    def test_topology_files(self):
+        self.assertIsInstance(self.api.topology_files, TopologyFileApi)
 
     def test_topologies(self):
         self.assertIsInstance(self.api.topologies, TopologyApi)

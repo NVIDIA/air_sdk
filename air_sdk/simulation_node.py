@@ -30,7 +30,6 @@ else:  # pragma: no cover
     CloudInitAssignmentResponse = Dict[CloudInitAssignmentResponseFields, Optional[str]]
 
 
-
 class SimulationNode(AirModel):
     """
     Manage a SimulationNode

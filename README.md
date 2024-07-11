@@ -6,22 +6,22 @@ This project provides a Python SDK for interacting with the NVIDIA Air API (http
 
 ## Prerequisite
 
-The SDK requires python 3.7 or later. The safest way to install the SDK is to set up a virtual environment in python3.7:
+The SDK requires python 3.8 or later. The safest way to install the SDK is to set up a virtual environment in python3.8:
 
 ```
-apt-get install python3.7
-```
-
-```
-python3.7 -m pip install virtualenv
+apt-get install python3.8
 ```
 
 ```
-python3.7 -m virtualenv venv37
+python3.8 -m pip install virtualenv
 ```
 
 ```
-. venv37/bin/activate
+python3.8 -m virtualenv venv38
+```
+
+```
+. venv38/bin/activate
 ```
 
 ## Installation
@@ -92,9 +92,9 @@ python3 -m pip install .[dev]
 ```
 
 ### Poetry
-The Poetry virtual environment manager should be the preferred way to manage and install dependencies of the SDK. General information about Poetry can be found [here.](https://python-poetry.org/docs/) 
+The Poetry virtual environment manager should be the preferred way to manage and install dependencies of the SDK. General information about Poetry can be found [here.](https://python-poetry.org/docs/)
 
-In order to use Poetry, you'll need to install poetry on your machine. 
+In order to use Poetry, you'll need to install poetry on your machine.
 If you're on a MacBook and have `brew` installed, you can easily accomplish this through the following:
 ```
 brew install poetry
@@ -119,7 +119,7 @@ ruff check
 ```
 
 ## Pre-commit hooks
-In this section, we delineate the usage of pre-commit hooks for this project.   
+In this section, we delineate the usage of pre-commit hooks for this project.
 
 ### Prerequisites
 This section assumes that you've already accomplished the following:
@@ -138,17 +138,17 @@ In order to use pre-commits, they need to be configured into your `.git` directo
 pre-commit installed at .git/hooks/pre-commit
 >>>
 ```
-And that's it! You should now have pre-commit hooks activated on your local environment. 
+And that's it! You should now have pre-commit hooks activated on your local environment.
 
-If you would like to uninstall your pre-commit hooks, run `pre-commit uninstall`.  
-It's important to note that you should NOT run `python3 -m pip uninstall pre-commit` prior to uninstalling pre-commits from your `.git` directory, or else you might be blocked from making commits to your project. 
+If you would like to uninstall your pre-commit hooks, run `pre-commit uninstall`.
+It's important to note that you should NOT run `python3 -m pip uninstall pre-commit` prior to uninstalling pre-commits from your `.git` directory, or else you might be blocked from making commits to your project.
 If this happens, re-install pre-commit with pip, run `pre-commit uninstall`, and then `python3 -m pip uninstall pre-commit`.
 
 
 #### Working with pre-commit hooks.
 Pre-commit hooks work with git to identify files which you've made changes to and then runs specific operations (such as linting or formatting) on those files.
 
-Currently, our primary hooks are performed by `ruff`, a Python linter and formatter. When attempting to git commit a code change is made that doesn't comply with the default `ruff` configuration and our custom configurations outlined in `.ruff.toml`, `ruff` will attempt to resolve the issue automatically by fixing small linting issues and re-formatting your code.  
+Currently, our primary hooks are performed by `ruff`, a Python linter and formatter. When attempting to git commit a code change is made that doesn't comply with the default `ruff` configuration and our custom configurations outlined in `.ruff.toml`, `ruff` will attempt to resolve the issue automatically by fixing small linting issues and re-formatting your code.
 
 In cases where the pre-commit hooks cannot safely correct your code, errors will be printed in your console which typically will provide links to the pieces of code you must address in order to successfully commit the code.
 
@@ -157,12 +157,12 @@ In general, the development workflow is identical to what typically occurs when 
 2. Run `git add .`
 3. Run `git commit -m 'Your detailed commit message here.'`
 
-However, prior to successfully executing step 3 above, all pre-commits configured in `.pre-commit-config.yaml` are run. 
+However, prior to successfully executing step 3 above, all pre-commits configured in `.pre-commit-config.yaml` are run.
 If the `ruff` formatting and linting both pass, your commit will be made. Otherwise, you will need to address the issues and re-add/commit your code.
 If the linter or formatter end up modifying your code, you will need to `git add .` these changes and commit them as well.
 
 
-### Information on specific pre-commit hooks we use. 
+### Information on specific pre-commit hooks we use.
 We currently use the following hooks.
 
 #### [Ruff (linter)](https://docs.astral.sh/ruff/linter/)
@@ -186,7 +186,7 @@ If you would like to ignore a linting error on a specific piece of code, add a `
 ```
 def this_is_fully_linted(*args, **kwargs):
     ...
-    
+
 def this_is_fully_linted_except_F841(*args, **kwargs):  # noqa: F841
     ...
 ```
@@ -197,18 +197,18 @@ You can skip the linting of a specific code on entire files by adding `# ruff: n
 
 def this_will_not_be_linted_for_F841(*args, **kwargs):
     ....
-    
+
 def this_also_will_not_be_linted_for_F841(*args, **kwargs):
     ....
 ```
 
-To skip linting entirely for the entire folder, simply put `# ruff: noqa` at the top of the file. 
+To skip linting entirely for the entire folder, simply put `# ruff: noqa` at the top of the file.
 
 
 #### [Ruff (formatter)](https://docs.astral.sh/ruff/formatter/)
-We use ruff for our code formatting needs. 
-Formatting is the process of styling existing code so that it abides by a predetermined set of standards. 
-This is important when working with large code-bases or when working with other developers since it makes large code-changes more uniform in style and easier to read. 
+We use ruff for our code formatting needs.
+Formatting is the process of styling existing code so that it abides by a predetermined set of standards.
+This is important when working with large code-bases or when working with other developers since it makes large code-changes more uniform in style and easier to read.
 When code is more readable, it enables developers to identifying errors in their code logic more easily and helps other developers understand your implementation of features when they are reviewing your code.
 
 
@@ -236,14 +236,14 @@ Alternatively, you can add `# fmt: skip` next to a body of code to supress forma
 ```
 class ThisClassIsFormatted:
     ...
-    
-    
+
+
 class ThisClassIsNotFormatted: # fmt: skip
     ...
 ```
 
 #### VS Code Extension
-There is a `ruff` VS Code extension you may add to your IDE if you are using VS Code. 
+There is a `ruff` VS Code extension you may add to your IDE if you are using VS Code.
 Details on this extension can be found [here](https://github.com/astral-sh/ruff-vscode).
 
 We have already configured the ruff linter and formatter as suggested extensions for the project. They can be found in `.vcode/settings.json`.

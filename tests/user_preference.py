@@ -4,6 +4,7 @@
 """
 Tests for user_preference.py
 """
+
 # pylint: disable=missing-function-docstring,missing-class-docstring,protected-access,unused-argument
 import json
 from unittest import TestCase

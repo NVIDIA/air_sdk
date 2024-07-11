@@ -4,6 +4,7 @@
 """
 Tests for job.py
 """
+
 # pylint: disable=missing-function-docstring,missing-class-docstring
 from unittest import TestCase
 from unittest.mock import MagicMock, patch

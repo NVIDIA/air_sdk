@@ -4,6 +4,7 @@
 """
 Logger module
 """
+
 import logging
 import re
 

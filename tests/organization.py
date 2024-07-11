@@ -4,6 +4,7 @@
 """
 Tests for organization.py
 """
+
 # pylint: disable=missing-function-docstring,missing-class-docstring,protected-access
 from copy import deepcopy
 from unittest import TestCase

@@ -4,6 +4,7 @@
 """
 Tests for capacity.py
 """
+
 # pylint: disable=missing-function-docstring,missing-class-docstring,unused-argument
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
@@ -22,6 +23,10 @@ class TestCapacity(TestCase):
         self.assertFalse(self.model._updatable)
 
     def test_repr(self):
+        self.assertEqual(str(self.model), f'<Capacity {self.model.copies}>')
+
+    def test_repr_zero(self):
+        self.model.copies = 0
         self.assertEqual(str(self.model), f'<Capacity {self.model.copies}>')
 
     def test_repr_deleted(self):

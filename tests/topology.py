@@ -4,6 +4,7 @@
 """
 Tests for topology.py
 """
+
 # pylint: disable=missing-function-docstring,missing-class-docstring,unused-argument
 import io
 from unittest import TestCase

@@ -24,7 +24,7 @@ class Capacity(AirModel):
     _updatable = False
 
     def __repr__(self):
-        if self._deleted or not self.copies:
+        if self._deleted or getattr(self, 'copies', None) is None:
             return super().__repr__()
         return f'<Capacity {self.copies}>'
 

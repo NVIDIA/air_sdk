@@ -8,6 +8,7 @@ Helper utils
 import datetime
 from json import JSONDecodeError
 from urllib.parse import ParseResult
+from requests import Response
 
 from dateutil import parser as dateparser
 
@@ -15,7 +16,7 @@ from .exceptions import AirUnexpectedResponse
 from .logger import air_sdk_logger as logger
 
 
-def raise_if_invalid_response(res, status_code=200, data_type=dict):
+def raise_if_invalid_response(res: Response, status_code=200, data_type=dict):
     """
     Validates that a given API response has the expected status code and JSON payload
 

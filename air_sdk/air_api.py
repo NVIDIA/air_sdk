@@ -4,7 +4,6 @@
 """
 NVIDIA Air API module
 """
-# pylint: disable=too-many-public-methods
 
 from datetime import date, datetime
 from json import JSONDecodeError
@@ -12,7 +11,7 @@ from json import JSONDecodeError
 import requests
 from requests.compat import urlparse
 
-from . import util
+from . import util, const
 from .account import AccountApi
 from .air_model import AirModel, LazyLoaded
 from .capacity import CapacityApi
@@ -41,23 +40,16 @@ from .topology_file import TopologyFileApi
 from .userconfig import UserConfigAPI
 from .worker import WorkerApi
 
-ALLOWED_HOSTS = [
-    'air.nvidia.com',
-    'staging.air.nvidia.com',
-    'air.cumulusnetworks.com',
-    'staging.air.cumulusnetworks.com',
-]
-
 
 class AirSession(requests.Session):
     """Wrapper around requests.Session"""
 
-    default_connect_timeout = 16
-    default_read_timeout = 61
+    default_connect_timeout = const.DEFAULT_CONNECT_TIMEOUT
+    default_read_timeout = const.DEFAULT_READ_TIMEOUT
 
     def rebuild_auth(self, prepared_request, response):
         """Allow credential sharing between nvidia.com and cumulusnetworks.com only"""
-        if urlparse(prepared_request.url).hostname in ALLOWED_HOSTS:
+        if urlparse(prepared_request.url).hostname in const.ALLOWED_HOSTS:
             return
         super().rebuild_auth(prepared_request, response)
 
@@ -74,7 +66,7 @@ class AirApi:
     Main interface for an API client instance
     """
 
-    def __init__(self, api_url='https://air.nvidia.com/api/', api_version='v1', **kwargs):
+    def __init__(self, api_url=const.DEFAULT_API_URL, api_version='v1', **kwargs):
         """
         Create a new API client instance. The caller MUST provide either `username` and `password`
         or a `bearer_token`. The `password` argument may either be an API token or a service account
@@ -96,7 +88,6 @@ class AirApi:
         self.username = None
         self.authorize(**kwargs)
 
-    # pylint: disable=missing-function-docstring
     @property
     def accounts(self):
         return AccountApi(self)
@@ -233,8 +224,6 @@ class AirApi:
     def user_configs(self):
         return UserConfigAPI(self)
 
-    # pylint: enable=missing-function-docstring
-
     def authorize(self, **kwargs):
         """
         Authorizes the API client using either a pre-generated API token, a service account
@@ -305,7 +294,7 @@ class AirApi:
         logger.debug(f'request args: {args}')
         logger.debug(f'request kwargs: {kwargs}')
         res = self.client.request(method, url, allow_redirects=False, *args, **kwargs)
-        if res.status_code == 301 and urlparse(res.headers.get('Location')).hostname in ALLOWED_HOSTS:
+        if res.status_code == 301 and urlparse(res.headers.get('Location')).hostname in const.ALLOWED_HOSTS:
             res = self.client.request(method, res.headers['Location'], *args, **kwargs)
         if getattr(res, 'status_code') == 403:
             missing_creds_err_msg = '{"detail":"Authentication credentials were not provided."}'
@@ -353,7 +342,7 @@ def _normalize_api_version(version):
     return version
 
 
-def _normalize_api_url(url):
+def _normalize_api_url(url: str) -> str:
     if url[-1] != '/':
         url += '/'
     if not url.endswith('api/'):

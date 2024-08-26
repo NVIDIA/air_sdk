@@ -6,28 +6,19 @@ SimulationNode module
 """
 
 import json
-import sys
 from functools import wraps
-from typing import Callable, Dict, Optional, TypeVar
+from typing import Callable, Dict, Optional, TypeVar, Literal, Union
 
 from . import util
 from .air_model import AirModel, AirModelAPI
 from .userconfig import UserConfig
 
-# ensure 3.7 compatibility
-if sys.version_info < (3, 8):  # pragma: no cover
-    CloudInitAssignment = Dict[str, Optional[str]]
-    CloudInitAssignmentResponse = Dict[str, Optional[str]]
-else:  # pragma: no cover
-    from typing import Literal, Union
-
-    CloudInitAssignmentFields = Literal['user_data', 'meta_data']
-    CloudInitAssignmentResponseFields = Union[
-        CloudInitAssignmentFields, Literal['simulation_node', 'user_data_name', 'meta_data_name']
-    ]
-
-    CloudInitAssignment = Dict[CloudInitAssignmentFields, Optional[str]]
-    CloudInitAssignmentResponse = Dict[CloudInitAssignmentResponseFields, Optional[str]]
+CloudInitAssignmentFields = Literal['user_data', 'meta_data']
+CloudInitAssignmentResponseFields = Union[
+    CloudInitAssignmentFields, Literal['simulation_node', 'user_data_name', 'meta_data_name']
+]
+CloudInitAssignment = Dict[CloudInitAssignmentFields, Optional[str]]
+CloudInitAssignmentResponse = Dict[CloudInitAssignmentResponseFields, Optional[str]]
 
 
 class SimulationNode(AirModel):

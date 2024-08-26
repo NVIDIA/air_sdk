@@ -19,7 +19,7 @@ class AirError(Exception):
 class AirAuthorizationError(AirError):
     """Raised when authorization with the API fails."""
 
-    def __init__(self, message='An error occurred when authorizing the Air API', status_code=None):
+    def __init__(self, message: str = 'An error occurred when authorizing the Air API', status_code=None):
         self.message = message
         super().__init__(message=self.message, status_code=status_code)
 

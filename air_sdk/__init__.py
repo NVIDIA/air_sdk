@@ -4,3 +4,4 @@
 """Exposes the AIR API client module"""
 
 from .air_api import *  # noqa: F403
+from . import v2  # noqa: F401

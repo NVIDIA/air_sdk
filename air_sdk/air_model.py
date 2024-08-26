@@ -9,20 +9,11 @@ from __future__ import annotations
 
 import json
 import re
-import sys
 from abc import ABC
 from datetime import date, datetime
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Dict, Generic, List, Optional, Type, TypeVar, Union
+from typing import TYPE_CHECKING, Dict, Generic, List, Optional, Type, TypeVar, Union, get_args
 from urllib.parse import urlparse
-
-# ensure 3.7 compatibility
-if sys.version_info < (3, 8):  # pragma: no cover
-
-    def get_args(generic_alias):
-        return generic_alias.__args__
-else:  # pragma: no cover
-    from typing import get_args
 
 
 from . import util

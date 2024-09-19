@@ -11,7 +11,6 @@ from unittest import TestCase
 from air_sdk import exceptions
 
 
-
 class TestAirError(TestCase):
     def test_init(self):
         err = exceptions.AirError('test', 200)

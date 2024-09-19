@@ -13,7 +13,6 @@ from air_sdk import service
 from air_sdk import air_model
 
 
-
 class TestService(TestCase):
     def setUp(self):
         self.model = service.Service(MagicMock())

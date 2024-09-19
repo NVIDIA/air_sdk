@@ -12,7 +12,6 @@ from unittest.mock import MagicMock, patch
 from air_sdk import token
 
 
-
 class TestAPIToken(TestCase):
     def setUp(self):
         self.model = token.Token(MagicMock())

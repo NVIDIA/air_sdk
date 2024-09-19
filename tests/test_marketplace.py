@@ -12,7 +12,6 @@ from unittest.mock import MagicMock, patch
 from air_sdk import marketplace
 
 
-
 class TestMarketplace(TestCase):
     def setUp(self):
         self.model = marketplace.Marketplace(MagicMock())

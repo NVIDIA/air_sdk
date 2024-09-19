@@ -13,7 +13,6 @@ from unittest.mock import MagicMock, patch
 from air_sdk import topology
 
 
-
 class TestTopology(TestCase):
     def setUp(self):
         self.api = MagicMock()

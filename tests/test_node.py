@@ -12,7 +12,6 @@ from unittest.mock import MagicMock, patch
 from air_sdk import node
 
 
-
 class TestNode(TestCase):
     def setUp(self):
         self.model = node.Node(MagicMock())

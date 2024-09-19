@@ -12,7 +12,6 @@ from unittest.mock import MagicMock, patch
 from air_sdk import account, user_preference
 
 
-
 class TestAccount(TestCase):
     def setUp(self):
         self.model = account.Account(MagicMock())

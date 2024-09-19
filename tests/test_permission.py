@@ -12,7 +12,6 @@ from unittest.mock import MagicMock, patch
 from air_sdk import permission
 
 
-
 class TestPermission(TestCase):
     def setUp(self):
         self.model = permission.Permission(MagicMock())

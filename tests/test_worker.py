@@ -5,12 +5,16 @@
 Tests for worker.py
 """
 
-# pylint: disable=missing-function-docstring,missing-class-docstring
+from http import HTTPStatus
+
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
+import faker
 from air_sdk import fleet, organization, worker
 
+faker.Faker.seed(0)
+fake = faker.Faker()
 
 
 class TestWorker(TestCase):
@@ -95,6 +99,7 @@ class TestWorkerApi(TestCase):
     @patch('air_sdk.util.raise_if_invalid_response')
     def test_create(self, mock_raise):
         self.client.post.return_value.json.return_value = {'id': 'abc'}
+        fake_pwd = fake.slug()
         res = self.api.create(
             fqdn='worker_test',
             cpu=1,
@@ -103,7 +108,7 @@ class TestWorkerApi(TestCase):
             ip_address='10.1.1.1',
             port_range='1-2',
             username='foo',
-            password='bar',
+            password=fake_pwd,
             fleet=str(self.fleet.id),
             contact='contact@nvidia.com',
         )
@@ -117,7 +122,7 @@ class TestWorkerApi(TestCase):
                 'ip_address': '10.1.1.1',
                 'port_range': '1-2',
                 'username': 'foo',
-                'password': 'bar',
+                'password': fake_pwd,
                 'fleet': str(self.fleet.id),
                 'contact': 'contact@nvidia.com',
             },
@@ -127,8 +132,9 @@ class TestWorkerApi(TestCase):
         self.assertEqual(res.id, 'abc')
 
     def test_create_required_kwargs(self):
+        fake_pwd = fake.slug()
         with self.assertRaises(AttributeError) as err:
-            self.api.create(cpu=1, memory=2, storage=3, port_range='1-2', username='foo', password='bar')
+            self.api.create(cpu=1, memory=2, storage=3, port_range='1-2', username='foo', password=fake_pwd)
         self.assertTrue('requires ip_address' in str(err.exception))
         with self.assertRaises(AttributeError) as err:
             self.api.create(
@@ -166,5 +172,5 @@ class TestWorkerApi(TestCase):
         self.api.client.patch.assert_called_with(
             f'{self.api.url}register/', json={'registration_token': 'abc'}
         )
-        mock_raise.assert_called_with(self.client.patch.return_value, status_code=201)
+        mock_raise.assert_called_with(self.client.patch.return_value, status_code=HTTPStatus.OK)
         self.assertEqual(res, self.api.client.patch.return_value.json.return_value)

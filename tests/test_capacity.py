@@ -15,7 +15,6 @@ from air_sdk import simulation
 Simulation = simulation.Simulation
 
 
-
 class TestCapacity(TestCase):
     def setUp(self):
         self.model = capacity.Capacity(MagicMock())

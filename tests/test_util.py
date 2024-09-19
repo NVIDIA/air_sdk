@@ -15,7 +15,6 @@ from urllib.parse import urlparse
 from air_sdk import exceptions, util
 
 
-
 class TestUtil(TestCase):
     def test_raise_if_invalid_response(self):
         mock_res = MagicMock()

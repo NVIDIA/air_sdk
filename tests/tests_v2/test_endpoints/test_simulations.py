@@ -1,10 +1,16 @@
 # SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 import json
+import tempfile
 from datetime import timezone
+from http import HTTPStatus
+from pathlib import Path
 
-import pytest
 import faker
+import pytest
+
+import air_sdk.v2.endpoints.simulations
+from air_sdk.v2.utils import join_urls
 
 faker.Faker.seed(0)
 fake = faker.Faker()
@@ -173,3 +179,197 @@ class TestSimulationEndpointApi:
         )
         for payload, is_valid in cases:
             run_full_update_patch_test(api.simulations, simulation_factory, payload, is_valid)
+
+    def test_create_from(self, api, simulation_factory, setup_mock_responses):
+        def _run_test_case(payload, is_valid):
+            endpoint_api = api.simulations
+
+            if is_valid:
+                expected_inst = simulation_factory(
+                    endpoint_api.__api__, **{k: payload[k] for k in payload if k in ('title',)}
+                )
+                setup_mock_responses(
+                    {
+                        ('POST', join_urls(endpoint_api.url, endpoint_api.IMPORT_PATH)): {
+                            'json': air_sdk.v2.endpoints.simulations.SimulationImportResponse(
+                                id=expected_inst.id,
+                                title=expected_inst.title,
+                                organization=str(expected_inst.organization.__pk__),
+                                organization_name=fake.slug(),
+                            ),
+                            'status_code': HTTPStatus.CREATED,
+                        },
+                        ('GET', join_urls(endpoint_api.url, str(expected_inst.__pk__))): {
+                            'json': json.loads(expected_inst.json()),
+                            'status_code': HTTPStatus.OK,
+                        },
+                    }
+                )
+                inst = endpoint_api.create_from(**payload)
+                assert inst == expected_inst
+                assert inst is not expected_inst
+            else:
+                with pytest.raises(Exception) as err:
+                    endpoint_api.create_from(**payload)
+                assert err.type in (TypeError, ValueError, json.JSONDecodeError, FileNotFoundError)
+
+        fixtures_directory = Path(__file__).parent / 'fixtures' / 'create_from' / 'json'
+        with (good_document_path := fixtures_directory / 'good_document.json').open(
+            'r'
+        ) as good_document_fd, (invalid_document_path := fixtures_directory / 'invalid_document.json').open(
+            'r'
+        ) as invalid_document_fd, (
+            unexpected_document_path := fixtures_directory / 'unexpected_document.json'
+        ).open('r') as unexpected_document_fd, tempfile.TemporaryDirectory() as temp_dir:
+            cases = (
+                # Empty Case
+                ({}, False),
+                # Minimal data case
+                (
+                    {
+                        'title': fake.slug(),
+                        'format': 'JSON',
+                        'content': {},
+                    },
+                    True,
+                ),
+                # Explicit `organization=None`
+                (
+                    {
+                        'title': fake.slug(),
+                        'format': 'JSON',
+                        'organization': None,
+                        'content': {},
+                    },
+                    True,
+                ),
+                # Assigned organization
+                (
+                    {
+                        'title': fake.slug(),
+                        'format': 'JSON',
+                        'organization': fake.slug(),
+                        'content': {},
+                    },
+                    True,
+                ),
+                # Full dictionary content
+                (
+                    {
+                        'title': fake.slug(),
+                        'format': 'JSON',
+                        'content': {
+                            'oob': False,
+                            'nodes': {'node-1': {'os': 'generic/ubuntu2204'}},
+                            'links': [
+                                [
+                                    {'node': 'node-1', 'interface': 'eth1'},
+                                    {'node': 'node-1', 'interface': 'eth2'},
+                                ]
+                            ],
+                        },
+                    },
+                    True,
+                ),
+                # Valid string content
+                (
+                    {
+                        'title': fake.slug(),
+                        'format': 'JSON',
+                        'content': '{}',
+                    },
+                    True,
+                ),
+                # Valid path content
+                (
+                    {
+                        'title': fake.slug(),
+                        'format': 'JSON',
+                        'content': good_document_path,
+                    },
+                    True,
+                ),
+                # Valid file descriptor content
+                (
+                    {
+                        'title': fake.slug(),
+                        'format': 'JSON',
+                        'content': good_document_fd,
+                    },
+                    True,
+                ),
+                # Invalid format
+                (
+                    {
+                        'title': fake.slug(),
+                        'format': 'NOT_JSON',
+                        'content': {},
+                    },
+                    False,
+                ),
+                # Non-existent file at path
+                (
+                    {
+                        'title': fake.slug(),
+                        'format': 'JSON',
+                        'content': Path(temp_dir) / 'non_existent_file',
+                    },
+                    False,
+                ),
+                # Invalid content (inline string)
+                (
+                    {
+                        'title': fake.slug(),
+                        'format': 'JSON',
+                        'content': 'invalid content',
+                    },
+                    False,
+                ),
+                # Invalid content (path)
+                (
+                    {
+                        'title': fake.slug(),
+                        'format': 'JSON',
+                        'content': invalid_document_path,
+                    },
+                    False,
+                ),
+                # Invalid content (file descriptor)
+                (
+                    {
+                        'title': fake.slug(),
+                        'format': 'JSON',
+                        'content': invalid_document_fd,
+                    },
+                    False,
+                ),
+                # Unexpected content (inline string)
+                (
+                    {
+                        'title': fake.slug(),
+                        'format': 'JSON',
+                        'content': '[]',
+                    },
+                    False,
+                ),
+                # Unexpected content (path)
+                (
+                    {
+                        'title': fake.slug(),
+                        'format': 'JSON',
+                        'content': unexpected_document_path,
+                    },
+                    False,
+                ),
+                # Unexpected content (file descriptor)
+                (
+                    {
+                        'title': fake.slug(),
+                        'format': 'JSON',
+                        'content': unexpected_document_fd,
+                    },
+                    False,
+                ),
+            )
+            for payload, is_valid in cases:
+                _run_test_case(payload, is_valid)

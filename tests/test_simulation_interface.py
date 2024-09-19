@@ -12,7 +12,6 @@ from unittest.mock import MagicMock, patch
 from air_sdk import simulation_interface
 
 
-
 class TestSimulationInterface(TestCase):
     def setUp(self):
         self.model = simulation_interface.SimulationInterface(MagicMock())

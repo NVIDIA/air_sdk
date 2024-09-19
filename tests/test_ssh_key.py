@@ -12,7 +12,6 @@ from unittest.mock import MagicMock, patch
 from air_sdk import ssh_key
 
 
-
 class TestSSHKey(TestCase):
     def setUp(self):
         self.model = ssh_key.SSHKey(MagicMock())

@@ -5,6 +5,8 @@
 Worker module
 """
 
+from http import HTTPStatus
+
 from . import util
 from .air_model import AirModel
 
@@ -178,7 +180,7 @@ class WorkerApi:
         """
         url = f'{self.url}register/'
         res = self.client.patch(url, json=kwargs)
-        util.raise_if_invalid_response(res, status_code=201)
+        util.raise_if_invalid_response(res, status_code=HTTPStatus.OK)
         return res.json()
 
     def inventory(self, **kwargs):

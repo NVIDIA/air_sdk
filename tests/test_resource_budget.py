@@ -12,7 +12,6 @@ from unittest.mock import MagicMock, patch
 from air_sdk import resource_budget
 
 
-
 class TestResourceBudget(TestCase):
     def setUp(self):
         self.model = resource_budget.ResourceBudget(MagicMock())

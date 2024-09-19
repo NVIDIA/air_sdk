@@ -12,7 +12,6 @@ from unittest.mock import MagicMock, patch
 from air_sdk import login
 
 
-
 class TestLogin(TestCase):
     def setUp(self):
         self.model = login.Login(MagicMock())

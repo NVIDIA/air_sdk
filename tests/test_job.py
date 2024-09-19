@@ -12,7 +12,6 @@ from unittest.mock import MagicMock, patch
 from air_sdk import job
 
 
-
 class TestJob(TestCase):
     def setUp(self):
         self.model = job.Job(MagicMock())

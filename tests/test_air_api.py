@@ -47,7 +47,6 @@ faker.Faker.seed(0)
 fake = faker.Faker()
 
 
-
 class TestAirSession(TestCase):
     def setUp(self):
         self.session = air_api.AirSession()

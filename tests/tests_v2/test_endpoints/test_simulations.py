@@ -1,19 +1,41 @@
 # SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
+import itertools
 import json
 import tempfile
 from datetime import timezone
 from http import HTTPStatus
 from pathlib import Path
+from typing import cast, get_args
+from unittest.mock import MagicMock
+from uuid import UUID
 
 import faker
 import pytest
 
 import air_sdk.v2.endpoints.simulations
+from air_sdk.exceptions import AirUnexpectedResponse
 from air_sdk.v2.utils import join_urls
 
 faker.Faker.seed(0)
 fake = faker.Faker()
+
+
+class TestSimulation:
+    @pytest.mark.parametrize(
+        'format',
+        get_args(air_sdk.v2.endpoints.simulations.TopologyFormatType),
+    )
+    def test_export(self, api, simulation_factory, format):
+        simulation = cast(air_sdk.v2.endpoints.simulations.Simulation, simulation_factory(api))
+        simulation.__api__ = MagicMock(simulations=MagicMock(export=(mock_export := MagicMock())))
+        return_value = simulation.export(
+            format,
+            (image_ids := MagicMock(spec=bool)),
+        )
+
+        mock_export.assert_called_with(simulation, format, image_ids)
+        assert mock_export.return_value == return_value
 
 
 class TestSimulationEndpointApi:
@@ -373,3 +395,99 @@ class TestSimulationEndpointApi:
             )
             for payload, is_valid in cases:
                 _run_test_case(payload, is_valid)
+
+    @pytest.mark.parametrize(
+        'format,image_ids',
+        itertools.product(
+            get_args(air_sdk.v2.endpoints.simulations.TopologyFormatType),
+            (True, False),
+        ),
+    )
+    def test_export(self, api, simulation_factory, setup_mock_responses, format, image_ids):
+        endpoint_api = api.simulations
+        expected_inst = simulation_factory(endpoint_api.__api__)
+        non_existing_inst = simulation_factory(endpoint_api.__api__)
+
+        def _run_test_case(payload, is_valid):
+            if is_valid:
+                setup_mock_responses(
+                    {
+                        (
+                            'GET',
+                            join_urls(
+                                endpoint_api.url,
+                                str(expected_inst.__pk__),
+                                endpoint_api.EXPORT_PATH,
+                            )
+                            + f'?topology_format={format}&image_ids={str(image_ids).lower()}',
+                        ): {
+                            'json': air_sdk.v2.endpoints.simulations.TopologyFormat(
+                                title=expected_inst.title,
+                                format=format,
+                                organization=str(expected_inst.organization.__pk__),
+                                content=(content := {}),
+                            ),
+                            'status_code': HTTPStatus.OK,
+                        },
+                        (
+                            'GET',
+                            join_urls(
+                                endpoint_api.url,
+                                str(non_existing_inst.__pk__),
+                                endpoint_api.EXPORT_PATH,
+                            )
+                            + f'?topology_format={format}&image_ids={str(image_ids).lower()}',
+                        ): {
+                            'json': {},
+                            'status_code': HTTPStatus.NOT_FOUND,
+                        },
+                    }
+                )
+                inst = endpoint_api.export(**payload)
+                assert inst == content
+                assert inst is not content
+            else:
+                with pytest.raises(Exception) as err:
+                    endpoint_api.export(**payload)
+                assert err.type in (AirUnexpectedResponse,)
+
+        query_params = {
+            'format': format,
+            'image_ids': image_ids,
+        }
+        cases = (
+            # Export via instance
+            (
+                {
+                    'simulation': expected_inst,
+                    **query_params,
+                },
+                True,
+            ),
+            # Export via UUID
+            (
+                {
+                    'simulation': UUID(expected_inst.__pk__),
+                    **query_params,
+                },
+                True,
+            ),
+            # Export via string UUID
+            (
+                {
+                    'simulation': str(expected_inst.__pk__),
+                    **query_params,
+                },
+                True,
+            ),
+            # Non-existing simulation
+            (
+                {
+                    'simulation': non_existing_inst.__pk__,
+                    **query_params,
+                },
+                False,
+            ),
+        )
+        for payload, is_valid in cases:
+            _run_test_case(payload, is_valid)

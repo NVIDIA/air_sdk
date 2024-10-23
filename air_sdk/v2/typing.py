@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 import inspect
-from typing import Any, Optional, Tuple, Type, TypeVar, Union, get_args, get_origin, List
+from typing import Any, List, Literal, Optional, Tuple, Type, TypeVar, Union, get_args, get_origin
 
 T = TypeVar('T')
 
@@ -51,6 +51,9 @@ def type_check(value: Any, expected_type: Type[Any]) -> bool:
             return True
         key_type, value_type = args
         return all(type_check(k, key_type) and type_check(v, value_type) for k, v in value.items())
+
+    if origin is Literal:
+        return any(value == arg for arg in args)
 
     if inspect.isclass(origin):
         return isinstance(value, origin)

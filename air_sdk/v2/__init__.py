@@ -1,8 +1,10 @@
 # SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
+from __future__ import annotations
+
 from datetime import timedelta
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from air_sdk import const
 from air_sdk.v2 import utils
@@ -10,7 +12,30 @@ from air_sdk.v2.client import Client
 
 __all__ = ['const', 'AirApi', 'Client', 'utils', 'AirModelAttributeError']
 
+
 from air_sdk.v2.exceptions import AirError, AirModelAttributeError
+
+if TYPE_CHECKING:
+    from air_sdk.v2.endpoints import (
+        AccountEndpointApi,
+        AnnouncementEndpointApi,
+        ApiTokenEndpointApi,
+        CloudInitEndpointApi,
+        ImageEndpointApi,
+        InterfaceEndpointApi,
+        JobEndpointApi,
+        LinkEndpointApi,
+        MarketplaceDemoEndpointApi,
+        MarketplaceDemoTagsEndpointApi,
+        NodeEndpointApi,
+        OrganizationEndpointApi,
+        ResourceBudgetEndpointApi,
+        ServiceEndpointApi,
+        SimulationEndpointApi,
+        SystemEndpointApi,
+        UserConfigEndpointApi,
+        WorkerEndpointApi,
+    )
 
 
 class AirApi:
@@ -32,109 +57,109 @@ class AirApi:
             )
 
     @property
-    def accounts(self):
+    def accounts(self) -> AccountEndpointApi:
         from .endpoints import AccountEndpointApi
 
         return AccountEndpointApi(self)
 
     @property
-    def announcements(self):
+    def announcements(self) -> AnnouncementEndpointApi:
         from .endpoints import AnnouncementEndpointApi
 
         return AnnouncementEndpointApi(self)
 
     @property
-    def api_tokens(self):
+    def api_tokens(self) -> ApiTokenEndpointApi:
         from .endpoints import ApiTokenEndpointApi
 
         return ApiTokenEndpointApi(self)
 
     @property
-    def cloud_inits(self):
+    def cloud_inits(self) -> CloudInitEndpointApi:
         from air_sdk.v2.endpoints import CloudInitEndpointApi
 
         return CloudInitEndpointApi(self)
 
     @property
-    def images(self):
+    def images(self) -> ImageEndpointApi:
         from .endpoints import ImageEndpointApi
 
         return ImageEndpointApi(self)
 
     @property
-    def interfaces(self):
+    def interfaces(self) -> InterfaceEndpointApi:
         from .endpoints import InterfaceEndpointApi
 
         return InterfaceEndpointApi(self)
 
     @property
-    def jobs(self):
+    def jobs(self) -> JobEndpointApi:
         from .endpoints import JobEndpointApi
 
         return JobEndpointApi(self)
 
     @property
-    def links(self):
+    def links(self) -> LinkEndpointApi:
         from air_sdk.v2.endpoints import LinkEndpointApi
 
         return LinkEndpointApi(self)
 
     @property
-    def marketplace_demos(self):
+    def marketplace_demos(self) -> MarketplaceDemoEndpointApi:
         from .endpoints import MarketplaceDemoEndpointApi
 
         return MarketplaceDemoEndpointApi(self)
 
     @property
-    def marketplace_demo_tags(self):
+    def marketplace_demo_tags(self) -> MarketplaceDemoTagsEndpointApi:
         from .endpoints import MarketplaceDemoTagsEndpointApi
 
         return MarketplaceDemoTagsEndpointApi(self)
 
     @property
-    def nodes(self):
+    def nodes(self) -> NodeEndpointApi:
         from .endpoints import NodeEndpointApi
 
         return NodeEndpointApi(self)
 
     @property
-    def organizations(self):
+    def organizations(self) -> OrganizationEndpointApi:
         from .endpoints import OrganizationEndpointApi
 
         return OrganizationEndpointApi(self)
 
     @property
-    def resource_budgets(self):
+    def resource_budgets(self) -> ResourceBudgetEndpointApi:
         from .endpoints import ResourceBudgetEndpointApi
 
         return ResourceBudgetEndpointApi(self)
 
     @property
-    def services(self):
+    def services(self) -> ServiceEndpointApi:
         from .endpoints import ServiceEndpointApi
 
         return ServiceEndpointApi(self)
 
     @property
-    def simulations(self):
+    def simulations(self) -> SimulationEndpointApi:
         from .endpoints import SimulationEndpointApi
 
         return SimulationEndpointApi(self)
 
     @property
-    def systems(self):
+    def systems(self) -> SystemEndpointApi:
         from .endpoints import SystemEndpointApi
 
         return SystemEndpointApi(self)
 
     @property
-    def user_configs(self):
+    def user_configs(self) -> UserConfigEndpointApi:
         from .endpoints import UserConfigEndpointApi
 
         return UserConfigEndpointApi(self)
 
     @property
-    def workers(self):
+    def workers(self) -> WorkerEndpointApi:
         from .endpoints import WorkerEndpointApi
 
         return WorkerEndpointApi(self)

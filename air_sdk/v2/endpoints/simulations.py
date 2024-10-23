@@ -7,7 +7,7 @@ from datetime import datetime
 from http import HTTPStatus
 from io import TextIOBase, TextIOWrapper
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, TypedDict, Union, cast
+from typing import Callable, Dict, Literal, Optional, TypedDict, Union, cast
 
 from air_sdk.util import raise_if_invalid_response
 from air_sdk.v2.air_model import AirModel, BaseEndpointApi, DataDict, PrimaryKey
@@ -16,7 +16,9 @@ from air_sdk.v2.endpoints.organizations import Organization
 from air_sdk.v2.endpoints.workers import Worker
 from air_sdk.v2.utils import join_urls, validate_payload_types
 
-SimulationImportPayloadContent = Union[str, Dict[str, object], Path, TextIOWrapper]
+TopologyFormatContent = Union[Dict[str, object]]
+TopologyFormatType = Literal['JSON']
+SimulationImportPayloadContent = Union[str, TopologyFormatContent, Path, TextIOWrapper]
 
 
 class SimulationImportResponse(TypedDict):
@@ -24,6 +26,13 @@ class SimulationImportResponse(TypedDict):
     title: str
     organization: Optional[str]
     organization_name: Optional[str]
+
+
+class TopologyFormat(TypedDict, total=False):
+    title: str
+    format: TopologyFormatType
+    organization: Union[Organization, PrimaryKey]  # NotRequired
+    content: TopologyFormatContent
 
 
 @dataclass(eq=False)
@@ -100,6 +109,21 @@ class Simulation(AirModel):
             title=title,
         )
 
+    @validate_payload_types
+    def export(
+        self,
+        format: TopologyFormatType,
+        image_ids: bool = False,
+    ) -> TopologyFormatContent:
+        """
+        Exports this simulation into a desired topology format.
+
+        :Arguments:
+        - `format`: desired output format (currently supported format is `JSON`)
+        - `image_ids`: whether to return image IDs instead of names
+        """
+        return self.__api__.simulations.export(self, format, image_ids)
+
 
 class SimulationEndpointApi(
     mixins.ListApiMixin[Simulation],
@@ -111,6 +135,7 @@ class SimulationEndpointApi(
 ):
     API_PATH = 'simulations'
     IMPORT_PATH = 'import'
+    EXPORT_PATH = 'export'
     model = Simulation
 
     @validate_payload_types
@@ -146,14 +171,14 @@ class SimulationEndpointApi(
     @staticmethod
     def _resolve_json_import_format_content(
         content: SimulationImportPayloadContent,
-    ) -> Dict[Any, Any]:
+    ) -> Dict[str, object]:
         """
         Resolves given `content` into a JSON object.
 
-        :raises:
-            `JSONDecodeError` - `content` is not a valid JSON document
-            `ValueError` - resolved `content` is not a JSON object
-            `FileNotFoundError` - topology file does not exist at provided path
+        :Raises:
+        - `JSONDecodeError` - `content` is not a valid JSON document
+        - `ValueError` - resolved `content` is not a JSON object
+        - `FileNotFoundError` - topology file does not exist at provided path
         """
         if isinstance(content, TextIOBase):
             resolved_content = json.load(content)
@@ -176,30 +201,26 @@ class SimulationEndpointApi(
     def create_from(
         self,
         title: str,
-        format: str,
+        format: TopologyFormatType,
         content: SimulationImportPayloadContent,
         organization: Optional[Union[Organization, PrimaryKey]] = None,
     ) -> Simulation:
         """
         Creates a simulation using a supported topology format. Currently supported format is `JSON`.
 
-        :raises:
-            `JSONDecodeError` - `content` is not a valid JSON document (when format is set to `JSON`)
-            `ValueError` - `format` is unsupported or `content` value does not match `format`
-            `FileNotFoundError` - topology file does not exist at provided path
+        :Raises:
+        - `JSONDecodeError` - `content` is not a valid JSON document (when format is set to `JSON`)
+        - `ValueError` - `content` value does not match `format`
+        - `FileNotFoundError` - topology file does not exist at provided path
         """
-        if format in IMPORT_FORMAT_CONTENT_HANDLERS:
-            resolved_content = IMPORT_FORMAT_CONTENT_HANDLERS[format](content)
-        else:
-            raise ValueError(
-                f'`{format}` is not one of supported formats: {list(IMPORT_FORMAT_CONTENT_HANDLERS.keys())}'
-            )
-
-        payload: DataDict = {
-            'title': title,
-            'format': format,
-            'content': resolved_content,
-        }
+        payload = cast(
+            DataDict,
+            TopologyFormat(
+                title=title,
+                format=format,
+                content=IMPORT_FORMAT_CONTENT_HANDLERS[format](content),
+            ),
+        )
         if organization is not None:
             payload['organization'] = organization
         response = self.__api__.client.post(
@@ -211,7 +232,35 @@ class SimulationEndpointApi(
 
         return self.get(import_result['id'])
 
+    @validate_payload_types
+    def export(
+        self,
+        simulation: Union[Simulation, PrimaryKey],
+        format: TopologyFormatType,
+        image_ids: bool = False,
+    ) -> TopologyFormatContent:
+        """
+        Exports an existing simulation into a desired topology format.
 
-IMPORT_FORMAT_CONTENT_HANDLERS: Dict[str, Callable[[SimulationImportPayloadContent], Any]] = {
-    'JSON': SimulationEndpointApi._resolve_json_import_format_content
+        :Arguments:
+        - `format`: desired output format (currently supported format is `JSON`)
+        - `image_ids`: whether to return image IDs instead of names
+        """
+        pk = str(simulation.__pk__ if isinstance(simulation, Simulation) else simulation)
+        response = self.__api__.client.get(
+            join_urls(self.url, pk, self.EXPORT_PATH),
+            params={
+                'topology_format': format,
+                'image_ids': image_ids,
+            },
+        )
+        raise_if_invalid_response(response, status_code=HTTPStatus.OK)
+
+        return cast(TopologyFormat, response.json())['content']
+
+
+IMPORT_FORMAT_CONTENT_HANDLERS: Dict[
+    TopologyFormatType, Callable[[SimulationImportPayloadContent], TopologyFormatContent]
+] = {
+    'JSON': SimulationEndpointApi._resolve_json_import_format_content,
 }

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from air_sdk.v2 import AirApi
 
 
-def serialize_payload(data: Dict[str, Any]) -> str:
+def serialize_payload(data: Dict[str, Any] | List[Dict[str, Any]]) -> str:
     """Serialize the dictionary of values into json using the AirJSONEncoder."""
     return json.dumps(data, indent=None, separators=(',', ':'), cls=AirJSONEncoder)
 

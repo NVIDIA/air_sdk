@@ -4,20 +4,30 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional, Union, TYPE_CHECKING
+from http import HTTPStatus
+from typing import Optional, Union, TYPE_CHECKING, List, TypedDict, cast, Any, Dict
 
+from air_sdk.util import raise_if_invalid_response
 from air_sdk.v2.endpoints import mixins
 from air_sdk.v2.endpoints.images import Image
+from air_sdk.v2.endpoints.mixins import serialize_payload
 from air_sdk.v2.endpoints.simulations import Simulation
 from air_sdk.v2.endpoints.systems import System
 from air_sdk.v2.endpoints.workers import Worker
 from air_sdk.v2.air_model import AirModel, BaseEndpointApi, PrimaryKey, DataDict
 
-from air_sdk.v2.utils import validate_payload_types
+from air_sdk.v2.utils import validate_payload_types, join_urls
 
 
 if TYPE_CHECKING:
     from air_sdk.v2.endpoints.cloud_inits import CloudInit
+
+
+class BulkUpdateSimNodeStateType(TypedDict):
+    """Type hints for the payload of the `NodeEndpointApi.bulk_update_state` payload."""
+
+    state: str
+    ids: List[PrimaryKey]
 
 
 @dataclass(eq=False)
@@ -170,3 +180,12 @@ class NodeEndpointApi(
             if value is not None:
                 payload[key] = value
         return super().create(**payload)
+
+    @validate_payload_types
+    def bulk_update_state(self, data: List[BulkUpdateSimNodeStateType]) -> None:
+        """Method used by worker clients to perform state updates of nodes in bulk."""
+        response = self.__api__.client.patch(
+            join_urls(self.url, 'bulk-update-state'),
+            data=serialize_payload(cast(List[Dict[str, Any]], data)),
+        )
+        raise_if_invalid_response(response, status_code=HTTPStatus.OK, data_type=None)

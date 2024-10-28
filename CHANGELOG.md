@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.16.0] - 2024-10-28
+- Added support for `bulk_update_state` on `SimulationNodeViewSet`
+
+## [2.15.0] - 2024-10-23
+- Added support for JSON export
+
+## [2.14.0] - 2024-09-19
+- Added support for JSON import
+- Fixed an issue related to the expected status code when calling `Worker.register()`
+
 ## [2.13.0] - 2024-08-26
 - Added support for API V2 endpoints
 

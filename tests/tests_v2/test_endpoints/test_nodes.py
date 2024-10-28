@@ -232,3 +232,42 @@ class TestNodeEndpointApi:
         cloud_init.full_update(user_data=None, meta_data=None)
         assert cloud_init.user_data is None
         assert cloud_init.meta_data is None
+
+    @pytest.mark.parametrize(
+        'payload,is_valid',
+        (
+            ([], True),
+            ([{'state': 'RUNNING', 'ids': [fake.uuid4(), fake.uuid4()]}], True),
+            ([{'state': 'RUNNING', 'ids': [str(fake.uuid4()), str(fake.uuid4())]}], True),
+            (
+                [
+                    {'state': 'RUNNING', 'ids': [fake.uuid4(), fake.uuid4()]},
+                    {'state': 'PAUSED', 'ids': [fake.uuid4(), fake.uuid4()]},
+                ],
+                True,
+            ),
+            (
+                {
+                    'RUNNING': [fake.uuid4(), fake.uuid4()],
+                    'PAUSED': [fake.uuid4(), fake.uuid4()],
+                },
+                False,
+            ),
+        ),
+    )
+    def test_bulk_update_state(self, api, setup_mock_responses, node_factory, payload, is_valid):
+        """Ensure the `bulk_update_state` method is reliable."""
+        method = api.nodes.bulk_update_state
+        setup_mock_responses(
+            {
+                ('PATCH', join_urls(api.nodes.url, 'bulk-update-state')): {
+                    'status_code': HTTPStatus.OK,
+                }
+            },
+        )
+        if is_valid:
+            assert method(payload) is None
+        else:
+            with pytest.raises(Exception) as err:
+                method(payload)
+            assert err.type in (TypeError, ValueError)

@@ -1,18 +1,19 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 import json
 from http import HTTPStatus
 
-import pytest
 import faker
+import pytest
 
 from air_sdk.v2.endpoints.mixins import serialize_payload
+from air_sdk.v2.utils import join_urls
 
 faker.Faker.seed(0)
 fake = faker.Faker()
 
 
-class TestCloudInitEndpointApi:
+class TestCloudInit:
     @pytest.mark.parametrize(
         'payload,is_valid',
         (
@@ -59,3 +60,31 @@ class TestCloudInitEndpointApi:
             with pytest.raises(Exception) as err:
                 instance.full_update(**payload)
             assert err.type in (TypeError, ValueError)
+
+
+class TestCloudInitEndpointApi:
+    def test_bulk_assign(self, api, mock_client, node_factory, user_config_factory):
+        node_1, node_2 = node_factory(api), node_factory(api)
+        user_data, meta_data = user_config_factory(api), user_config_factory(api)
+        assignments = [
+            {'simulation_node': node_1.id, 'user_data': user_data.id},
+            {'simulation_node': node_2.id, 'user_data': None, 'meta_data': meta_data.id},
+        ]
+        payload = serialize_payload(assignments)
+        patch_called = False
+
+        def _validate_payload(request, *args, **kwargs):
+            """Makes sure a call was made and proper payload was provided."""
+            nonlocal patch_called
+            assert payload == request.text
+            patch_called = True
+            return None
+
+        mock_client.register_uri(
+            'PATCH',
+            join_urls(api.client.base_url, api.cloud_inits.BULK_API_PATH),
+            json=_validate_payload,
+            status_code=HTTPStatus.NO_CONTENT,
+        )
+        api.cloud_inits.bulk_assign(assignments)
+        assert patch_called is True

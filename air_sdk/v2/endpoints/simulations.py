@@ -1,5 +1,7 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
+
+from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
@@ -19,6 +21,18 @@ from air_sdk.v2.utils import join_urls, validate_payload_types
 TopologyFormatContent = Union[Dict[str, object]]
 TopologyFormatType = Literal['JSON']
 SimulationImportPayloadContent = Union[str, TopologyFormatContent, Path, TextIOWrapper]
+
+
+class SimulationDuplicatePayload(TypedDict, total=False):
+    start: bool
+
+
+class SimulationDuplicateResponseSimulationField(TypedDict):
+    id: str
+
+
+class SimulationDuplicateResponse(TypedDict):
+    simulation: SimulationDuplicateResponseSimulationField
 
 
 class SimulationImportResponse(TypedDict):
@@ -123,6 +137,66 @@ class Simulation(AirModel):
         - `image_ids`: whether to return image IDs instead of names
         """
         return self.__api__.simulations.export(self, format, image_ids)
+
+    def load(self) -> None:
+        """Starts the simulation. Previously stored simulation will get loaded from its last state."""
+        response = self.__api__.client.post(join_urls(self.detail_url, 'load'))
+        raise_if_invalid_response(response, status_code=HTTPStatus.OK)
+        self.refresh()
+
+    def start(self) -> None:
+        """Starts the simulation. Previously stored simulation will get loaded from its last state."""
+        self.load()
+
+    def store(self) -> None:
+        """Stops the simulation and stores its state."""
+        response = self.__api__.client.post(join_urls(self.detail_url, 'store'))
+        raise_if_invalid_response(response, status_code=HTTPStatus.OK)
+        self.refresh()
+
+    def stop(self) -> None:
+        """Stops the simulation and stores its state."""
+        self.store()
+
+    def rebuild(self) -> None:
+        """Rebuilds all nodes of the simulation. Current memory and disk changes of all nodes will be lost."""
+        response = self.__api__.client.post(join_urls(self.detail_url, 'rebuild'))
+        raise_if_invalid_response(response, status_code=HTTPStatus.OK)
+        self.refresh()
+
+    def extend(self) -> datetime:
+        """Postpones the simulation's sleep date. Returns the new sleep date."""
+        response = self.__api__.client.post(join_urls(self.detail_url, 'extend'))
+        raise_if_invalid_response(response, status_code=HTTPStatus.OK)
+        self.refresh()
+
+        return self.sleep_at
+
+    @validate_payload_types
+    def duplicate(
+        self,
+        start: Optional[bool] = None,
+    ) -> Simulation:
+        """
+        Duplicates the simulation and returns the `Simulation` instance of the clone.
+
+        :Arguments:
+        - `start`: Whether the cloned simulation should get started automatically. Set to `None` in order to rely on the default value of the backend.
+        """
+        payload = SimulationDuplicatePayload()
+        if start is not None:
+            payload['start'] = start
+
+        # Perform duplication request
+        response = self.__api__.client.post(join_urls(self.detail_url, 'duplicate'), json=payload)
+        raise_if_invalid_response(response, status_code=HTTPStatus.OK)
+        self.refresh()  # Refresh potentially new state of the original simulation
+
+        # Fetch the clone
+        duplication_response: SimulationDuplicateResponse = response.json()
+        clone = self.__api__.simulations.get(duplication_response['simulation']['id'])
+
+        return clone
 
 
 class SimulationEndpointApi(

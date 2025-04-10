@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2025-04-03
+### Air SDK V2 
+-   Added manifest endpoint CRUD to SDK v2 client
+-   Added simulation v2 control methods
+-   Added Topology Parser in SDK-V2
+-   Added new methods to images endpoint
+-   Added link endpoint CRUD to SDK v2 client and added tests
+
 ## [2.16.0] - 2024-10-28
 - Added support for `bulk_update_state` on `SimulationNodeViewSet`
 
@@ -171,18 +179,18 @@ air.username
 air = AirApi()
 
 # v2
-air = AirApi(username='foo', password='bar')
+air = AirApi(username='username', password='<password>')
 # or
-air = AirApi(bearer_token='foo')
+air = AirApi(bearer_token='<token>')
 ```
 - AirApi instances are now automatically authorized on creation. It is no longer required to call `AirApi.authorize()` separately.
 ```
 # v1
 air = AirApi()
-air.authorize(username='foo', password='bar')
+air.authorize(username='username', password='<password>')
 
 # v2
-air = AirApi(username='foo', password='bar')
+air = AirApi(username='<username>', password='<password>')
 ```
 - Updating a local object property now immediately makes a `PATCH` call to update the remote object as well. Multiple properties can still be updated via a `PUT` call with the object's `update()` method.
 ```

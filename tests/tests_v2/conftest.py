@@ -1,14 +1,14 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 import json
+import random
 from datetime import timezone
 from http import HTTPStatus
-import random
-from typing import Any, TypedDict, Optional, List, Dict
+from typing import Any, Dict, List, Optional, TypedDict
 
+import faker
 import pytest
 import requests_mock
-import faker
 
 from air_sdk import v2
 from air_sdk.v2 import AirError
@@ -248,6 +248,33 @@ def link_factory():
         return api.links.load_model({**defaults, **kwargs})
 
     return _link_factory
+
+
+@pytest.fixture
+def manifest_factory():
+    def _manifest_factory(api, **kwargs: Any):
+        defaults = {
+            'id': fake.uuid4(cast_to=str),
+            'owner': fake.uuid4(cast_to=str),  # An account
+            'artifacts_directory': fake.file_path(),
+            'artifacts_directory_max_size_gb': fake.random_int(10),
+            'boot_group': fake.random_int(0),
+            'emulation_type': fake.slug(),
+            'configure_node_properties': fake.pydict(value_types=['str', 'int']),
+            'configure_simulator': fake.pydict(value_types=['str', 'int']),
+            'docker_run_parameters': fake.pydict(value_types=['str', 'int']),
+            'organization': fake.uuid4(cast_to=str),
+            'platform_information': fake.pydict(value_types=['str', 'int']),
+            'simulation_engine_versions': fake.random_elements(
+                elements=[fake.slug() for _ in range(fake.random_int(1, 4))]
+            ),
+            'simulator_image': fake.uuid4(cast_to=str),
+            'simulator_resources': fake.pydict(value_types=['str', 'int']),
+            'emulation_params': fake.pydict(value_types=['str', 'int']),
+        }
+        return api.manifests.load_model({**defaults, **kwargs})
+
+    return _manifest_factory
 
 
 @pytest.fixture

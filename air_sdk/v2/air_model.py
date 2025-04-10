@@ -1,36 +1,35 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, fields, asdict, Field, is_dataclass, InitVar
+from dataclasses import Field, InitVar, asdict, dataclass, fields, is_dataclass
 from datetime import datetime
 from functools import cached_property
 from typing import (
-    Union,
     Any,
-    Dict,
-    Mapping,
-    TypeVar,
     ClassVar,
+    Dict,
     Generic,
     Iterator,
-    Type,
-    get_type_hints,
     List,
-    get_origin,
-    cast,
+    Mapping,
     Optional,
     Tuple,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+    get_origin,
+    get_type_hints,
 )
 from uuid import UUID
 
-from air_sdk.v2.exceptions import AirModelAttributeError, AirError
-from air_sdk.v2.typing import is_optional_union, get_optional_arg, get_list_arg, is_union, type_check
-from air_sdk.v2.utils import join_urls, iso_string_to_datetime, to_uuid, is_dunder, as_field
-
 from air_sdk.v2 import AirApi
+from air_sdk.v2.exceptions import AirError, AirModelAttributeError
+from air_sdk.v2.typing import get_list_arg, get_optional_arg, is_optional_union, is_union, type_check
+from air_sdk.v2.utils import as_field, is_dunder, iso_string_to_datetime, join_urls, to_uuid
 
 T = TypeVar('T')
 TAirModel = TypeVar('TAirModel', bound='AirModel')
@@ -78,6 +77,7 @@ class AirModel(BaseModel, ABC):
 
     def __post_init__(self, _api: AirApi) -> None:
         self.__api__ = _api
+        self.detail_url = join_urls(self.get_model_api()(self.__api__).url, str(self.__pk__))
 
     @property
     def primary_key_field(self) -> str:

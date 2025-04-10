@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 from __future__ import annotations
@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from http import HTTPStatus
-from typing import Optional, List, Dict, Union, Any, Iterator, Type, TYPE_CHECKING
+from typing import Literal, Optional, List, Dict, Union, Any, Iterator, Type, TYPE_CHECKING
 
 from air_sdk.util import raise_if_invalid_response
 
@@ -110,7 +110,7 @@ class InterfaceEndpointApi(
         self,
         name: str,
         node: Union[Node, PrimaryKey],
-        interface_type: str = 'ETH_INTF',
+        interface_type: Union[str, Literal['DATA_PLANE_INTF']] = 'DATA_PLANE_INTF',
         link_up: bool = False,
         port_number: int = 0,
         outbound: bool = False,
@@ -162,7 +162,7 @@ class Link(AirModel):
         return LinkEndpointApi
 
 
-class LinkEndpointApi(mixins.ListApiMixin[Link], BaseEndpointApi[Link]):
+class LinkEndpointApi(mixins.ListApiMixin[Link], mixins.GetApiMixin[Link], BaseEndpointApi[Link]):
     API_PATH = 'simulations/nodes/interfaces/links/'
     model = Link
 
@@ -170,6 +170,11 @@ class LinkEndpointApi(mixins.ListApiMixin[Link], BaseEndpointApi[Link]):
         if simulation is None:
             raise TypeError('simulation may not be `None`.')
         return super().list(simulation=simulation, **params)
+
+    @validate_payload_types
+    def get(self, pk: PrimaryKey, simulation: Union[Simulation, PrimaryKey]) -> Link:  # type: ignore[override]
+        sim_id = getattr(simulation, '__pk__', simulation)
+        return super().get(pk=pk, simulation=sim_id)
 
     @validate_payload_types
     def bulk_create(self, simulation: Union[Simulation, PrimaryKey], links: LinkDataList) -> List[Link]:

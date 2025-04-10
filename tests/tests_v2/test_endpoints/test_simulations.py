@@ -1,9 +1,10 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
+
 import itertools
 import json
 import tempfile
-from datetime import timezone
+from datetime import timedelta, timezone
 from http import HTTPStatus
 from pathlib import Path
 from typing import cast, get_args
@@ -36,6 +37,169 @@ class TestSimulation:
 
         mock_export.assert_called_with(simulation, format, image_ids)
         assert mock_export.return_value == return_value
+
+    def test_load(self, api, simulation_factory, mock_client):
+        simulation = cast(air_sdk.v2.endpoints.simulations.Simulation, simulation_factory(api))
+        current_state = simulation.state
+        desired_state = f'{simulation.state}_CHANGED'
+
+        def _state_transition(*args, **kwargs):
+            """Mimics state change on the backend"""
+            nonlocal current_state
+            current_state = desired_state
+            return dict()
+
+        def _state_refresh(*args, **kwargs):
+            """Mimics state refresh at SDK level"""
+            simulation.state = current_state
+            return json.loads(simulation.json())
+
+        mock_client.register_uri(
+            'POST',
+            join_urls(simulation.detail_url, 'load'),
+            json=_state_transition,
+            status_code=HTTPStatus.OK,
+        )
+        mock_client.register_uri(
+            'GET',
+            join_urls(simulation.detail_url),
+            json=_state_refresh,
+            status_code=HTTPStatus.OK,
+        )
+        simulation.load()
+        assert simulation.state == desired_state
+
+    def test_store(self, api, simulation_factory, mock_client):
+        simulation = cast(air_sdk.v2.endpoints.simulations.Simulation, simulation_factory(api))
+        current_state = simulation.state
+        desired_state = f'{simulation.state}_CHANGED'
+
+        def _state_transition(*args, **kwargs):
+            """Mimics state change on the backend"""
+            nonlocal current_state
+            current_state = desired_state
+            return dict()
+
+        def _state_refresh(*args, **kwargs):
+            """Mimics state refresh at SDK level"""
+            simulation.state = current_state
+            return json.loads(simulation.json())
+
+        mock_client.register_uri(
+            'POST',
+            join_urls(simulation.detail_url, 'store'),
+            json=_state_transition,
+            status_code=HTTPStatus.OK,
+        )
+        mock_client.register_uri(
+            'GET',
+            simulation.detail_url,
+            json=_state_refresh,
+            status_code=HTTPStatus.OK,
+        )
+        simulation.store()
+        assert simulation.state == desired_state
+
+    def test_rebuild(self, api, simulation_factory, mock_client):
+        simulation = cast(air_sdk.v2.endpoints.simulations.Simulation, simulation_factory(api))
+        current_state = simulation.state
+        desired_state = f'{simulation.state}_CHANGED'
+
+        def _state_transition(*args, **kwargs):
+            """Mimics state change on the backend"""
+            nonlocal current_state
+            current_state = desired_state
+            return dict()
+
+        def _state_refresh(*args, **kwargs):
+            """Mimics state refresh at SDK level"""
+            simulation.state = current_state
+            return json.loads(simulation.json())
+
+        mock_client.register_uri(
+            'POST',
+            join_urls(simulation.detail_url, 'rebuild'),
+            json=_state_transition,
+            status_code=HTTPStatus.OK,
+        )
+        mock_client.register_uri(
+            'GET',
+            simulation.detail_url,
+            json=_state_refresh,
+            status_code=HTTPStatus.OK,
+        )
+        simulation.rebuild()
+        assert simulation.state == desired_state
+
+    def test_extend(self, api, simulation_factory, mock_client):
+        simulation = cast(air_sdk.v2.endpoints.simulations.Simulation, simulation_factory(api))
+        current_sleep_at = simulation.sleep_at
+        desired_sleep_at = simulation.sleep_at + timedelta(hours=12)
+
+        def _extend_sleep(*args, **kwargs):
+            """Mimics sleep time extension on the backend"""
+            nonlocal current_sleep_at
+            current_sleep_at = desired_sleep_at
+            return dict()
+
+        def _state_refresh(*args, **kwargs):
+            """Mimics state refresh at SDK level"""
+            simulation.sleep_at = current_sleep_at
+            return json.loads(simulation.json())
+
+        mock_client.register_uri(
+            'POST',
+            join_urls(simulation.detail_url, 'extend'),
+            json=_extend_sleep,
+            status_code=HTTPStatus.OK,
+        )
+        mock_client.register_uri(
+            'GET',
+            simulation.detail_url,
+            json=_state_refresh,
+            status_code=HTTPStatus.OK,
+        )
+        response = simulation.extend()
+        assert response == desired_sleep_at
+
+    def test_duplicate(self, api, simulation_factory, mock_client):
+        simulation_original = cast(air_sdk.v2.endpoints.simulations.Simulation, simulation_factory(api))
+        simulation_clone = cast(air_sdk.v2.endpoints.simulations.Simulation, simulation_factory(api))
+        current_state = simulation_original.state
+        desired_state = f'{simulation_original.state}_CHANGED'
+
+        def _handle_duplication(*args, **kwargs):
+            """Mimics simulation duplication on the backend"""
+            nonlocal current_state
+            current_state = desired_state
+            return {'simulation': {'id': str(simulation_clone.__pk__)}}
+
+        def _state_refresh(*args, **kwargs):
+            """Mimics state refresh at SDK level"""
+            simulation_original.state = current_state
+            return json.loads(simulation_original.json())
+
+        mock_client.register_uri(
+            'POST',
+            join_urls(simulation_original.detail_url, 'duplicate'),
+            json=_handle_duplication,
+            status_code=HTTPStatus.OK,
+        )
+        mock_client.register_uri(
+            'GET',
+            simulation_original.detail_url,
+            json=_state_refresh,
+            status_code=HTTPStatus.OK,
+        )
+        mock_client.register_uri(
+            'GET',
+            simulation_clone.detail_url,
+            json=json.loads(simulation_clone.json()),
+            status_code=HTTPStatus.OK,
+        )
+        response = simulation_original.duplicate()
+        assert response == simulation_clone
+        assert simulation_original.state == desired_state
 
 
 class TestSimulationEndpointApi:

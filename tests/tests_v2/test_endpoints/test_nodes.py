@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 import json
 from http import HTTPStatus
@@ -255,12 +255,53 @@ class TestNodeEndpointApi:
             ),
         ),
     )
-    def test_bulk_update_state(self, api, setup_mock_responses, node_factory, payload, is_valid):
+    def test_bulk_update_state(self, api, setup_mock_responses, payload, is_valid):
         """Ensure the `bulk_update_state` method is reliable."""
         method = api.nodes.bulk_update_state
         setup_mock_responses(
             {
                 ('PATCH', join_urls(api.nodes.url, 'bulk-update-state')): {
+                    'status_code': HTTPStatus.OK,
+                }
+            },
+        )
+        if is_valid:
+            assert method(payload) is None
+        else:
+            with pytest.raises(Exception) as err:
+                method(payload)
+            assert err.type in (TypeError, ValueError)
+
+    @pytest.mark.parametrize(
+        'payload,is_valid',
+        (
+            ([], True),
+            (
+                [
+                    {'id': fake.uuid4(), 'agent_key': str(fake.uuid4())},
+                    {'id': fake.uuid4(), 'agent_key': str(fake.uuid4())},
+                ],
+                True,
+            ),
+            (
+                [
+                    {'id': str(fake.uuid4()), 'agent_key': str(fake.uuid4())},
+                    {'id': str(fake.uuid4()), 'agent_key': str(fake.uuid4())},
+                ],
+                True,
+            ),
+            (
+                {'id': str(fake.uuid4()), 'agent_key': str(fake.uuid4())},
+                False,
+            ),
+        ),
+    )
+    def test_bulk_update_keydisk(self, api, setup_mock_responses, payload, is_valid):
+        """Ensure the `bulk_update_keydisk` method is reliable."""
+        method = api.nodes.bulk_update_keydisk
+        setup_mock_responses(
+            {
+                ('PATCH', join_urls(api.nodes.url, 'bulk-update-keydisk')): {
                     'status_code': HTTPStatus.OK,
                 }
             },

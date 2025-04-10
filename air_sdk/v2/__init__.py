@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 from __future__ import annotations
@@ -25,6 +25,7 @@ if TYPE_CHECKING:
         InterfaceEndpointApi,
         JobEndpointApi,
         LinkEndpointApi,
+        ManifestEndpointApi,
         MarketplaceDemoEndpointApi,
         MarketplaceDemoTagsEndpointApi,
         NodeEndpointApi,
@@ -33,6 +34,7 @@ if TYPE_CHECKING:
         ServiceEndpointApi,
         SimulationEndpointApi,
         SystemEndpointApi,
+        TopologyEndpointApi,
         UserConfigEndpointApi,
         WorkerEndpointApi,
     )
@@ -99,6 +101,12 @@ class AirApi:
         return JobEndpointApi(self)
 
     @property
+    def manifests(self) -> ManifestEndpointApi:
+        from .endpoints import ManifestEndpointApi
+
+        return ManifestEndpointApi(self)
+
+    @property
     def links(self) -> LinkEndpointApi:
         from air_sdk.v2.endpoints import LinkEndpointApi
 
@@ -151,6 +159,12 @@ class AirApi:
         from .endpoints import SystemEndpointApi
 
         return SystemEndpointApi(self)
+
+    @property
+    def topologies(self) -> TopologyEndpointApi:
+        from .endpoints import TopologyEndpointApi
+
+        return TopologyEndpointApi(self)
 
     @property
     def user_configs(self) -> UserConfigEndpointApi:

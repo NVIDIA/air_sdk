@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 import json
 from http import HTTPStatus
@@ -144,3 +144,53 @@ class TestLinkEndpointApi:
                 with pytest.raises(Exception) as err:
                     api.links.bulk_delete(**params)
                 assert err.type in (TypeError, ValueError), failure_msg
+
+    def test_get(self, setup_mock_responses, api, link_factory, simulation_factory):
+        inst = link_factory(api)
+        sim_inst = simulation_factory(api)
+
+        # Set up mock client
+        detail_url = join_urls(api.links.url, inst.id)
+        setup_mock_responses(
+            {
+                ('GET', detail_url): {
+                    'json': json.loads(inst.json()),
+                    'status_code': HTTPStatus.OK,
+                    'params': {'simulation': sim_inst.id},
+                }
+            }
+        )
+
+        link = api.links.get(pk=inst.id, simulation=sim_inst)  # Pass simulation instance
+        assert link.dict() == inst.dict()
+
+        link = api.links.get(pk=inst.id, simulation=sim_inst.id)  # Pass simulation ID
+        assert link.dict() == inst.dict()
+
+        # Test error cases
+        none_url = join_urls(api.links.url, 'None')
+        setup_mock_responses(
+            {
+                ('GET', none_url): {
+                    'json': {'error': 'Invalid request'},
+                    'status_code': HTTPStatus.BAD_REQUEST,
+                    'params': {'simulation': sim_inst.id},
+                }
+            }
+        )
+        with pytest.raises(TypeError):
+            api.links.get(pk=None, simulation=str(fake.uuid4()))
+
+        test_id = str(fake.uuid4())
+        detail_url = join_urls(api.links.url, test_id)
+        setup_mock_responses(
+            {
+                ('GET', detail_url): {
+                    'json': {'error': 'Invalid request'},
+                    'status_code': HTTPStatus.BAD_REQUEST,
+                    'params': {'simulation': None},
+                }
+            }
+        )
+        with pytest.raises(TypeError):
+            api.links.get(pk=test_id, simulation=None)

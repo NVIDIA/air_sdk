@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 from __future__ import annotations
@@ -28,6 +28,13 @@ class BulkUpdateSimNodeStateType(TypedDict):
 
     state: str
     ids: List[PrimaryKey]
+
+
+class BulkUpdateSimNodeKeydiskType(TypedDict):
+    """Type hints for the payload of the `NodeEndpointApi.bulk_update_keydisk` payload."""
+
+    id: PrimaryKey
+    agent_key: str
 
 
 @dataclass(eq=False)
@@ -186,6 +193,15 @@ class NodeEndpointApi(
         """Method used by worker clients to perform state updates of nodes in bulk."""
         response = self.__api__.client.patch(
             join_urls(self.url, 'bulk-update-state'),
+            data=serialize_payload(cast(List[Dict[str, Any]], data)),
+        )
+        raise_if_invalid_response(response, status_code=HTTPStatus.OK, data_type=None)
+
+    @validate_payload_types
+    def bulk_update_keydisk(self, data: List[BulkUpdateSimNodeKeydiskType]) -> None:
+        """Method used by worker clients to perform keydisk updates of nodes in bulk."""
+        response = self.__api__.client.patch(
+            join_urls(self.url, 'bulk-update-keydisk'),
             data=serialize_payload(cast(List[Dict[str, Any]], data)),
         )
         raise_if_invalid_response(response, status_code=HTTPStatus.OK, data_type=None)

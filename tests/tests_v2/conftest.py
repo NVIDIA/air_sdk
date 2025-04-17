@@ -195,6 +195,47 @@ def cloud_init_factory():
 
 
 @pytest.fixture
+def fleet_factory():
+    def _fleet_factory(api, **kwargs: Any):
+        defaults = {
+            'id': fake.uuid4(cast_to=str),
+            'name': fake.slug(),
+            'organization': fake.uuid4(cast_to=str),
+            'public': fake.pybool(),
+            'workers': [
+                {
+                    'id': str(fake.uuid4()),
+                    'url': f'https://{fake.domain_name()}/api/v1/worker/{fake.uuid4()}/',
+                    'cpu': fake.pyint(min_value=1, max_value=1000),
+                    'memory': fake.pyint(min_value=1024, max_value=1024000),
+                    'storage': fake.pyint(min_value=1000, max_value=1000000),
+                    'ip_address': fake.ipv4(),
+                    'port_range': f'{fake.pyint(min_value=1000, max_value=5000)}-{fake.pyint(min_value=5001, max_value=9999)}',
+                    'region': f'https://{fake.domain_name()}/api/v2/fleet/{fake.uuid4()}/',
+                    'available': fake.pybool(),
+                    'fqdn': f'worker-{fake.slug()}.{fake.domain_name()}',
+                    'fleet': str(fake.uuid4()),
+                    'contact': fake.pylist(value_types=(str,), nb_elements=2),
+                    'capabilities': json.dumps(['general', 'tpm']),
+                    'cpu_arch': fake.random_element(elements=('x86', 'arm')),
+                }
+                for _ in range(2)
+            ],
+            'prefix': fake.slug(),
+            'prefix_length': fake.pyint(),
+            'gateway_ipv4': fake.slug(),
+            'port_range': fake.slug(),
+            'container_ipv4_network': fake.slug(),
+            'container_prefix': fake.pyint(),
+            'labels': fake.pylist(value_types=(str,)),
+        }
+
+        return api.fleets.load_model({**defaults, **kwargs})
+
+    return _fleet_factory
+
+
+@pytest.fixture
 def interface_factory():
     def _interface_factory(api, **kwargs: Any):
         defaults = {

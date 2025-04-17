@@ -21,6 +21,7 @@ if TYPE_CHECKING:
         AnnouncementEndpointApi,
         ApiTokenEndpointApi,
         CloudInitEndpointApi,
+        FleetEndpointApi,
         ImageEndpointApi,
         InterfaceEndpointApi,
         JobEndpointApi,
@@ -81,6 +82,12 @@ class AirApi:
         from air_sdk.v2.endpoints import CloudInitEndpointApi
 
         return CloudInitEndpointApi(self)
+
+    @property
+    def fleets(self) -> FleetEndpointApi:
+        from .endpoints import FleetEndpointApi
+
+        return FleetEndpointApi(self)
 
     @property
     def images(self) -> ImageEndpointApi:

@@ -12,6 +12,8 @@ __all__ = [
     'ApiToken',
     'CloudInitEndpointApi',
     'CloudInit',
+    'FleetEndpointApi',
+    'Fleet',
     'ImageEndpointApi',
     'Image',
     'InterfaceEndpointApi',
@@ -52,6 +54,7 @@ from air_sdk.v2.endpoints.accounts import Account, AccountEndpointApi
 from air_sdk.v2.endpoints.announcements import Announcement, AnnouncementEndpointApi
 from air_sdk.v2.endpoints.api_tokens import ApiToken, ApiTokenEndpointApi
 from air_sdk.v2.endpoints.cloud_inits import CloudInit, CloudInitEndpointApi
+from air_sdk.v2.endpoints.fleets import Fleet, FleetEndpointApi
 from air_sdk.v2.endpoints.images import Image, ImageEndpointApi
 from air_sdk.v2.endpoints.interfaces import Interface, InterfaceEndpointApi, Link, LinkEndpointApi
 from air_sdk.v2.endpoints.jobs import Job, JobEndpointApi

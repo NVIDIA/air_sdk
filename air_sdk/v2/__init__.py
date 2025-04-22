@@ -20,6 +20,7 @@ if TYPE_CHECKING:
         AccountEndpointApi,
         AnnouncementEndpointApi,
         ApiTokenEndpointApi,
+        BreakoutEndpointApi,
         CloudInitEndpointApi,
         FleetEndpointApi,
         ImageEndpointApi,
@@ -76,6 +77,12 @@ class AirApi:
         from .endpoints import ApiTokenEndpointApi
 
         return ApiTokenEndpointApi(self)
+
+    @property
+    def breakouts(self) -> BreakoutEndpointApi:
+        from .endpoints import BreakoutEndpointApi
+
+        return BreakoutEndpointApi(self)
 
     @property
     def cloud_inits(self) -> CloudInitEndpointApi:

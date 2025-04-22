@@ -21,6 +21,7 @@ from air_sdk.v2.utils import validate_payload_types, join_urls
 
 if TYPE_CHECKING:
     from air_sdk.v2 import AirApi
+    from air_sdk.v2.endpoints.breakouts import Breakout
 
 
 @dataclass(eq=False)
@@ -92,6 +93,25 @@ class Interface(AirModel):
             'link': link,
         }
         super().update(**data)
+
+    def breakout(self, split_count: int) -> Breakout:
+        """
+        Create a breakout configuration for this interface.
+
+        Args:
+            split_count: Number of splits to create (minimum value: 2)
+
+        Returns:
+            Breakout: The created breakout configuration
+
+        """
+        payload: DataDict = {
+            'interface': self.__pk__,
+            'split_count': split_count,
+        }
+        response = self.__api__.client.post(self.__api__.breakouts.url, data=serialize_payload(payload))
+        raise_if_invalid_response(response, status_code=HTTPStatus.CREATED)
+        return self.__api__.breakouts.load_model(response.json())
 
 
 class InterfaceEndpointApi(

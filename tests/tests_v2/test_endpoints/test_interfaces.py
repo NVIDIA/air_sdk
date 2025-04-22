@@ -1,9 +1,10 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: MIT
 import json
 from http import HTTPStatus
 
 import pytest
+from air_sdk.exceptions import AirUnexpectedResponse
 import faker
 
 faker.Faker.seed(0)
@@ -205,3 +206,37 @@ class TestInterfaceEndpointApi:
         if payload.get('link') == 'use_real_link':
             payload['link'] = link_factory(api)
         run_full_update_patch_test(api.interfaces, interface_factory, payload, is_valid)
+
+    def test_interface_breakout(self, api, interface_factory, breakout_factory, setup_mock_responses):
+        instance = interface_factory(api.interfaces.__api__)
+        breakout_detail_url = api.breakouts.url
+
+        # Test valid cases
+        for split_count in [2, 4]:
+            expected_breakout = breakout_factory(api.breakouts.__api__, split_count=split_count)
+            setup_mock_responses(
+                {
+                    ('POST', breakout_detail_url): {
+                        'json': json.loads(expected_breakout.json()),
+                        'status_code': HTTPStatus.CREATED,
+                    },
+                }
+            )
+            breakout_response = instance.breakout(split_count=split_count)
+            assert breakout_response.id == expected_breakout.id
+            assert breakout_response.name == expected_breakout.name
+            assert breakout_response.split_count == expected_breakout.split_count
+
+        # Test invalid cases
+        for invalid_split_count in [1, 5, 'invalid', None]:
+            setup_mock_responses(
+                {
+                    ('POST', breakout_detail_url): {
+                        'json': {'error': 'Invalid request'},
+                        'status_code': HTTPStatus.BAD_REQUEST,
+                    },
+                }
+            )
+            with pytest.raises(Exception) as err:
+                instance.breakout(split_count=invalid_split_count)
+            assert err.type in (AirUnexpectedResponse, TypeError, ValueError)

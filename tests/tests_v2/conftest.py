@@ -93,6 +93,24 @@ def api_token_factory():
 
 
 @pytest.fixture
+def breakout_factory():
+    def _breakout_factory(api, **kwargs: Any):
+        expiry = fake.date_time(tzinfo=timezone.utc)
+        defaults = {
+            'id': fake.uuid4(cast_to=str),
+            'name': fake.slug(),
+            'node': fake.uuid4(cast_to=str),
+            'mac_address': fake.mac_address(),
+            'split_count': fake.pyint(),
+            'simulation_interfaces': [fake.uuid4(cast_to=str), fake.uuid4(cast_to=str)],
+            'created': fake.date_time(end_datetime=expiry, tzinfo=timezone.utc),
+        }
+        return api.breakouts.load_model({**defaults, **kwargs})
+
+    return _breakout_factory
+
+
+@pytest.fixture
 def announcement_factory():
     def _announcement_factory(api, **kwargs: Any):
         modified = fake.date_time(tzinfo=timezone.utc)

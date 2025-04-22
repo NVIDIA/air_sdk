@@ -10,6 +10,8 @@ __all__ = [
     'Announcement',
     'ApiTokenEndpointApi',
     'ApiToken',
+    'BreakoutEndpointApi',
+    'Breakout',
     'CloudInitEndpointApi',
     'CloudInit',
     'FleetEndpointApi',
@@ -53,6 +55,7 @@ from air_sdk.v2.endpoints import mixins
 from air_sdk.v2.endpoints.accounts import Account, AccountEndpointApi
 from air_sdk.v2.endpoints.announcements import Announcement, AnnouncementEndpointApi
 from air_sdk.v2.endpoints.api_tokens import ApiToken, ApiTokenEndpointApi
+from air_sdk.v2.endpoints.breakouts import Breakout, BreakoutEndpointApi
 from air_sdk.v2.endpoints.cloud_inits import CloudInit, CloudInitEndpointApi
 from air_sdk.v2.endpoints.fleets import Fleet, FleetEndpointApi
 from air_sdk.v2.endpoints.images import Image, ImageEndpointApi

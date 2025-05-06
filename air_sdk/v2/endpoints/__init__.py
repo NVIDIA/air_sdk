@@ -49,6 +49,8 @@ __all__ = [
     'WorkerEndpointApi',
     'Worker',
     'mixins',
+    'OrganizationMember',
+    'OrganizationMembersEndpointApi',
 ]
 
 from air_sdk.v2.endpoints import mixins
@@ -65,7 +67,12 @@ from air_sdk.v2.endpoints.manifests import Manifest, ManifestEndpointApi
 from air_sdk.v2.endpoints.marketplace_demo_tags import MarketplaceDemoTag, MarketplaceDemoTagsEndpointApi
 from air_sdk.v2.endpoints.marketplace_demos import MarketplaceDemo, MarketplaceDemoEndpointApi
 from air_sdk.v2.endpoints.nodes import Node, NodeEndpointApi
-from air_sdk.v2.endpoints.organizations import Organization, OrganizationEndpointApi
+from air_sdk.v2.endpoints.organizations import (
+    Organization,
+    OrganizationEndpointApi,
+    OrganizationMember,
+    OrganizationMembersEndpointApi,
+)
 from air_sdk.v2.endpoints.resource_budgets import ResourceBudget, ResourceBudgetEndpointApi
 from air_sdk.v2.endpoints.services import Service, ServiceEndpointApi
 from air_sdk.v2.endpoints.simulations import Simulation, SimulationEndpointApi

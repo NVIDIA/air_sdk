@@ -66,6 +66,8 @@ def type_check(value: Any, expected_type: Type[Any]) -> bool:
     if origin is None:  # Base case
         if is_typed_dict(expected_type):
             return type_check_typed_dict(value, expected_type)
+        if expected_type == Any:
+            return True
         return isinstance(value, expected_type)
 
     if origin is Union:

@@ -136,6 +136,22 @@ class Node(AirModel):
         cloud_int: CloudInit = self.__api__.cloud_inits.get(self.__pk__)
         return cloud_int
 
+    def __control(self, action: str) -> None:
+        """Internal method to handle control commands."""
+        payload = {'action': action}
+        response = self.__api__.client.post(join_urls(self.detail_url, 'control'), json=payload)
+        raise_if_invalid_response(response, status_code=HTTPStatus.CREATED, data_type=list)
+
+    def rebuild(self) -> None:
+        """
+        Rebuild the `SimulationNode` back to it's initial state. **All existing data will be lost!**
+        """
+        self.__control(action='rebuild')
+
+    def reset(self) -> None:
+        """Reset the `SimulationNode`"""
+        self.__control(action='reset')
+
 
 class NodeEndpointApi(
     mixins.ListApiMixin[Node],

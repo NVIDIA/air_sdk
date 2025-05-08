@@ -22,6 +22,39 @@ class TestNodeEndpointApi:
     def test_delete(self, api, run_delete_test, node_factory):
         run_delete_test(api.nodes, node_factory)
 
+    def test_rebuild(self, api, node_factory, mock_client):
+        """Test the rebuild method."""
+        node = node_factory(api)
+        mock_client.register_uri(
+            'POST',
+            join_urls(node.detail_url, 'control'),
+            json=[{'id': 'job-123', 'state': 'QUEUED'}],
+            status_code=HTTPStatus.CREATED,
+        )
+        node.rebuild()
+        assert len(mock_client.request_history) == 1
+        request = mock_client.request_history[0]
+        assert request.method == 'POST'
+        assert request.url == join_urls(node.detail_url, 'control')
+        assert request.json() == {'action': 'rebuild'}
+
+    def test_reset(self, api, node_factory, mock_client):
+        """Test the reset method."""
+        node = node_factory(api)
+
+        mock_client.register_uri(
+            'POST',
+            join_urls(node.detail_url, 'control'),
+            json=[{'id': 'job-123', 'state': 'QUEUED'}],
+            status_code=HTTPStatus.CREATED,
+        )
+        node.reset()
+        assert len(mock_client.request_history) == 1
+        request = mock_client.request_history[0]
+        assert request.method == 'POST'
+        assert request.url == join_urls(node.detail_url, 'control')
+        assert request.json() == {'action': 'reset'}
+
     @pytest.mark.parametrize(
         'payload,is_valid',
         (

@@ -51,6 +51,8 @@ __all__ = [
     'mixins',
     'OrganizationMember',
     'OrganizationMembersEndpointApi',
+    'NodeInstructionsEndpointApi',
+    'NodeInstruction',
 ]
 
 from air_sdk.v2.endpoints import mixins
@@ -80,3 +82,4 @@ from air_sdk.v2.endpoints.systems import System, SystemEndpointApi
 from air_sdk.v2.endpoints.topologies import Topology, TopologyEndpointApi
 from air_sdk.v2.endpoints.user_configs import UserConfig, UserConfigEndpointApi
 from air_sdk.v2.endpoints.workers import Worker, WorkerEndpointApi
+from air_sdk.v2.endpoints.node_instructions import NodeInstruction, NodeInstructionsEndpointApi

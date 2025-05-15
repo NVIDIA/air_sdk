@@ -7,6 +7,7 @@ import pytest
 import faker
 
 from air_sdk.v2.utils import join_urls
+from air_sdk.v2.endpoints.mixins import serialize_payload
 
 faker.Faker.seed(0)
 fake = faker.Faker()
@@ -344,4 +345,52 @@ class TestNodeEndpointApi:
         else:
             with pytest.raises(Exception) as err:
                 method(payload)
+            assert err.type in (TypeError, ValueError)
+
+    @pytest.mark.parametrize(
+        'payload,is_valid',
+        (
+            ({}, False),
+            (
+                {
+                    'executor': fake.slug(),
+                    'data': fake.slug(),
+                    'monitor': fake.slug(),
+                },
+                False,
+            ),
+            (
+                {
+                    'executor': 'init',
+                    'data': fake.slug(),
+                    'monitor': fake.slug(),
+                },
+                True,
+            ),
+        ),
+    )
+    def test_create_node_instruction(
+        self, setup_mock_responses, api, node_instruction_factory, node_factory, payload, is_valid
+    ):
+        """This tests that the data provided is properly validated and used."""
+        node = node_factory(api)
+        if is_valid:
+            processed_payload = json.loads(serialize_payload(payload))
+            expected_inst = node_instruction_factory(api.node_instructions.__api__, **processed_payload)
+            setup_mock_responses(
+                {
+                    ('POST', api.node_instructions.url.format(id=node.id)): {
+                        'json': json.loads(expected_inst.json()),
+                        'status_code': HTTPStatus.CREATED,
+                    }
+                }
+            )
+            inst = node.create_node_instruction(**payload)
+            # Verify that the returned instance and the expected instance are equal
+            assert inst == expected_inst
+            # Verify that the returned instance and the expected instance are not the same
+            assert inst is not expected_inst
+        else:
+            with pytest.raises(Exception) as err:
+                node.create_node_instruction(**payload)
             assert err.type in (TypeError, ValueError)

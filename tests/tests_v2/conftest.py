@@ -198,6 +198,22 @@ def node_factory():
 
 
 @pytest.fixture
+def node_instruction_factory():
+    def _node_instruction_factory(api, **kwargs: Any):
+        defaults = {
+            'id': fake.uuid4(cast_to=str),
+            'node': fake.uuid4(),
+            'instruction': fake.slug(),
+            'state': 'New',
+            'created': fake.date_time(tzinfo=timezone.utc),
+            'modified': fake.date_time(tzinfo=timezone.utc),
+        }
+        return api.node_instructions.load_model({**defaults, **kwargs})
+
+    return _node_instruction_factory
+
+
+@pytest.fixture
 def cloud_init_factory():
     def _cloud_init_factory(api, **kwargs: Any):
         defaults = {

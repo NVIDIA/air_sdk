@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from http import HTTPStatus
-from typing import Optional, Union, TYPE_CHECKING, List, TypedDict, cast, Any, Dict
+from typing import Literal, Optional, Union, TYPE_CHECKING, List, TypedDict, cast, Any, Dict
 
 from air_sdk.util import raise_if_invalid_response
 from air_sdk.v2.endpoints import mixins
@@ -21,6 +21,7 @@ from air_sdk.v2.utils import validate_payload_types, join_urls
 
 if TYPE_CHECKING:
     from air_sdk.v2.endpoints.cloud_inits import CloudInit
+    from air_sdk.v2.endpoints.node_instructions import NodeInstruction
 
 
 class BulkUpdateSimNodeStateType(TypedDict):
@@ -130,6 +131,21 @@ class Node(AirModel):
         This is only used by worker clients when starting simulation nodes.
         """
         super().update(agent_key=agent_key)
+
+    def create_node_instruction(
+        self,
+        executor: Literal['init', 'file', 'shell'],
+        data: str,
+        monitor: Optional[str] = None,
+    ) -> NodeInstruction:
+        """Add a node instruction to the node."""
+        node_instruction: NodeInstruction = self.__api__.node_instructions.create(
+            pk=self.__pk__,
+            executor=executor,
+            data=data,
+            monitor=monitor,
+        )
+        return node_instruction
 
     @property
     def cloud_init(self) -> CloudInit:

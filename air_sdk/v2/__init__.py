@@ -39,6 +39,7 @@ if TYPE_CHECKING:
         TopologyEndpointApi,
         UserConfigEndpointApi,
         WorkerEndpointApi,
+        NodeInstructionsEndpointApi,
     )
 
 
@@ -191,6 +192,12 @@ class AirApi:
         from .endpoints import WorkerEndpointApi
 
         return WorkerEndpointApi(self)
+
+    @property
+    def node_instructions(self) -> NodeInstructionsEndpointApi:
+        from .endpoints import NodeInstructionsEndpointApi
+
+        return NodeInstructionsEndpointApi(self)
 
     def set_connect_timeout(self, t_delta: timedelta) -> None:
         self.client.connect_timeout = int(t_delta.total_seconds())

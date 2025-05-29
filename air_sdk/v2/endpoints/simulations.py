@@ -47,6 +47,7 @@ class TopologyFormat(TypedDict, total=False):
     format: TopologyFormatType
     organization: Union[Organization, PrimaryKey]  # NotRequired
     content: TopologyFormatContent
+    ztp: str
 
 
 @dataclass(eq=False)
@@ -278,6 +279,7 @@ class SimulationEndpointApi(
         format: TopologyFormatType,
         content: SimulationImportPayloadContent,
         organization: Optional[Union[Organization, PrimaryKey]] = None,
+        ztp: Optional[str] = None,
     ) -> Simulation:
         """
         Creates a simulation using a supported topology format. Currently supported format is `JSON`.
@@ -297,6 +299,10 @@ class SimulationEndpointApi(
         )
         if organization is not None:
             payload['organization'] = organization
+
+        if ztp is not None:
+            payload['ztp'] = ztp
+
         response = self.__api__.client.post(
             join_urls(self.url, self.IMPORT_PATH),
             data=mixins.serialize_payload(payload),

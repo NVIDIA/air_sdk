@@ -419,12 +419,13 @@ class TestSimulationEndpointApi:
                     },
                     True,
                 ),
-                # Explicit `organization=None`
+                # Explicit `organization=None` and `ztp`=None
                 (
                     {
                         'title': fake.slug(),
                         'format': 'JSON',
                         'organization': None,
+                        'ztp': None,
                         'content': {},
                     },
                     True,
@@ -435,6 +436,16 @@ class TestSimulationEndpointApi:
                         'title': fake.slug(),
                         'format': 'JSON',
                         'organization': fake.slug(),
+                        'content': {},
+                    },
+                    True,
+                ),
+                # Assigned ztp
+                (
+                    {
+                        'title': fake.slug(),
+                        'format': 'JSON',
+                        'ztp': fake.slug(),
                         'content': {},
                     },
                     True,

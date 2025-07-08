@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "air-sdk"
-version = "2.21.0"
+version = "2.21.1"
 description = "Python SDK for interacting with NVIDIA Air"
 license = "MIT"
 classifiers = ["Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent"]
@@ -15,7 +15,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.8"
 python-dateutil = "^2.9.0"
-requests = "^2.32.3"
+requests = "^2.32.4"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.5.4"

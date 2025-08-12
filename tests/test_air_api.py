@@ -459,8 +459,8 @@ class TestHelpers(TestCase):
     @patch('air_sdk.air_api._serialize_dict')
     def test_serialize_list_dict(self, mock_dict):
         test_list = [{'foo': 'bar'}]
-        mock_dict.called_with({'foo': 'bar'})
         res = air_api._serialize_list(test_list)
+        mock_dict.assert_called_with({'foo': 'bar'})
         self.assertListEqual(res, [mock_dict.return_value])
 
     def test_serialize_list_list(self):

@@ -180,7 +180,11 @@ class TopologyApi:
             if isinstance(kwargs['dot'], io.IOBase):
                 payload = kwargs['dot']
             elif os.path.isfile(kwargs['dot']):
-                payload = open(kwargs['dot'], 'r').read()
+                dot_file = open(kwargs['dot'], 'r')
+                try:
+                    payload = dot_file.read()
+                finally:
+                    dot_file.close()
             else:
                 payload = kwargs['dot'].encode('utf-8')
             res = self.client.post(self.url, data=payload, headers={'Content-type': 'text/vnd.graphviz'})

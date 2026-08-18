@@ -6,7 +6,11 @@ Tests for topology.py
 """
 
 # pylint: disable=missing-function-docstring,missing-class-docstring,unused-argument
+import gc
 import io
+import os
+import tempfile
+import warnings
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
@@ -141,6 +145,32 @@ class TestTopologyApi(TestCase):
         self.assertEqual(res.id, 'abc')
         mock_isfile.assert_called_once_with(file_path)
         mock_open.assert_called_once_with(file_path, 'r')
+
+    @patch('air_sdk.util.raise_if_invalid_response')
+    def test_create_dot_file_path_closes_handle(self, *args):
+        # Regression test: creating a topology from a DOT file path must not
+        # leak the file handle (previously `open(path, 'r').read()` left the
+        # handle to be closed by the garbage collector, raising a
+        # ResourceWarning for the unclosed file).
+        self.client.post.return_value.json.return_value = {'id': 'abc'}
+        with tempfile.NamedTemporaryFile('w', suffix='.dot', delete=False) as tmp:
+            tmp.write('graph { a -- b }')
+            file_path = tmp.name
+        try:
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter('always')
+                res = self.api.create(dot=file_path)
+                gc.collect()
+            leaked = [w for w in caught if issubclass(w.category, ResourceWarning)]
+            self.assertEqual(leaked, [], 'DOT file handle was not closed')
+            self.client.post.assert_called_with(
+                f'{self.client.api_url}/topology/',
+                data='graph { a -- b }',
+                headers={'Content-type': 'text/vnd.graphviz'},
+            )
+            self.assertEqual(res.id, 'abc')
+        finally:
+            os.unlink(file_path)
 
     @patch('air_sdk.util.raise_if_invalid_response')
     def test_create_dot_extra_kwargs(self, *args):
